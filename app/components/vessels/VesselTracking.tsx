@@ -47,54 +47,44 @@ export default function VesselTracking() {
   const anomalies = getAnomalies(allVessels);
 
   return (
-    <section
-      className="grid grid-cols-[1fr_340px] gap-px max-lg:grid-cols-1"
-      style={{
-        background: "var(--border)",
-        animation: "fade-in-up 0.4s ease-out 0.2s both",
-      }}
-    >
-      {/* Map panel */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-2 h-2"
-              style={{ background: "var(--accent-cyan)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
-            />
-            <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-              중동 해역 선박 추적
-            </h2>
-          </div>
-        </div>
-
-        <div
-          className="relative w-full border overflow-hidden"
-          style={{ borderColor: "var(--border)", height: 340 }}
-        >
-          {isLoading ? (
-            <div
-              className="flex items-center justify-center h-full"
-              style={{ background: "#0a0e17" }}
-            >
-              <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
-                LOADING MAP...
-              </span>
-            </div>
-          ) : (
-            <VesselMapInner vessels={allVessels} />
-          )}
+    <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2"
+            style={{ background: "var(--accent-cyan)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
+          />
+          <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
+            중동 해역 선박 추적
+          </h2>
         </div>
       </div>
 
-      {/* Info panel */}
-      <div className="p-5 flex flex-col gap-4" style={{ background: "var(--bg-primary)" }}>
+      {/* Map */}
+      <div
+        className="relative w-full border overflow-hidden"
+        style={{ borderColor: "var(--border)", height: 340 }}
+      >
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full" style={{ background: "#0a0e17" }}>
+            <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
+              LOADING MAP...
+            </span>
+          </div>
+        ) : (
+          <VesselMapInner vessels={allVessels} />
+        )}
+      </div>
+
+      {/* Passage Stats (left) + Anomaly Alerts (right) */}
+      <div className="grid grid-cols-2 gap-2 max-lg:grid-cols-1">
         {/* Passage stats */}
         <div>
-          <h3 className="font-mono text-[0.65rem] tracking-[1.5px] uppercase mb-2" style={{ color: "var(--text-muted)" }}>
+          <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
             해협별 통과 현황 (24H)
           </h3>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {isLoading ? (
               <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>LOADING...</span>
             ) : zoneStats.length === 0 ? (
@@ -103,22 +93,22 @@ export default function VesselTracking() {
               zoneStats.slice(0, 3).map((z) => (
                 <div
                   key={z.zone}
-                  className="flex items-center justify-between px-3 py-2.5 border"
+                  className="flex items-center justify-between px-2 py-1.5 border"
                   style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
                 >
                   <div>
-                    <div className="font-mono text-[0.68rem] tracking-[0.5px]" style={{ color: "var(--text-secondary)" }}>
+                    <div className="font-mono text-[0.58rem] tracking-[0.5px]" style={{ color: "var(--text-secondary)" }}>
                       {z.ko}
                     </div>
-                    <div className="font-mono text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
+                    <div className="font-mono text-[0.46rem]" style={{ color: "var(--text-muted)" }}>
                       {z.en}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-[1.1rem] font-bold" style={{ color: "var(--text-primary)" }}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[0.8rem] font-bold" style={{ color: "var(--text-primary)" }}>
                       {z.count}
                     </span>
-                    <span className="font-mono text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
+                    <span className="font-mono text-[0.46rem]" style={{ color: "var(--text-muted)" }}>
                       척
                     </span>
                   </div>
@@ -130,7 +120,7 @@ export default function VesselTracking() {
 
         {/* Anomaly alerts */}
         <div>
-          <h3 className="font-mono text-[0.65rem] tracking-[1.5px] uppercase mb-2" style={{ color: "var(--accent-amber)" }}>
+          <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
             이상 감지 알림
           </h3>
           <div className="flex flex-col gap-1">
@@ -139,12 +129,12 @@ export default function VesselTracking() {
                 이상 감지 없음
               </span>
             ) : (
-              anomalies.slice(0, 5).map((v) => {
+              anomalies.slice(0, 3).map((v) => {
                 const isCritical = v.latestPosition?.status === "anomaly";
                 return (
                   <div
                     key={v.id}
-                    className="flex items-start gap-2 px-2.5 py-2 border text-[0.72rem]"
+                    className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
                     style={{
                       background: isCritical ? "var(--accent-red-dim)" : "var(--accent-amber-dim)",
                       borderColor: isCritical ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)",
@@ -152,19 +142,19 @@ export default function VesselTracking() {
                     }}
                   >
                     <span
-                      className="font-mono text-[0.6rem] font-bold shrink-0 mt-px"
+                      className="font-mono text-[0.55rem] font-bold shrink-0 mt-px"
                       style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}
                     >
                       {isCritical ? "!!" : "!"}
                     </span>
                     <div>
                       <div
-                        className="text-[0.68rem] font-medium mb-0.5"
+                        className="text-[0.6rem] font-medium mb-0.5"
                         style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}
                       >
                         {v.name} — {v.latestPosition?.status.toUpperCase()}
                       </div>
-                      <div className="text-[0.6rem]" style={{ color: "var(--text-muted)" }}>
+                      <div className="text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
                         {v.type} · {v.latestPosition?.speed ?? 0} kn · {v.latestPosition?.zone ?? "—"}
                       </div>
                     </div>
@@ -175,6 +165,6 @@ export default function VesselTracking() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

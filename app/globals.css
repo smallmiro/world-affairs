@@ -142,6 +142,15 @@ body::after {
   }
 }
 
+@keyframes radar-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Card hover styles */
 .news-item-card {
   background: var(--bg-secondary);
