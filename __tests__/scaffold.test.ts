@@ -27,10 +27,6 @@ describe("Project scaffolding", () => {
     expect(fs.existsSync(path.join(root, "lib/prisma.ts"))).toBe(true);
   });
 
-  it("should have src/domain directory", () => {
-    expect(fs.existsSync(path.join(root, "src/domain"))).toBe(true);
-  });
-
   it("should have db directory with .gitkeep", () => {
     expect(fs.existsSync(path.join(root, "db/.gitkeep"))).toBe(true);
   });

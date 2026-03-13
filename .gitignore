@@ -35,3 +35,4 @@ prisma/*.db-journal
 pm2-*.log
 
 /app/generated/prisma
+.mcp.json
