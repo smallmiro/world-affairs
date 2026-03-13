@@ -32,14 +32,22 @@ describe("Project scaffolding", () => {
 
   it("should have generated Prisma client", () => {
     expect(
-      fs.existsSync(path.join(root, "app/generated/prisma")),
+      fs.existsSync(path.join(root, "src/generated/prisma")),
     ).toBe(true);
   });
 });
 
 describe("Hexagonal architecture structure (src/)", () => {
-  it("should have domain layer", () => {
-    expect(fs.existsSync(path.join(root, "src/domain"))).toBe(true);
+  it("should have domain layer with 5 bounded contexts", () => {
+    for (const ctx of ["news", "market", "vessel", "geopolitics", "analysis"]) {
+      expect(fs.existsSync(path.join(root, `src/domain/${ctx}/entities.ts`))).toBe(true);
+      expect(fs.existsSync(path.join(root, `src/domain/${ctx}/ports.ts`))).toBe(true);
+      expect(fs.existsSync(path.join(root, `src/domain/${ctx}/index.ts`))).toBe(true);
+    }
+  });
+
+  it("should have shared types", () => {
+    expect(fs.existsSync(path.join(root, "src/shared/types.ts"))).toBe(true);
   });
 
   it("should have adapters layer", () => {

@@ -34,5 +34,8 @@ prisma/*.db-journal
 *.log
 pm2-*.log
 
-/app/generated/prisma
+# generated
+/app/generated/
+/src/generated/
 .mcp.json
+tsconfig.tsbuildinfo
