@@ -45,6 +45,10 @@ export class GdeltCollector implements NewsCollectorPort {
     const url = `${GDELT_API_URL}?${params.toString()}`;
 
     const response = await fetch(url);
+    if (response.status === 429) {
+      console.warn("[GDELT News] Rate limited (429). Returning empty result.");
+      return { data: [], collectedAt: new Date(), source: "gdelt" };
+    }
     if (!response.ok) {
       throw new Error(`GDELT API error: ${response.status} ${response.statusText}`);
     }

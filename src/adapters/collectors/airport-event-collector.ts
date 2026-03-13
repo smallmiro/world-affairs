@@ -99,6 +99,10 @@ export class GdeltAirportEventCollector implements AirportEventCollectorPort {
     const url = `${GDELT_GKG_URL}?${params.toString()}`;
 
     const response = await fetch(url);
+    if (response.status === 429) {
+      console.warn("[GDELT Airport] Rate limited (429). Returning empty result.");
+      return { data: [], collectedAt: new Date(), source: "gdelt-airport" };
+    }
     if (!response.ok) {
       throw new Error(
         `GDELT Airport API error: ${response.status} ${response.statusText}`,
