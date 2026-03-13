@@ -11,4 +11,5 @@ export interface NewsRepositoryPort {
   findByRegion(region: Region, lang: Language, limit: number): Promise<Article[]>;
   findByCategory(category: NewsCategory, lang: Language, limit: number): Promise<Article[]>;
   existsBySourceId(sourceId: string, source: string): Promise<boolean>;
+  filterExistingSourceIds(ids: { sourceId: string; source: string }[]): Promise<Set<string>>;
 }
