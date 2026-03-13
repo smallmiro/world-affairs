@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cron from "node-cron";
 import { prisma } from "../infrastructure/prisma";
 import { collectNews } from "../usecases/collect-news";
