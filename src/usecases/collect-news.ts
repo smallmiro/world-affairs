@@ -44,11 +44,14 @@ export async function collectNews(
     const result = await collector.collect();
     total += result.data.length;
 
-    const newArticles: Article[] = [];
+    // Batch check existing articles (single query instead of N+1)
+    const existingIds = await repository.filterExistingSourceIds(
+      result.data.map((r) => ({ sourceId: r.sourceId, source: r.source })),
+    );
 
+    const newArticles: Article[] = [];
     for (const raw of result.data) {
-      const exists = await repository.existsBySourceId(raw.sourceId, raw.source);
-      if (exists) {
+      if (existingIds.has(raw.sourceId)) {
         skipped++;
         continue;
       }

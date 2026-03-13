@@ -22,6 +22,9 @@ function createMockRepository(existingIds: Set<string> = new Set()): NewsReposit
     existsBySourceId: vi.fn().mockImplementation(
       (sourceId: string) => Promise.resolve(existingIds.has(sourceId)),
     ),
+    filterExistingSourceIds: vi.fn().mockImplementation(
+      () => Promise.resolve(existingIds),
+    ),
   };
 }
 

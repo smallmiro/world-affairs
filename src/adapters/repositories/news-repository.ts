@@ -43,44 +43,46 @@ export class NewsRepository implements NewsRepositoryPort {
   constructor(private prisma: PrismaClient) {}
 
   async save(articles: Article[]): Promise<void> {
-    for (const article of articles) {
-      await this.prisma.article.upsert({
-        where: {
-          sourceId_source: {
+    await this.prisma.$transaction(
+      articles.map((article) =>
+        this.prisma.article.upsert({
+          where: {
+            sourceId_source: {
+              sourceId: article.sourceId,
+              source: article.source,
+            },
+          },
+          create: {
             sourceId: article.sourceId,
             source: article.source,
+            url: article.url,
+            titleEn: article.title.en,
+            titleKo: article.title.ko,
+            titleJa: article.title.ja,
+            summaryEn: article.summary?.en ?? null,
+            summaryKo: article.summary?.ko ?? null,
+            summaryJa: article.summary?.ja ?? null,
+            category: article.category,
+            region: article.region,
+            severity: article.severity,
+            imageUrl: article.imageUrl,
+            publishedAt: article.publishedAt,
           },
-        },
-        create: {
-          sourceId: article.sourceId,
-          source: article.source,
-          url: article.url,
-          titleEn: article.title.en,
-          titleKo: article.title.ko,
-          titleJa: article.title.ja,
-          summaryEn: article.summary?.en ?? null,
-          summaryKo: article.summary?.ko ?? null,
-          summaryJa: article.summary?.ja ?? null,
-          category: article.category,
-          region: article.region,
-          severity: article.severity,
-          imageUrl: article.imageUrl,
-          publishedAt: article.publishedAt,
-        },
-        update: {
-          titleEn: article.title.en,
-          titleKo: article.title.ko,
-          titleJa: article.title.ja,
-          summaryEn: article.summary?.en ?? null,
-          summaryKo: article.summary?.ko ?? null,
-          summaryJa: article.summary?.ja ?? null,
-          category: article.category,
-          region: article.region,
-          severity: article.severity,
-          imageUrl: article.imageUrl,
-        },
-      });
-    }
+          update: {
+            titleEn: article.title.en,
+            titleKo: article.title.ko,
+            titleJa: article.title.ja,
+            summaryEn: article.summary?.en ?? null,
+            summaryKo: article.summary?.ko ?? null,
+            summaryJa: article.summary?.ja ?? null,
+            category: article.category,
+            region: article.region,
+            severity: article.severity,
+            imageUrl: article.imageUrl,
+          },
+        }),
+      ),
+    );
   }
 
   async findLatest(limit: number, lang: Language): Promise<Article[]> {
@@ -114,5 +116,20 @@ export class NewsRepository implements NewsRepositoryPort {
       where: { sourceId, source },
     });
     return count > 0;
+  }
+
+  async filterExistingSourceIds(
+    ids: { sourceId: string; source: string }[],
+  ): Promise<Set<string>> {
+    if (ids.length === 0) return new Set();
+
+    const existing = await this.prisma.article.findMany({
+      where: {
+        OR: ids.map(({ sourceId, source }) => ({ sourceId, source })),
+      },
+      select: { sourceId: true },
+    });
+
+    return new Set(existing.map((r) => r.sourceId));
   }
 }
