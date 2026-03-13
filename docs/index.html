@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGINT // 국제 정세 모니터링</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #0f1420;
+  --bg-card: #111827;
+  --bg-card-hover: #161d2e;
+  --border: #1e293b;
+  --border-active: #334155;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-dim: rgba(6,182,212,0.15);
+  --accent-amber: #f59e0b;
+  --accent-amber-dim: rgba(245,158,11,0.12);
+  --accent-red: #ef4444;
+  --accent-red-dim: rgba(239,68,68,0.12);
+  --accent-green: #22c55e;
+  --accent-green-dim: rgba(34,197,94,0.12);
+  --accent-blue: #3b82f6;
+  --accent-blue-dim: rgba(59,130,246,0.12);
+  --accent-purple: #a855f7;
+  --font-mono: 'IBM Plex Mono', 'Space Mono', monospace;
+  --font-body: 'Noto Sans KR', sans-serif;
+  --glow-cyan: 0 0 20px rgba(6,182,212,0.3);
+  --glow-red: 0 0 20px rgba(239,68,68,0.3);
+  --glow-amber: 0 0 15px rgba(245,158,11,0.2);
+}
+
+html { font-size: 14px; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
+
+/* Leaflet overrides for dark theme */
+.leaflet-container { background: #0a0e17 !important; font-family: var(--font-mono) !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; }
+.leaflet-control-zoom a { background: var(--bg-card) !important; color: var(--text-secondary) !important; border-color: var(--border) !important; }
+.leaflet-control-zoom a:hover { background: var(--bg-card-hover) !important; color: var(--accent-cyan) !important; }
+.leaflet-control-attribution { display: none !important; }
+
+/* Pulsing marker */
+.pulse-marker {
+  width: 14px; height: 14px;
+  position: relative;
+}
+.pulse-marker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent-red);
+  animation: hpulse 2s ease-out infinite;
+}
+.pulse-marker::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  z-index: 1;
+}
+.pulse-marker.amber::before { background: var(--accent-amber); }
+.pulse-marker.amber::after { background: var(--accent-amber); }
+
+@keyframes hpulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+/* Vessel marker */
+.vessel-marker {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid var(--accent-amber);
+  filter: drop-shadow(0 0 4px rgba(245,158,11,0.5));
+}
+.vessel-marker.lpg {
+  border-bottom-color: var(--accent-cyan);
+  filter: drop-shadow(0 0 4px rgba(6,182,212,0.5));
+}
+.vessel-marker.reroute {
+  border-bottom-color: var(--accent-red);
+  filter: drop-shadow(0 0 4px rgba(239,68,68,0.5));
+}
+
+/* Hotspot popup */
+.hotspot-popup .leaflet-popup-content-wrapper {
+  background: rgba(15,20,32,0.95) !important;
+  border: 1px solid var(--border-active) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-body) !important;
+}
+.hotspot-popup .leaflet-popup-tip { background: rgba(15,20,32,0.95) !important; }
+.hotspot-popup .leaflet-popup-content { margin: 10px 14px !important; font-size: 0.8rem !important; }
+.popup-title { font-family: var(--font-mono); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 4px; }
+.popup-title.red { color: var(--accent-red); }
+.popup-title.amber { color: var(--accent-amber); }
+.popup-desc { color: var(--text-secondary); font-size: 0.72rem; line-height: 1.5; }
+
+/* ── Top Bar ── */
+.topbar {
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 52px;
+  background: rgba(10,14,23,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-brand { display: flex; align-items: center; gap: 12px; }
+.topbar-brand .logo { font-family: var(--font-mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+.topbar-brand .divider { width: 1px; height: 20px; background: var(--border-active); }
+.topbar-brand .subtitle { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 1px; }
+
+.topbar-nav { display: flex; gap: 2px; }
+.nav-tab {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: 6px 14px; color: var(--text-muted); border: 1px solid transparent; background: transparent; cursor: pointer; transition: all 0.2s;
+}
+.nav-tab:hover { color: var(--text-secondary); background: var(--bg-secondary); }
+.nav-tab.active { color: var(--accent-cyan); border-color: var(--border-active); background: var(--bg-card); }
+
+.topbar-status { display: flex; align-items: center; gap: 20px; }
+.status-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { opacity:1; box-shadow:0 0 4px var(--accent-green); } 50% { opacity:0.4; } }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.btn-icon {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  background: transparent; border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+}
+.btn-icon:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+.alert-badge { position: relative; }
+.alert-badge::after {
+  content: '3'; position: absolute; top: -4px; right: -4px;
+  width: 14px; height: 14px; background: var(--accent-red); color: #fff;
+  font-size: 0.55rem; font-family: var(--font-mono); border-radius: 50%; display: grid; place-items: center;
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+@keyframes pulse-badge { 0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow:0 0 0 4px rgba(239,68,68,0); } }
+
+/* ── Alert Ticker ── */
+.alert-ticker {
+  background: var(--accent-red-dim); border-bottom: 1px solid rgba(239,68,68,0.2);
+  padding: 6px 24px; display: flex; align-items: center; gap: 12px; overflow: hidden;
+}
+.ticker-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; color: var(--accent-red); text-transform: uppercase; white-space: nowrap; animation: blink-label 1s step-end infinite; }
+@keyframes blink-label { 50% { opacity:0.3; } }
+.ticker-content { flex: 1; overflow: hidden; }
+.ticker-scroll { display: flex; gap: 80px; animation: scroll-ticker 30s linear infinite; white-space: nowrap; }
+@keyframes scroll-ticker { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+.ticker-scroll span { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); }
+.ticker-scroll span strong { color: var(--accent-red); font-weight: 600; }
+
+/* ── Dashboard Grid ── */
+.dashboard { display: grid; grid-template-columns: 1fr 360px; gap: 1px; background: var(--border); }
+.dashboard > * { background: var(--bg-primary); }
+
+/* ── Widget Common ── */
+.widget { padding: 20px; position: relative; }
+.widget-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.widget-title { display: flex; align-items: center; gap: 8px; }
+.widget-title h2 { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); }
+.widget-title .indicator { width: 8px; height: 8px; background: var(--accent-cyan); clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); }
+.widget-controls { display: flex; gap: 4px; }
+.ctrl-btn {
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.5px; padding: 3px 8px;
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover, .ctrl-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); background: var(--accent-cyan-dim); }
+
+/* ── Map sections ── */
+.map-section { grid-column: 1; grid-row: 1; min-height: 420px; }
+#world-map { width: 100%; height: 370px; border: 1px solid var(--border); }
+
+/* ── News Feed ── */
+.news-section { grid-column: 2; grid-row: 1 / 3; max-height: 700px; display: flex; flex-direction: column; }
+.news-filters { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+.news-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.news-item { padding: 12px; border: 1px solid var(--border); background: var(--bg-secondary); cursor: pointer; transition: all 0.15s; position: relative; }
+.news-item:hover { background: var(--bg-card-hover); border-color: var(--border-active); }
+.news-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+.news-item.critical::before { background: var(--accent-red); }
+.news-item.warning::before { background: var(--accent-amber); }
+.news-item.info::before { background: var(--accent-blue); }
+.news-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.news-severity { font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700; letter-spacing: 1px; padding: 1px 6px; text-transform: uppercase; }
+.news-severity.critical { color: var(--accent-red); background: var(--accent-red-dim); }
+.news-severity.warning { color: var(--accent-amber); background: var(--accent-amber-dim); }
+.news-severity.info { color: var(--accent-blue); background: var(--accent-blue-dim); }
+.news-time { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
+.news-category { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); letter-spacing: 0.5px; margin-left: auto; }
+.news-title { font-size: 0.82rem; font-weight: 500; color: var(--text-primary); line-height: 1.4; margin-bottom: 4px; }
+.news-source { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); }
+
+/* ── Issue Tracker ── */
+.issues-section { grid-column: 1; grid-row: 2; }
+.issues-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.issue-card { background: var(--bg-secondary); border: 1px solid var(--border); padding: 14px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+.issue-card:hover { border-color: var(--border-active); transform: translateY(-1px); }
+.issue-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+.issue-card.severity-5::after { background: var(--accent-red); box-shadow: var(--glow-red); }
+.issue-card.severity-4::after { background: var(--accent-amber); box-shadow: var(--glow-amber); }
+.issue-card.severity-3::after { background: var(--accent-blue); }
+.issue-region { font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+.issue-name { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+.severity-bar { display: flex; gap: 2px; margin-bottom: 8px; }
+.severity-bar .seg { flex: 1; height: 3px; background: var(--border); }
+.issue-card.severity-5 .seg.filled { background: var(--accent-red); }
+.issue-card.severity-4 .seg.filled { background: var(--accent-amber); }
+.issue-card.severity-3 .seg.filled { background: var(--accent-blue); }
+.issue-footer { display: flex; justify-content: space-between; align-items: center; }
+.issue-trend { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; }
+.trend-up { color: var(--accent-red); }
+.trend-stable { color: var(--accent-amber); }
+.trend-down { color: var(--accent-green); }
+.issue-countries { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); }
+
+/* ── Vessel Tracking ── */
+.vessel-section { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: 1fr 340px; gap: 1px; background: var(--border); padding: 0; }
+.vessel-section > * { background: var(--bg-primary); }
+.vessel-map-panel { padding: 20px; }
+.vessel-info-panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+#vessel-map { width: 100%; height: 340px; border: 1px solid var(--border); }
+
+.passage-stats { display: flex; flex-direction: column; gap: 8px; }
+.passage-stat { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-secondary); border: 1px solid var(--border); }
+.passage-name { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); letter-spacing: 0.5px; }
+.passage-data { display: flex; align-items: center; gap: 12px; }
+.passage-count { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.passage-unit { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); }
+.passage-trend { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; }
+
+.anomaly-section h3 { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1.5px; color: var(--accent-amber); text-transform: uppercase; margin-bottom: 8px; }
+.anomaly-list { display: flex; flex-direction: column; gap: 4px; }
+.anomaly-item { padding: 8px 10px; background: var(--accent-amber-dim); border: 1px solid rgba(245,158,11,0.15); font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: 8px; }
+.anomaly-icon { font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-amber); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.anomaly-item.critical-anomaly { background: var(--accent-red-dim); border-color: rgba(239,68,68,0.15); }
+.anomaly-item.critical-anomaly .anomaly-icon { color: var(--accent-red); }
+
+/* ── AI Analysis ── */
+.ai-section { grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); padding: 0; }
+.ai-section > * { background: var(--bg-primary); padding: 20px; }
+.ai-widget h3 {
+  font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 2px; color: var(--accent-purple);
+  text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+}
+.ai-widget h3::before { content: ''; width: 6px; height: 6px; background: var(--accent-purple); clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); }
+
+.sentiment-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sentiment-region { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); width: 70px; }
+.sentiment-bar-track { flex: 1; height: 4px; background: var(--border); position: relative; }
+.sentiment-bar-fill { position: absolute; left: 0; top: 0; height: 100%; }
+.sentiment-bar-fill.negative { background: linear-gradient(90deg,var(--accent-red),var(--accent-amber)); }
+.sentiment-bar-fill.mixed { background: linear-gradient(90deg,var(--accent-amber),var(--accent-blue)); }
+.sentiment-bar-fill.positive { background: linear-gradient(90deg,var(--accent-green),var(--accent-cyan)); }
+.sentiment-value { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); width: 35px; text-align: right; }
+
+.trend-chart { width: 100%; height: 120px; }
+.trend-chart svg { width: 100%; height: 100%; }
+
+.briefing-item { padding: 10px 12px; margin-bottom: 6px; border-left: 2px solid var(--accent-purple); background: rgba(168,85,247,0.04); }
+.briefing-item p { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.6; }
+.briefing-item .briefing-tag { font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 1px; color: var(--accent-purple); margin-bottom: 4px; }
+
+/* ── Market Ticker Bar ── */
+.market-ticker-bar {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+}
+.market-ticker-bar::-webkit-scrollbar { display: none; }
+.mticker-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 16px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mticker-name { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.5px; }
+.mticker-value { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text-primary); }
+.mticker-change { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600; }
+.mticker-change.up { color: var(--accent-red); }
+.mticker-change.down { color: var(--accent-blue); }
+.mticker-change.flat { color: var(--text-muted); }
+.mticker-spark { display: flex; align-items: flex-end; gap: 1px; height: 16px; }
+.mticker-spark .bar {
+  width: 2px; background: var(--accent-cyan); opacity: 0.5; border-radius: 1px 1px 0 0;
+}
+
+/* ── Market Section ── */
+.market-section {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  padding: 0;
+}
+.market-section > * { background: var(--bg-primary); padding: 20px; }
+
+.market-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.market-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  padding: 14px; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.market-card:hover { border-color: var(--border-active); }
+.market-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.market-card-name { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
+.market-card-flag { font-size: 0.75rem; }
+.market-card-price { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.market-card-change { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.market-card-change .pct { padding: 1px 5px; font-size: 0.6rem; }
+.market-card-change.up { color: var(--accent-red); }
+.market-card-change.up .pct { background: var(--accent-red-dim); }
+.market-card-change.down { color: var(--accent-blue); }
+.market-card-change.down .pct { background: var(--accent-blue-dim); }
+.market-card-chart { margin-top: 10px; height: 36px; }
+.market-card-chart svg { width: 100%; height: 100%; }
+
+/* Commodity table */
+.commodity-table { width: 100%; border-collapse: collapse; }
+.commodity-table th {
+  font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 1px;
+  color: var(--text-muted); text-transform: uppercase; text-align: left;
+  padding: 6px 10px; border-bottom: 1px solid var(--border);
+}
+.commodity-table th:last-child, .commodity-table td:last-child { text-align: right; }
+.commodity-table th:nth-child(3), .commodity-table td:nth-child(3) { text-align: right; }
+.commodity-table td {
+  font-family: var(--font-mono); font-size: 0.75rem; padding: 9px 10px;
+  border-bottom: 1px solid var(--border); color: var(--text-primary);
+}
+.commodity-table tr:hover td { background: var(--bg-secondary); }
+.commodity-table .com-name { color: var(--text-secondary); font-size: 0.7rem; }
+.commodity-table .com-unit { color: var(--text-muted); font-size: 0.55rem; margin-left: 4px; }
+
+/* ── Footer ── */
+.footer { padding: 10px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.footer span { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+/* ── Animations ── */
+@keyframes fade-in-up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.widget { animation: fade-in-up 0.4s ease-out both; }
+.map-section { animation-delay: 0.05s; }
+.news-section { animation-delay: 0.1s; }
+.issues-section { animation-delay: 0.15s; }
+.vessel-section { animation-delay: 0.2s; }
+.market-section { animation-delay: 0.25s; }
+.ai-section { animation-delay: 0.3s; }
+
+@media (max-width: 1200px) {
+  .dashboard { grid-template-columns: 1fr; }
+  .news-section { grid-column: 1; grid-row: auto; max-height: 400px; }
+  .vessel-section { grid-column: 1; grid-template-columns: 1fr; }
+  .issues-grid { grid-template-columns: repeat(2,1fr); }
+  .ai-section { grid-column: 1; grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="logo">SIGINT</span>
+    <span class="divider"></span>
+    <span class="subtitle">국제 정세 모니터링 시스템</span>
+  </div>
+  <nav class="topbar-nav">
+    <button class="nav-tab active">OVERVIEW</button>
+    <button class="nav-tab">MAP</button>
+    <button class="nav-tab">VESSELS</button>
+    <button class="nav-tab">MARKETS</button>
+    <button class="nav-tab">ANALYSIS</button>
+    <button class="nav-tab">BRIEFING</button>
+  </nav>
+  <div class="topbar-status">
+    <div class="status-item"><span class="status-dot"></span>LIVE</div>
+    <div class="status-item">UPD 14:32:07 KST</div>
+    <div class="status-item">SRC: 24 FEEDS</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn-icon alert-badge" title="알림">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <button class="btn-icon" title="설정">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+    <button class="btn-icon" title="언어">KR</button>
+  </div>
+</header>
+
+<!-- ═══ ALERT TICKER ═══ -->
+<div class="alert-ticker">
+  <span class="ticker-label">ALERT</span>
+  <div class="ticker-content">
+    <div class="ticker-scroll">
+      <span><strong>[긴급]</strong> 호르무즈 해협 인근 이란 해군 훈련 감지 — 유조선 3척 우회 항로 진입</span>
+      <span><strong>[속보]</strong> 예멘 후티 반군, 홍해 상선 공격 재개 선언 — 바브엘만데브 해협 위험도 상향</span>
+      <span><strong>[주의]</strong> 남중국해 필리핀 EEZ 내 중국 해경선 4척 진입 확인</span>
+      <span><strong>[긴급]</strong> 호르무즈 해협 인근 이란 해군 훈련 감지 — 유조선 3척 우회 항로 진입</span>
+      <span><strong>[속보]</strong> 예멘 후티 반군, 홍해 상선 공격 재개 선언 — 바브엘만데브 해협 위험도 상향</span>
+      <span><strong>[주의]</strong> 남중국해 필리핀 EEZ 내 중국 해경선 4척 진입 확인</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MARKET TICKER BAR ═══ -->
+<div class="market-ticker-bar">
+  <div class="mticker-item">
+    <span class="mticker-name">KOSPI</span>
+    <span class="mticker-value">2,648.32</span>
+    <span class="mticker-change down">▼ -28.15 (-1.05%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">KOSDAQ</span>
+    <span class="mticker-value">842.56</span>
+    <span class="mticker-change down">▼ -12.34 (-1.44%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">S&P 500</span>
+    <span class="mticker-value">5,218.40</span>
+    <span class="mticker-change down">▼ -43.20 (-0.82%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">NASDAQ</span>
+    <span class="mticker-value">16,384.12</span>
+    <span class="mticker-change down">▼ -156.80 (-0.95%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">DOW</span>
+    <span class="mticker-value">39,142.50</span>
+    <span class="mticker-change down">▼ -180.30 (-0.46%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">WTI</span>
+    <span class="mticker-value">$89.24</span>
+    <span class="mticker-change up">▲ +3.18 (+3.69%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">BRENT</span>
+    <span class="mticker-value">$93.56</span>
+    <span class="mticker-change up">▲ +3.42 (+3.79%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">GOLD</span>
+    <span class="mticker-value">$2,385.60</span>
+    <span class="mticker-change up">▲ +28.40 (+1.20%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">USD/KRW</span>
+    <span class="mticker-value">1,368.50</span>
+    <span class="mticker-change up">▲ +8.20 (+0.60%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">BTC</span>
+    <span class="mticker-value">$67,240</span>
+    <span class="mticker-change down">▼ -1,280 (-1.87%)</span>
+  </div>
+  <div class="mticker-item">
+    <span class="mticker-name">VIX</span>
+    <span class="mticker-value">22.45</span>
+    <span class="mticker-change up">▲ +3.80 (+20.38%)</span>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<main class="dashboard">
+
+  <!-- ── WORLD MAP ── -->
+  <section class="widget map-section">
+    <div class="widget-header">
+      <div class="widget-title"><div class="indicator"></div><h2>Global Tension Map</h2></div>
+      <div class="widget-controls">
+        <button class="ctrl-btn active">긴장도</button>
+        <button class="ctrl-btn">동맹</button>
+        <button class="ctrl-btn">무역</button>
+        <button class="ctrl-btn">분쟁</button>
+      </div>
+    </div>
+    <div id="world-map"></div>
+  </section>
+
+  <!-- ── NEWS FEED ── -->
+  <section class="widget news-section">
+    <div class="widget-header">
+      <div class="widget-title"><div class="indicator"></div><h2>실시간 뉴스</h2></div>
+    </div>
+    <div class="news-filters">
+      <button class="ctrl-btn active">전체</button>
+      <button class="ctrl-btn">외교</button>
+      <button class="ctrl-btn">군사</button>
+      <button class="ctrl-btn">경제</button>
+      <button class="ctrl-btn">에너지</button>
+    </div>
+    <div class="news-list">
+      <div class="news-item critical">
+        <div class="news-meta"><span class="news-severity critical">CRITICAL</span><span class="news-time">14:28</span><span class="news-category">군사/안보</span></div>
+        <div class="news-title">이란 IRGC, 호르무즈 해협 일대 대규모 해군 훈련 개시 — 미 제5함대 경계 태세 격상</div>
+        <div class="news-source">Reuters · AP</div>
+      </div>
+      <div class="news-item critical">
+        <div class="news-meta"><span class="news-severity critical">CRITICAL</span><span class="news-time">13:45</span><span class="news-category">군사/안보</span></div>
+        <div class="news-title">후티 반군, 홍해 통과 상선 대상 드론 공격 재개 — 바브엘만데브 해협 보험료 급등</div>
+        <div class="news-source">Al Jazeera · Bloomberg</div>
+      </div>
+      <div class="news-item warning">
+        <div class="news-meta"><span class="news-severity warning">WARNING</span><span class="news-time">12:30</span><span class="news-category">외교</span></div>
+        <div class="news-title">UN 안보리 긴급회의 소집 — 중동 정세 논의, 러시아-중국 거부권 가능성</div>
+        <div class="news-source">UN News · BBC</div>
+      </div>
+      <div class="news-item warning">
+        <div class="news-meta"><span class="news-severity warning">WARNING</span><span class="news-time">11:15</span><span class="news-category">경제/무역</span></div>
+        <div class="news-title">국제유가 WTI $89 돌파 — 중동 불안정에 따른 공급 차질 우려 확산</div>
+        <div class="news-source">CNBC · Financial Times</div>
+      </div>
+      <div class="news-item info">
+        <div class="news-meta"><span class="news-severity info">INFO</span><span class="news-time">10:40</span><span class="news-category">외교</span></div>
+        <div class="news-title">미-중 외교장관 전화 회담 — 대만 해협 긴장 완화 방안 논의</div>
+        <div class="news-source">Reuters · Xinhua</div>
+      </div>
+      <div class="news-item info">
+        <div class="news-meta"><span class="news-severity info">INFO</span><span class="news-time">09:20</span><span class="news-category">군사/안보</span></div>
+        <div class="news-title">NATO 동부전선 병력 증강 완료 — 발트해 연안 방어 태세 강화</div>
+        <div class="news-source">NATO · Defense One</div>
+      </div>
+      <div class="news-item info">
+        <div class="news-meta"><span class="news-severity info">INFO</span><span class="news-time">08:55</span><span class="news-category">경제/무역</span></div>
+        <div class="news-title">EU-인도 FTA 협상 3라운드 개시 — 디지털 무역 규범 핵심 의제</div>
+        <div class="news-source">European Commission</div>
+      </div>
+      <div class="news-item info">
+        <div class="news-meta"><span class="news-severity info">INFO</span><span class="news-time">07:30</span><span class="news-category">환경</span></div>
+        <div class="news-title">COP31 사전협의 — 개도국 기후기금 규모 합의 난항</div>
+        <div class="news-source">UNFCCC · Guardian</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ISSUE TRACKER ── -->
+  <section class="widget issues-section">
+    <div class="widget-header">
+      <div class="widget-title"><div class="indicator"></div><h2>이슈 트래커</h2></div>
+      <div class="widget-controls">
+        <button class="ctrl-btn active">심각도순</button>
+        <button class="ctrl-btn">최신순</button>
+      </div>
+    </div>
+    <div class="issues-grid">
+      <div class="issue-card severity-5">
+        <div class="issue-region">MIDDLE EAST</div>
+        <div class="issue-name">중동 분쟁 확전</div>
+        <div class="severity-bar"><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div></div>
+        <div class="issue-footer"><span class="issue-trend trend-up">&#9650; 급상승</span><span class="issue-countries">IR, YE, IL +4</span></div>
+      </div>
+      <div class="issue-card severity-4">
+        <div class="issue-region">EAST EUROPE</div>
+        <div class="issue-name">러-우 전쟁</div>
+        <div class="severity-bar"><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg"></div></div>
+        <div class="issue-footer"><span class="issue-trend trend-stable">&#9654; 유지</span><span class="issue-countries">RU, UA, NATO</span></div>
+      </div>
+      <div class="issue-card severity-4">
+        <div class="issue-region">EAST ASIA</div>
+        <div class="issue-name">대만 해협 긴장</div>
+        <div class="severity-bar"><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg"></div></div>
+        <div class="issue-footer"><span class="issue-trend trend-up">&#9650; 상승</span><span class="issue-countries">CN, TW, US</span></div>
+      </div>
+      <div class="issue-card severity-3">
+        <div class="issue-region">SE ASIA</div>
+        <div class="issue-name">남중국해 영유권</div>
+        <div class="severity-bar"><div class="seg filled"></div><div class="seg filled"></div><div class="seg filled"></div><div class="seg"></div><div class="seg"></div></div>
+        <div class="issue-footer"><span class="issue-trend trend-stable">&#9654; 유지</span><span class="issue-countries">CN, PH, VN</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VESSEL TRACKING ── -->
+  <section class="vessel-section">
+    <div class="vessel-map-panel">
+      <div class="widget-header">
+        <div class="widget-title"><div class="indicator"></div><h2>중동 해역 선박 추적</h2></div>
+        <div class="widget-controls">
+          <button class="ctrl-btn active">전체</button>
+          <button class="ctrl-btn">유조선</button>
+          <button class="ctrl-btn">LPG/LNG</button>
+        </div>
+      </div>
+      <div id="vessel-map"></div>
+    </div>
+    <div class="vessel-info-panel">
+      <div class="passage-stats">
+        <h3 style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">해협별 통과 현황 (24H)</h3>
+        <div class="passage-stat">
+          <div><div class="passage-name">호르무즈 해협</div><div class="passage-unit">Strait of Hormuz</div></div>
+          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -12%</span><span class="passage-count">23</span><span class="passage-unit">척</span></div>
+        </div>
+        <div class="passage-stat">
+          <div><div class="passage-name">바브엘만데브</div><div class="passage-unit">Bab el-Mandeb</div></div>
+          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -34%</span><span class="passage-count">8</span><span class="passage-unit">척</span></div>
+        </div>
+        <div class="passage-stat">
+          <div><div class="passage-name">수에즈 운하</div><div class="passage-unit">Suez Canal</div></div>
+          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -28%</span><span class="passage-count">11</span><span class="passage-unit">척</span></div>
+        </div>
+      </div>
+      <div class="anomaly-section">
+        <h3>이상 감지 알림</h3>
+        <div class="anomaly-list">
+          <div class="anomaly-item critical-anomaly">
+            <span class="anomaly-icon">!!</span>
+            <div>
+              <div style="font-size:0.68rem;color:var(--accent-red);font-weight:500;margin-bottom:2px">유조선 3척 희망봉 우회 항로 진입</div>
+              <div style="font-size:0.6rem;color:var(--text-muted)">VLCC Atlantic Pioneer 외 2척 · 홍해 회피</div>
+            </div>
+          </div>
+          <div class="anomaly-item">
+            <span class="anomaly-icon">!</span>
+            <div>
+              <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">아덴만 비정상 정박 감지</div>
+              <div style="font-size:0.6rem;color:var(--text-muted)">LPG선 Gulf Energy · 48시간 이상 정박</div>
+            </div>
+          </div>
+          <div class="anomaly-item">
+            <span class="anomaly-icon">!</span>
+            <div>
+              <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">호르무즈 해협 통과량 급감</div>
+              <div style="font-size:0.6rem;color:var(--text-muted)">전일 대비 -12% · 이란 해군 훈련 영향 추정</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MARKET DATA ── -->
+  <section class="market-section">
+    <div>
+      <div class="widget-header">
+        <div class="widget-title"><div class="indicator" style="background:var(--accent-amber)"></div><h2>주식 시장</h2></div>
+        <div class="widget-controls">
+          <button class="ctrl-btn active">주요지수</button>
+          <button class="ctrl-btn">섹터</button>
+        </div>
+      </div>
+      <div class="market-grid">
+        <!-- KOSPI -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">KOSPI</div>
+          </div>
+          <div class="market-card-price">2,648.32</div>
+          <div class="market-card-change down">
+            ▼ -28.15 <span class="pct">-1.05%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,12 10,10 20,14 30,8 40,16 50,20 60,18 70,22 80,24 90,20 100,26 110,30 120,28" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,12 10,10 20,14 30,8 40,16 50,20 60,18 70,22 80,24 90,20 100,26 110,30 120,28" fill="url(#blueGrad)" stroke="none"/>
+              <defs><linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+            </svg>
+          </div>
+        </div>
+        <!-- KOSDAQ -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">KOSDAQ</div>
+          </div>
+          <div class="market-card-price">842.56</div>
+          <div class="market-card-change down">
+            ▼ -12.34 <span class="pct">-1.44%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,8 10,6 20,10 30,12 40,14 50,10 60,16 70,20 80,18 90,24 100,28 110,26 120,30" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,8 10,6 20,10 30,12 40,14 50,10 60,16 70,20 80,18 90,24 100,28 110,26 120,30" fill="url(#blueGrad)" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+        <!-- S&P 500 -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">S&P 500</div>
+          </div>
+          <div class="market-card-price">5,218.40</div>
+          <div class="market-card-change down">
+            ▼ -43.20 <span class="pct">-0.82%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,14 10,10 20,8 30,12 40,10 50,14 60,16 70,12 80,18 90,22 100,20 110,26 120,24" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,14 10,10 20,8 30,12 40,10 50,14 60,16 70,12 80,18 90,22 100,20 110,26 120,24" fill="url(#blueGrad)" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+        <!-- NASDAQ -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">NASDAQ</div>
+          </div>
+          <div class="market-card-price">16,384.12</div>
+          <div class="market-card-change down">
+            ▼ -156.80 <span class="pct">-0.95%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,10 10,8 20,6 30,10 40,14 50,12 60,18 70,16 80,20 90,24 100,22 110,28 120,26" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,10 10,8 20,6 30,10 40,14 50,12 60,18 70,16 80,20 90,24 100,22 110,28 120,26" fill="url(#blueGrad)" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+        <!-- DOW JONES -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">DOW JONES</div>
+          </div>
+          <div class="market-card-price">39,142.50</div>
+          <div class="market-card-change down">
+            ▼ -180.30 <span class="pct">-0.46%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,16 10,14 20,12 30,10 40,14 50,16 60,14 70,18 80,16 90,20 100,22 110,24 120,22" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,16 10,14 20,12 30,10 40,14 50,16 60,14 70,18 80,16 90,20 100,22 110,24 120,22" fill="url(#blueGrad)" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+        <!-- NIKKEI -->
+        <div class="market-card">
+          <div class="market-card-header">
+            <div class="market-card-name">NIKKEI 225</div>
+          </div>
+          <div class="market-card-price">38,420.80</div>
+          <div class="market-card-change down">
+            ▼ -310.50 <span class="pct">-0.80%</span>
+          </div>
+          <div class="market-card-chart">
+            <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+              <polyline points="0,12 10,14 20,10 30,8 40,12 50,16 60,14 70,18 80,22 90,20 100,24 110,28 120,26" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <polyline points="0,12 10,14 20,10 30,8 40,12 50,16 60,14 70,18 80,22 90,20 100,24 110,28 120,26" fill="url(#blueGrad)" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="widget-header">
+        <div class="widget-title"><div class="indicator" style="background:var(--accent-amber)"></div><h2>원자재 · 현물 · 환율</h2></div>
+        <div class="widget-controls">
+          <button class="ctrl-btn active">전체</button>
+          <button class="ctrl-btn">에너지</button>
+          <button class="ctrl-btn">귀금속</button>
+          <button class="ctrl-btn">환율</button>
+        </div>
+      </div>
+      <table class="commodity-table">
+        <thead>
+          <tr>
+            <th>종목</th>
+            <th>가격</th>
+            <th>변동</th>
+            <th>등락률</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="com-name">WTI 원유</span><span class="com-unit">USD/bbl</span></td>
+            <td style="font-weight:600">89.24</td>
+            <td class="trend-up">+3.18</td>
+            <td class="trend-up">+3.69%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">브렌트유</span><span class="com-unit">USD/bbl</span></td>
+            <td style="font-weight:600">93.56</td>
+            <td class="trend-up">+3.42</td>
+            <td class="trend-up">+3.79%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">두바이유</span><span class="com-unit">USD/bbl</span></td>
+            <td style="font-weight:600">91.80</td>
+            <td class="trend-up">+3.05</td>
+            <td class="trend-up">+3.44%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">천연가스</span><span class="com-unit">USD/MMBtu</span></td>
+            <td style="font-weight:600">3.82</td>
+            <td class="trend-up">+0.14</td>
+            <td class="trend-up">+3.80%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">금 (Gold)</span><span class="com-unit">USD/oz</span></td>
+            <td style="font-weight:600">2,385.60</td>
+            <td class="trend-up">+28.40</td>
+            <td class="trend-up">+1.20%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">은 (Silver)</span><span class="com-unit">USD/oz</span></td>
+            <td style="font-weight:600">28.92</td>
+            <td class="trend-up">+0.48</td>
+            <td class="trend-up">+1.69%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">구리 (Copper)</span><span class="com-unit">USD/lb</span></td>
+            <td style="font-weight:600">4.28</td>
+            <td style="color:var(--accent-blue)">-0.03</td>
+            <td style="color:var(--accent-blue)">-0.70%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">USD/KRW</span><span class="com-unit">원/달러</span></td>
+            <td style="font-weight:600">1,368.50</td>
+            <td class="trend-up">+8.20</td>
+            <td class="trend-up">+0.60%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">EUR/USD</span><span class="com-unit">유로/달러</span></td>
+            <td style="font-weight:600">1.0842</td>
+            <td style="color:var(--accent-blue)">-0.0028</td>
+            <td style="color:var(--accent-blue)">-0.26%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">USD/JPY</span><span class="com-unit">엔/달러</span></td>
+            <td style="font-weight:600">154.82</td>
+            <td class="trend-up">+0.95</td>
+            <td class="trend-up">+0.62%</td>
+          </tr>
+          <tr>
+            <td><span class="com-name">VIX</span><span class="com-unit">공포지수</span></td>
+            <td style="font-weight:600;color:var(--accent-red)">22.45</td>
+            <td class="trend-up">+3.80</td>
+            <td class="trend-up" style="font-weight:700">+20.38%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── AI ANALYSIS ── -->
+  <section class="ai-section">
+    <div class="ai-widget">
+      <h3>감성 분석</h3>
+      <div class="sentiment-row"><span class="sentiment-region">중동</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill negative" style="width:82%"></div></div><span class="sentiment-value" style="color:var(--accent-red)">-82</span></div>
+      <div class="sentiment-row"><span class="sentiment-region">동유럽</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill negative" style="width:68%"></div></div><span class="sentiment-value" style="color:var(--accent-amber)">-68</span></div>
+      <div class="sentiment-row"><span class="sentiment-region">동아시아</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill mixed" style="width:55%"></div></div><span class="sentiment-value" style="color:var(--accent-amber)">-55</span></div>
+      <div class="sentiment-row"><span class="sentiment-region">북미</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill mixed" style="width:30%"></div></div><span class="sentiment-value" style="color:var(--accent-blue)">-30</span></div>
+      <div class="sentiment-row"><span class="sentiment-region">유럽</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill mixed" style="width:38%"></div></div><span class="sentiment-value" style="color:var(--accent-blue)">-38</span></div>
+      <div class="sentiment-row"><span class="sentiment-region">남미</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill positive" style="width:15%"></div></div><span class="sentiment-value" style="color:var(--accent-green)">-15</span></div>
+    </div>
+    <div class="ai-widget">
+      <h3>이슈 트렌드 (7일)</h3>
+      <div class="trend-chart">
+        <svg viewBox="0 0 300 120">
+          <line x1="30" y1="10" x2="30" y2="100" stroke="#1e293b" stroke-width="0.5"/>
+          <line x1="30" y1="100" x2="290" y2="100" stroke="#1e293b" stroke-width="0.5"/>
+          <line x1="30" y1="70" x2="290" y2="70" stroke="#1e293b" stroke-width="0.3" stroke-dasharray="2 4"/>
+          <line x1="30" y1="40" x2="290" y2="40" stroke="#1e293b" stroke-width="0.3" stroke-dasharray="2 4"/>
+          <text x="67" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/7</text>
+          <text x="110" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/8</text>
+          <text x="153" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/9</text>
+          <text x="197" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/10</text>
+          <text x="240" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/11</text>
+          <text x="280" y="112" font-family="IBM Plex Mono" font-size="6" fill="#475569" text-anchor="middle">3/12</text>
+          <polyline points="45,75 90,72 135,65 178,50 220,35 265,20 280,15" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+          <circle cx="280" cy="15" r="2.5" fill="#ef4444"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+          <polyline points="45,45 90,43 135,46 178,44 220,45 265,42 280,43" fill="none" stroke="#f59e0b" stroke-width="1"/>
+          <polyline points="45,65 90,63 135,62 178,58 220,55 265,50 280,48" fill="none" stroke="#3b82f6" stroke-width="1"/>
+          <line x1="35" y1="5" x2="45" y2="5" stroke="#ef4444" stroke-width="1.5"/><text x="48" y="7" font-family="IBM Plex Mono" font-size="5" fill="#ef4444">중동</text>
+          <line x1="80" y1="5" x2="90" y2="5" stroke="#f59e0b" stroke-width="1"/><text x="93" y="7" font-family="IBM Plex Mono" font-size="5" fill="#f59e0b">우크라이나</text>
+          <line x1="140" y1="5" x2="150" y2="5" stroke="#3b82f6" stroke-width="1"/><text x="153" y="7" font-family="IBM Plex Mono" font-size="5" fill="#3b82f6">대만 해협</text>
+        </svg>
+      </div>
+    </div>
+    <div class="ai-widget">
+      <h3>AI 브리핑</h3>
+      <div class="briefing-item">
+        <div class="briefing-tag">PRIORITY ASSESSMENT</div>
+        <p>이란 해군 훈련으로 인해 호르무즈 해협 통과 유조선 수가 12% 감소. 유가 상승 압력과 함께 LPG 스팟 가격 3.2% 상승. 홍해 우회 선박 증가세 지속 시 글로벌 에너지 물류 비용 추가 상승 전망.</p>
+      </div>
+      <div class="briefing-item">
+        <div class="briefing-tag">SCENARIO WATCH</div>
+        <p>후티 반군의 홍해 공격 재개 시 바브엘만데브 해협 사실상 봉쇄 가능성. 아프리카 희망봉 우회 항로 전환 시 운송 기간 7~14일 추가 소요 예상.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>SIGINT v0.1.0 // WORLD AFFAIRS MONITORING SYSTEM</span>
+  <span>DATA SOURCES: REUTERS | AP | BLOOMBERG | AIS MARINE TRAFFIC | OPEN SOURCE INTEL</span>
+  <span>LAST SYNC: 2026-03-13 14:32:07 KST</span>
+</footer>
+
+<script>
+// ═══ WORLD MAP (Leaflet) ═══
+const worldMap = L.map('world-map', {
+  center: [25, 45],
+  zoom: 2,
+  minZoom: 2,
+  maxZoom: 6,
+  zoomControl: true,
+  attributionControl: false,
+  worldCopyJump: true
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(worldMap);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd',
+  maxZoom: 19,
+  opacity: 0.5
+}).addTo(worldMap);
+
+// Hotspot icon
+function pulseIcon(color) {
+  const cls = color === 'amber' ? 'pulse-marker amber' : 'pulse-marker';
+  return L.divIcon({ className: cls, iconSize: [14, 14], iconAnchor: [7, 7] });
+}
+
+// Hotspots on world map
+const hotspots = [
+  { lat: 32.5, lng: 51, label: '중동', desc: '이란 해군 훈련 · 후티 반군 홍해 공격 재개<br>심각도: CRITICAL ■■■■■', color: 'red' },
+  { lat: 48.5, lng: 37, label: '우크라이나', desc: '러-우 전쟁 지속 · NATO 동부전선 증강<br>심각도: HIGH ■■■■□', color: 'amber' },
+  { lat: 23.5, lng: 120, label: '대만 해협', desc: '미-중 긴장 · 대만 해협 군사 활동 증가<br>심각도: HIGH ■■■■□', color: 'red' },
+  { lat: 14, lng: 114, label: '남중국해', desc: '필리핀 EEZ 내 중국 해경선 진입<br>심각도: MEDIUM ■■■□□', color: 'amber' },
+  { lat: 13, lng: 43, label: '홍해/아덴만', desc: '후티 반군 상선 공격 · 선박 우회 급증<br>심각도: CRITICAL ■■■■■', color: 'red' },
+  { lat: 35.5, lng: 129, label: '한반도', desc: '북한 미사일 도발 가능성 · 한미 연합훈련<br>심각도: MEDIUM ■■■□□', color: 'amber' },
+];
+
+hotspots.forEach(h => {
+  const marker = L.marker([h.lat, h.lng], { icon: pulseIcon(h.color) }).addTo(worldMap);
+  const titleClass = h.color === 'red' ? 'red' : 'amber';
+  marker.bindPopup(
+    `<div class="popup-title ${titleClass}">${h.label}</div><div class="popup-desc">${h.desc}</div>`,
+    { className: 'hotspot-popup', maxWidth: 260 }
+  );
+});
+
+// Tension zones (circles)
+L.circle([32.5, 51], { radius: 800000, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.06, weight: 1, opacity: 0.3, dashArray: '4 4' }).addTo(worldMap);
+L.circle([48.5, 37], { radius: 500000, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.05, weight: 1, opacity: 0.3, dashArray: '4 4' }).addTo(worldMap);
+L.circle([23.5, 120], { radius: 400000, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.05, weight: 1, opacity: 0.3, dashArray: '4 4' }).addTo(worldMap);
+L.circle([14, 114], { radius: 600000, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.04, weight: 1, opacity: 0.3, dashArray: '4 4' }).addTo(worldMap);
+
+// ═══ VESSEL MAP (Leaflet) ═══
+const vesselMap = L.map('vessel-map', {
+  center: [20, 52],
+  zoom: 5,
+  minZoom: 4,
+  maxZoom: 9,
+  zoomControl: true,
+  attributionControl: false
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(vesselMap);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19, opacity: 0.4
+}).addTo(vesselMap);
+
+// Vessel icon
+function vesselIcon(type) {
+  const cls = type === 'lpg' ? 'vessel-marker lpg' : type === 'reroute' ? 'vessel-marker reroute' : 'vessel-marker';
+  return L.divIcon({ className: cls, iconSize: [10, 10], iconAnchor: [5, 5] });
+}
+
+// Strait danger zones
+L.circle([26.6, 56.2], { radius: 50000, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.1, weight: 1.5, opacity: 0.6, dashArray: '5 3' }).addTo(vesselMap);
+L.circle([12.6, 43.3], { radius: 40000, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.1, weight: 1.5, opacity: 0.6, dashArray: '5 3' }).addTo(vesselMap);
+
+// Strait labels
+function straitLabel(text) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="font-family:IBM Plex Mono;font-size:10px;color:#06b6d4;letter-spacing:1.5px;white-space:nowrap;text-shadow:0 0 8px rgba(6,182,212,0.4)">${text}</div>`,
+    iconSize: [120, 16], iconAnchor: [0, 8]
+  });
+}
+
+L.marker([27.0, 56.6], { icon: straitLabel('HORMUZ'), interactive: false }).addTo(vesselMap);
+L.marker([12.2, 43.8], { icon: straitLabel('BAB EL-MANDEB'), interactive: false }).addTo(vesselMap);
+L.marker([30.0, 32.5], { icon: straitLabel('SUEZ'), interactive: false }).addTo(vesselMap);
+
+// Tankers (amber)
+const tankers = [
+  { lat: 26.2, lng: 52.5, name: 'VLCC Kazumi', flag: 'JP', dwt: '299,000 DWT', from: 'Ras Tanura', to: 'Yokohama', speed: '12.3 kn' },
+  { lat: 25.8, lng: 54.1, name: 'Serenity Star', flag: 'LR', dwt: '158,000 DWT', from: 'Fujairah', to: 'Singapore', speed: '11.8 kn' },
+  { lat: 26.5, lng: 56.0, name: 'Gulf Harmony', flag: 'PA', dwt: '310,000 DWT', from: 'Kharg Island', to: 'Ningbo', speed: '10.2 kn' },
+  { lat: 24.5, lng: 58.5, name: 'Arabian Falcon', flag: 'MH', dwt: '270,000 DWT', from: 'Basra', to: 'Ulsan', speed: '13.1 kn' },
+  { lat: 22.0, lng: 62.0, name: 'Pacific Voyager', flag: 'SG', dwt: '200,000 DWT', from: 'Muscat', to: 'Mumbai', speed: '11.5 kn' },
+  { lat: 20.5, lng: 40.0, name: 'Red Sea Carrier', flag: 'GR', dwt: '120,000 DWT', from: 'Yanbu', to: 'Trieste', speed: '9.8 kn' },
+  { lat: 15.5, lng: 41.5, name: 'Nile Princess', flag: 'EG', dwt: '95,000 DWT', from: 'Jeddah', to: 'Rotterdam', speed: '12.0 kn' },
+  { lat: 27.5, lng: 50.0, name: 'Desert Crown', flag: 'BH', dwt: '180,000 DWT', from: 'Sitra', to: 'Chiba', speed: '10.8 kn' },
+  { lat: 29.5, lng: 49.0, name: 'Tigris Glory', flag: 'KW', dwt: '250,000 DWT', from: 'Kuwait', to: 'Yeosu', speed: '11.2 kn' },
+  { lat: 18.0, lng: 57.0, name: 'Ocean Endurance', flag: 'NO', dwt: '320,000 DWT', from: 'Sohar', to: 'Houston', speed: '12.8 kn' },
+];
+
+tankers.forEach(t => {
+  const m = L.marker([t.lat, t.lng], { icon: vesselIcon('tanker') }).addTo(vesselMap);
+  m.bindPopup(
+    `<div class="popup-title amber">▲ ${t.name}</div>
+     <div class="popup-desc">
+       선적: ${t.flag} · ${t.dwt}<br>
+       ${t.from} → ${t.to}<br>
+       속도: ${t.speed}
+     </div>`,
+    { className: 'hotspot-popup', maxWidth: 240 }
+  );
+});
+
+// LPG ships (cyan)
+const lpgShips = [
+  { lat: 25.5, lng: 53.0, name: 'LPG Navigator', flag: 'KR', dwt: '84,000 CBM', from: 'Ras Laffan', to: 'Incheon', speed: '14.2 kn' },
+  { lat: 26.0, lng: 57.5, name: 'Gas Olympia', flag: 'GR', dwt: '78,000 CBM', from: 'Das Island', to: 'Tokyo', speed: '13.5 kn' },
+  { lat: 23.0, lng: 60.0, name: 'Crystal Arctic', flag: 'NO', dwt: '92,000 CBM', from: 'Qatar', to: 'Gwangyang', speed: '15.0 kn' },
+  { lat: 16.0, lng: 42.5, name: 'LNG Pioneer', flag: 'BM', dwt: '170,000 CBM', from: 'Ras Laffan', to: 'Barcelona', speed: '14.8 kn' },
+  { lat: 28.0, lng: 51.5, name: 'Gulf Energy', flag: 'PA', dwt: '65,000 CBM', from: 'Jubail', to: 'Mundra', speed: '0.0 kn (정박)' },
+];
+
+lpgShips.forEach(s => {
+  const m = L.marker([s.lat, s.lng], { icon: vesselIcon('lpg') }).addTo(vesselMap);
+  m.bindPopup(
+    `<div class="popup-title" style="color:#06b6d4">◆ ${s.name}</div>
+     <div class="popup-desc">
+       선적: ${s.flag} · ${s.dwt}<br>
+       ${s.from} → ${s.to}<br>
+       속도: ${s.speed}
+     </div>`,
+    { className: 'hotspot-popup', maxWidth: 240 }
+  );
+});
+
+// Rerouted vessels (red)
+const rerouted = [
+  { lat: 8.0, lng: 48.0, name: 'Atlantic Pioneer', flag: 'LR', dwt: '300,000 DWT', from: 'Basra', to: 'Rotterdam', speed: '12.5 kn', note: '홍해 회피 — 희망봉 우회' },
+  { lat: 5.0, lng: 46.0, name: 'Nordic Breeze', flag: 'DK', dwt: '155,000 DWT', from: 'Fujairah', to: 'Antwerp', speed: '11.0 kn', note: '홍해 회피 — 희망봉 우회' },
+  { lat: 2.0, lng: 44.0, name: 'Eastern Promise', flag: 'MT', dwt: '280,000 DWT', from: 'Ras Tanura', to: 'Marseille', speed: '13.2 kn', note: '홍해 회피 — 희망봉 우회' },
+];
+
+rerouted.forEach(r => {
+  const m = L.marker([r.lat, r.lng], { icon: vesselIcon('reroute') }).addTo(vesselMap);
+  m.bindPopup(
+    `<div class="popup-title red">⚠ ${r.name}</div>
+     <div class="popup-desc">
+       선적: ${r.flag} · ${r.dwt}<br>
+       ${r.from} → ${r.to}<br>
+       속도: ${r.speed}<br>
+       <span style="color:#ef4444;font-weight:500">${r.note}</span>
+     </div>`,
+    { className: 'hotspot-popup', maxWidth: 260 }
+  );
+});
+
+// Shipping routes (polylines)
+// Persian Gulf → Hormuz → Arabian Sea route
+L.polyline([
+  [29.5, 49.0], [27.5, 50.5], [26.5, 52.5], [26.2, 55.0], [26.0, 56.5], [24.5, 58.5], [22.0, 62.0], [18.0, 65.0]
+], { color: '#f59e0b', weight: 1, opacity: 0.3, dashArray: '4 6' }).addTo(vesselMap);
+
+// Suez → Red Sea → Bab el-Mandeb route
+L.polyline([
+  [30.0, 32.5], [27.5, 34.0], [24.0, 37.5], [20.5, 39.5], [16.0, 42.0], [13.0, 43.3], [12.0, 45.0]
+], { color: '#f59e0b', weight: 1, opacity: 0.3, dashArray: '4 6' }).addTo(vesselMap);
+
+// Reroute path (red)
+L.polyline([
+  [13.0, 43.3], [8.0, 48.0], [5.0, 46.0], [2.0, 44.0], [-2.0, 42.0]
+], { color: '#ef4444', weight: 1.5, opacity: 0.5, dashArray: '6 4' }).addTo(vesselMap);
+
+// Reroute label
+L.marker([4.0, 44.5], {
+  icon: L.divIcon({
+    className: '',
+    html: '<div style="font-family:IBM Plex Mono;font-size:9px;color:#ef4444;letter-spacing:1px;white-space:nowrap;text-shadow:0 0 6px rgba(239,68,68,0.4)">← REROUTE (CAPE OF GOOD HOPE)</div>',
+    iconSize: [180, 14], iconAnchor: [0, 7]
+  }),
+  interactive: false
+}).addTo(vesselMap);
+
+</script>
+</body>
+</html>
