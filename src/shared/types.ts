@@ -85,6 +85,16 @@ export interface CollectionResult<T> {
   source: string;
 }
 
+export type AirportLight = "green" | "amber" | "red";
+
+export type AirportEventType = "conflict" | "ops" | "info" | "normal";
+
+export type AirlineOpsStatus = "normal" | "delays" | "disrupted";
+
+export type RouteStatus = "open" | "diverted" | "suspended";
+
+export type AircraftClass = "ek" | "other";
+
 export interface TranslatedText {
   en: string;
   ko: string;

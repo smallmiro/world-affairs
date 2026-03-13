@@ -106,6 +106,82 @@ model GeoEvent {
   @@index([severity, eventDate])
 }
 
+// ─── Airport Context ────────────────────────────────────────────
+
+model AirportStatus {
+  id              String   @id @default(uuid())
+  light           String
+  totalFlights    Int
+  onTimePercent   Float
+  delayedFlights  Int
+  cancelledFlights Int
+  collectedAt     DateTime @default(now())
+
+  @@index([collectedAt])
+}
+
+model FlightPosition {
+  id            String   @id @default(uuid())
+  icao24        String
+  callsign      String
+  lat           Float
+  lon           Float
+  altitude      Float
+  speed         Float
+  heading       Float
+  onGround      Boolean
+  airlineIata   String?
+  aircraftClass String
+  collectedAt   DateTime @default(now())
+
+  @@index([collectedAt])
+  @@index([aircraftClass, collectedAt])
+}
+
+model AirportEvent {
+  id          String   @id @default(uuid())
+  sourceId    String
+  source      String
+  url         String
+  titleEn     String
+  titleKo     String   @default("")
+  titleJa     String   @default("")
+  descEn      String?
+  descKo      String?
+  descJa      String?
+  eventType   String
+  eventDate   DateTime
+  collectedAt DateTime @default(now())
+
+  @@unique([sourceId, source])
+  @@index([eventType, eventDate])
+  @@index([eventDate])
+}
+
+model AirlineOps {
+  id            String   @id @default(uuid())
+  airlineIata   String
+  airlineName   String
+  totalFlights  Int
+  onTimePercent Float
+  status        String
+  collectedAt   DateTime @default(now())
+
+  @@index([collectedAt])
+  @@index([airlineIata, collectedAt])
+}
+
+model EmiratesRoute {
+  id          String   @id @default(uuid())
+  destination String
+  flightCode  String
+  status      String
+  collectedAt DateTime @default(now())
+
+  @@index([collectedAt])
+  @@index([destination, collectedAt])
+}
+
 // ─── Analysis Context ───────────────────────────────────────────
 
 model AiAnalysis {
