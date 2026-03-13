@@ -15,4 +15,5 @@ export interface GeoRepositoryPort {
   findLatest(limit: number, lang: Language): Promise<GeoEvent[]>;
   findBySeverity(severity: Severity, lang: Language, limit: number): Promise<GeoEvent[]>;
   findByEventType(eventType: GeoEventType, lang: Language, limit: number): Promise<GeoEvent[]>;
+  filterExistingTitles(titles: string[]): Promise<Set<string>>;
 }
