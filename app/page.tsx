@@ -1,7 +1,69 @@
+import TopBar from "./components/layout/TopBar";
+import AlertTicker from "./components/layout/AlertTicker";
+import MarketTickerBar from "./components/layout/MarketTickerBar";
+import WorldMap from "./components/map/WorldMap";
+import NewsFeed from "./components/news/NewsFeed";
+import IssueTracker from "./components/issues/IssueTracker";
+import VesselTracking from "./components/vessels/VesselTracking";
+import MarketSection from "./components/markets/MarketSection";
+import AiAnalysis from "./components/analysis/AiAnalysis";
+
 export default function DashboardPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-bold">World Affairs Dashboard</h1>
+    <main className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
+      <TopBar />
+      <AlertTicker />
+      <MarketTickerBar />
+
+      {/* Dashboard grid */}
+      <div
+        className="grid gap-px"
+        style={{
+          gridTemplateColumns: "1fr 360px",
+          background: "var(--border)",
+        }}
+      >
+        {/* Row 1: World Map */}
+        <div style={{ background: "var(--bg-primary)", gridColumn: 1 }}>
+          <WorldMap />
+        </div>
+
+        {/* Row 1-2: News Feed (spans 2 rows) */}
+        <div
+          style={{
+            background: "var(--bg-primary)",
+            gridColumn: 2,
+            gridRow: "1 / 3",
+          }}
+        >
+          <NewsFeed />
+        </div>
+
+        {/* Row 2: Issue Tracker */}
+        <div style={{ background: "var(--bg-primary)", gridColumn: 1 }}>
+          <IssueTracker />
+        </div>
+      </div>
+
+      {/* Full-width sections */}
+      <div className="flex flex-col gap-px" style={{ background: "var(--border)" }}>
+        <VesselTracking />
+        <MarketSection />
+        <AiAnalysis />
+      </div>
+
+      {/* Footer */}
+      <footer
+        className="flex justify-between items-center px-6 py-2.5 border-t"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+          SIGINT v0.1.0 — World Affairs Monitoring System
+        </span>
+        <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+          DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI
+        </span>
+      </footer>
     </main>
   );
 }
