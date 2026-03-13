@@ -1,0 +1,34 @@
+# env
+.env
+.env.*
+
+# dependencies
+node_modules/
+
+# database
+db/*.sqlite
+db/*.sqlite-journal
+
+# next.js
+.next/
+out/
+
+# build
+dist/
+build/
+
+# os
+.DS_Store
+
+# ide
+.idea/
+.vscode/
+*.swp
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+# logs
+*.log
+pm2-*.log

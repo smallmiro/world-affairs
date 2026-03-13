@@ -297,30 +297,54 @@ body::after {
 
 /* ── Market Ticker Bar ── */
 .market-ticker-bar {
-  display: flex; align-items: center; gap: 0;
+  display: flex; align-items: stretch; gap: 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg-secondary);
   overflow-x: auto; overflow-y: hidden;
   scrollbar-width: none;
+  position: relative;
+  z-index: 50;
 }
 .market-ticker-bar::-webkit-scrollbar { display: none; }
 .mticker-item {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; flex-direction: column; justify-content: center;
   padding: 7px 16px;
   border-right: 1px solid var(--border);
   white-space: nowrap;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.mticker-item:hover { background: var(--bg-card-hover); }
+.mticker-row { display: flex; align-items: center; gap: 8px; height: 20px; }
 .mticker-name { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.5px; }
 .mticker-value { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text-primary); }
 .mticker-change { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600; }
 .mticker-change.up { color: var(--accent-red); }
 .mticker-change.down { color: var(--accent-blue); }
 .mticker-change.flat { color: var(--text-muted); }
-.mticker-spark { display: flex; align-items: flex-end; gap: 1px; height: 16px; }
-.mticker-spark .bar {
-  width: 2px; background: var(--accent-cyan); opacity: 0.5; border-radius: 1px 1px 0 0;
+
+.mticker-chart {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, margin-top 0.4s cubic-bezier(0.4,0,0.2,1);
+  opacity: 0;
+  margin-top: 0;
 }
+.market-ticker-bar:hover .mticker-chart {
+  max-height: 100px;
+  opacity: 1;
+  margin-top: 6px;
+}
+.mticker-chart svg { display: block; }
+.mticker-chart .chart-grid { stroke: #1e293b; stroke-width: 0.5; }
+.mticker-chart .chart-zero { stroke: #334155; stroke-width: 0.5; stroke-dasharray: 2 2; }
+.mticker-chart .chart-line { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mticker-chart .chart-area { opacity: 0.12; }
+.mticker-chart .chart-dot { r: 2.5; }
+.mticker-chart .chart-label { font-family: var(--font-mono); font-size: 5.5px; fill: #475569; }
+.mticker-chart .chart-val { font-family: var(--font-mono); font-size: 6px; font-weight: 600; }
+.mticker-chart .chart-hi, .mticker-chart .chart-lo { font-family: var(--font-mono); font-size: 5px; }
 
 /* ── Market Section ── */
 .market-section {
@@ -443,60 +467,219 @@ body::after {
 
 <!-- ═══ MARKET TICKER BAR ═══ -->
 <div class="market-ticker-bar">
+  <!-- KOSPI -->
   <div class="mticker-item">
-    <span class="mticker-name">KOSPI</span>
-    <span class="mticker-value">2,648.32</span>
-    <span class="mticker-change down">▼ -28.15 (-1.05%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">KOSPI</span>
+      <span class="mticker-value">2,648.32</span>
+      <span class="mticker-change down">▼ -28.15 (-1.05%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gKospi" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <text x="12" y="16" class="chart-hi" fill="#3b82f6" text-anchor="end">H</text><text x="12" y="52" class="chart-lo" fill="#475569" text-anchor="end">L</text>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,20 22,18 29,22 36,16 43,24 50,20 57,26 64,22 71,28 78,24 85,30 92,26 99,32 106,28 113,34 120,38 127,35 134,40 141,44 148,42 155,46"/>
+        <polyline fill="url(#gKospi)" stroke="none" points="15,20 22,18 29,22 36,16 43,24 50,20 57,26 64,22 71,28 78,24 85,30 92,26 99,32 106,28 113,34 120,38 127,35 134,40 141,44 148,42 155,46 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="46" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:00</text><text x="55" y="66" class="chart-label">11:00</text><text x="95" y="66" class="chart-label">13:00</text><text x="135" y="66" class="chart-label">14:30</text>
+        <text x="155" y="44" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">2,648</text>
+      </svg>
+    </div>
   </div>
+  <!-- KOSDAQ -->
   <div class="mticker-item">
-    <span class="mticker-name">KOSDAQ</span>
-    <span class="mticker-value">842.56</span>
-    <span class="mticker-change down">▼ -12.34 (-1.44%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">KOSDAQ</span>
+      <span class="mticker-value">842.56</span>
+      <span class="mticker-change down">▼ -12.34 (-1.44%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gKosdaq" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,16 22,14 29,18 36,20 43,22 50,16 57,24 64,20 71,26 78,28 85,24 92,30 99,28 106,34 113,36 120,32 127,38 134,42 141,40 148,46 155,48"/>
+        <polyline fill="url(#gKosdaq)" stroke="none" points="15,16 22,14 29,18 36,20 43,22 50,16 57,24 64,20 71,26 78,28 85,24 92,30 99,28 106,34 113,36 120,32 127,38 134,42 141,40 148,46 155,48 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="48" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:00</text><text x="95" y="66" class="chart-label">13:00</text><text x="135" y="66" class="chart-label">14:30</text>
+        <text x="155" y="46" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">842</text>
+      </svg>
+    </div>
   </div>
+  <!-- S&P 500 -->
   <div class="mticker-item">
-    <span class="mticker-name">S&P 500</span>
-    <span class="mticker-value">5,218.40</span>
-    <span class="mticker-change down">▼ -43.20 (-0.82%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">S&P 500</span>
+      <span class="mticker-value">5,218.40</span>
+      <span class="mticker-change down">▼ -43.20 (-0.82%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gSP" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,22 22,18 29,14 36,20 43,16 50,22 57,18 64,24 71,20 78,26 85,22 92,28 99,32 106,28 113,34 120,30 127,36 134,38 141,34 148,40 155,38"/>
+        <polyline fill="url(#gSP)" stroke="none" points="15,22 22,18 29,14 36,20 43,16 50,22 57,18 64,24 71,20 78,26 85,22 92,28 99,32 106,28 113,34 120,30 127,36 134,38 141,34 148,40 155,38 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="38" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:30</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">15:00</text>
+        <text x="155" y="36" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">5,218</text>
+      </svg>
+    </div>
   </div>
+  <!-- NASDAQ -->
   <div class="mticker-item">
-    <span class="mticker-name">NASDAQ</span>
-    <span class="mticker-value">16,384.12</span>
-    <span class="mticker-change down">▼ -156.80 (-0.95%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">NASDAQ</span>
+      <span class="mticker-value">16,384.12</span>
+      <span class="mticker-change down">▼ -156.80 (-0.95%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gNas" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,16 22,14 29,12 36,18 43,22 50,18 57,26 64,22 71,28 78,24 85,30 92,26 99,32 106,34 113,30 120,36 127,38 134,42 141,38 148,44 155,42"/>
+        <polyline fill="url(#gNas)" stroke="none" points="15,16 22,14 29,12 36,18 43,22 50,18 57,26 64,22 71,28 78,24 85,30 92,26 99,32 106,34 113,30 120,36 127,38 134,42 141,38 148,44 155,42 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="42" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:30</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">15:00</text>
+        <text x="155" y="40" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">16,384</text>
+      </svg>
+    </div>
   </div>
+  <!-- DOW -->
   <div class="mticker-item">
-    <span class="mticker-name">DOW</span>
-    <span class="mticker-value">39,142.50</span>
-    <span class="mticker-change down">▼ -180.30 (-0.46%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">DOW</span>
+      <span class="mticker-value">39,142.50</span>
+      <span class="mticker-change down">▼ -180.30 (-0.46%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gDow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,24 22,20 29,18 36,14 43,18 50,22 57,20 64,24 71,18 78,22 85,26 92,24 99,28 106,26 113,30 120,28 127,32 134,34 141,30 148,36 155,34"/>
+        <polyline fill="url(#gDow)" stroke="none" points="15,24 22,20 29,18 36,14 43,18 50,22 57,20 64,24 71,18 78,22 85,26 92,24 99,28 106,26 113,30 120,28 127,32 134,34 141,30 148,36 155,34 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="34" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:30</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">15:00</text>
+        <text x="155" y="32" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">39,142</text>
+      </svg>
+    </div>
   </div>
+  <!-- WTI -->
   <div class="mticker-item">
-    <span class="mticker-name">WTI</span>
-    <span class="mticker-value">$89.24</span>
-    <span class="mticker-change up">▲ +3.18 (+3.69%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">WTI</span>
+      <span class="mticker-value">$89.24</span>
+      <span class="mticker-change up">▲ +3.18 (+3.69%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gWti" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#ef4444" points="15,48 22,46 29,44 36,42 43,40 50,38 57,36 64,34 71,30 78,28 85,32 92,26 99,24 106,20 113,22 120,18 127,16 134,14 141,12 148,10 155,8"/>
+        <polyline fill="url(#gWti)" stroke="none" points="15,48 22,46 29,44 36,42 43,40 50,38 57,36 64,34 71,30 78,28 85,32 92,26 99,24 106,20 113,22 120,18 127,16 134,14 141,12 148,10 155,8 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="8" fill="#ef4444"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <line x1="15" y1="48" x2="155" y2="48" stroke="#475569" stroke-width="0.4" stroke-dasharray="1 2"/>
+        <text x="18" y="66" class="chart-label">00:00</text><text x="55" y="66" class="chart-label">06:00</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">18:00</text>
+        <text x="155" y="7" class="chart-val" fill="#ef4444" text-anchor="end" dx="-4">$89.24</text>
+        <text x="18" y="47" class="chart-hi" fill="#475569">Open $86.06</text>
+      </svg>
+    </div>
   </div>
+  <!-- BRENT -->
   <div class="mticker-item">
-    <span class="mticker-name">BRENT</span>
-    <span class="mticker-value">$93.56</span>
-    <span class="mticker-change up">▲ +3.42 (+3.79%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">BRENT</span>
+      <span class="mticker-value">$93.56</span>
+      <span class="mticker-change up">▲ +3.42 (+3.79%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gBrent" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#ef4444" points="15,50 22,48 29,46 36,44 43,42 50,40 57,36 64,38 71,32 78,30 85,26 92,28 99,22 106,20 113,18 120,14 127,16 134,12 141,10 148,8 155,6"/>
+        <polyline fill="url(#gBrent)" stroke="none" points="15,50 22,48 29,46 36,44 43,42 50,40 57,36 64,38 71,32 78,30 85,26 92,28 99,22 106,20 113,18 120,14 127,16 134,12 141,10 148,8 155,6 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="6" fill="#ef4444"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">00:00</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">18:00</text>
+        <text x="155" y="5" class="chart-val" fill="#ef4444" text-anchor="end" dx="-4">$93.56</text>
+      </svg>
+    </div>
   </div>
+  <!-- GOLD -->
   <div class="mticker-item">
-    <span class="mticker-name">GOLD</span>
-    <span class="mticker-value">$2,385.60</span>
-    <span class="mticker-change up">▲ +28.40 (+1.20%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">GOLD</span>
+      <span class="mticker-value">$2,385.60</span>
+      <span class="mticker-change up">▲ +28.40 (+1.20%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#f59e0b" points="15,42 22,40 29,38 36,36 43,34 50,36 57,32 64,30 71,28 78,26 85,28 92,24 99,22 106,20 113,18 120,16 127,14 134,16 141,12 148,10 155,8"/>
+        <polyline fill="url(#gGold)" stroke="none" points="15,42 22,40 29,38 36,36 43,34 50,36 57,32 64,30 71,28 78,26 85,28 92,24 99,22 106,20 113,18 120,16 127,14 134,16 141,12 148,10 155,8 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="8" fill="#f59e0b"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">00:00</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">18:00</text>
+        <text x="155" y="7" class="chart-val" fill="#f59e0b" text-anchor="end" dx="-4">$2,385</text>
+      </svg>
+    </div>
   </div>
+  <!-- USD/KRW -->
   <div class="mticker-item">
-    <span class="mticker-name">USD/KRW</span>
-    <span class="mticker-value">1,368.50</span>
-    <span class="mticker-change up">▲ +8.20 (+0.60%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">USD/KRW</span>
+      <span class="mticker-value">1,368.50</span>
+      <span class="mticker-change up">▲ +8.20 (+0.60%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gKrw" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#ef4444" points="15,38 22,36 29,34 36,36 43,32 50,30 57,32 64,28 71,26 78,28 85,24 92,22 99,24 106,20 113,18 120,16 127,18 134,14 141,16 148,12 155,10"/>
+        <polyline fill="url(#gKrw)" stroke="none" points="15,38 22,36 29,34 36,36 43,32 50,30 57,32 64,28 71,26 78,28 85,24 92,22 99,24 106,20 113,18 120,16 127,18 134,14 141,16 148,12 155,10 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="10" fill="#ef4444"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">09:00</text><text x="95" y="66" class="chart-label">13:00</text><text x="135" y="66" class="chart-label">15:30</text>
+        <text x="155" y="9" class="chart-val" fill="#ef4444" text-anchor="end" dx="-4">1,368</text>
+      </svg>
+    </div>
   </div>
+  <!-- BTC -->
   <div class="mticker-item">
-    <span class="mticker-name">BTC</span>
-    <span class="mticker-value">$67,240</span>
-    <span class="mticker-change down">▼ -1,280 (-1.87%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">BTC</span>
+      <span class="mticker-value">$67,240</span>
+      <span class="mticker-change down">▼ -1,280 (-1.87%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gBtc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#3b82f6" points="15,10 22,14 29,12 36,18 43,16 50,22 57,20 64,24 71,18 78,26 85,22 92,28 99,24 106,30 113,34 120,28 127,36 134,32 141,38 148,40 155,42"/>
+        <polyline fill="url(#gBtc)" stroke="none" points="15,10 22,14 29,12 36,18 43,16 50,22 57,20 64,24 71,18 78,26 85,22 92,28 99,24 106,30 113,34 120,28 127,36 134,32 141,38 148,40 155,42 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="42" fill="#3b82f6"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <text x="18" y="66" class="chart-label">00:00</text><text x="55" y="66" class="chart-label">06:00</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">18:00</text>
+        <text x="155" y="40" class="chart-val" fill="#3b82f6" text-anchor="end" dx="-4">$67,240</text>
+      </svg>
+    </div>
   </div>
+  <!-- VIX -->
   <div class="mticker-item">
-    <span class="mticker-name">VIX</span>
-    <span class="mticker-value">22.45</span>
-    <span class="mticker-change up">▲ +3.80 (+20.38%)</span>
+    <div class="mticker-row">
+      <span class="mticker-name">VIX</span>
+      <span class="mticker-value">22.45</span>
+      <span class="mticker-change up">▲ +3.80 (+20.38%)</span>
+    </div>
+    <div class="mticker-chart">
+      <svg width="160" height="72" viewBox="0 0 160 72">
+        <defs><linearGradient id="gVix" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.25"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient></defs>
+        <line x1="15" y1="14" x2="155" y2="14" class="chart-grid" opacity="0.3"/><line x1="15" y1="32" x2="155" y2="32" class="chart-zero"/><line x1="15" y1="50" x2="155" y2="50" class="chart-grid" opacity="0.3"/>
+        <polyline class="chart-line" stroke="#ef4444" stroke-width="2" points="15,50 22,48 29,46 36,44 43,42 50,38 57,34 64,36 71,30 78,28 85,24 92,22 99,18 106,20 113,14 120,12 127,10 134,8 141,6 148,8 155,6"/>
+        <polyline fill="url(#gVix)" stroke="none" points="15,50 22,48 29,46 36,44 43,42 50,38 57,34 64,36 71,30 78,28 85,24 92,22 99,18 106,20 113,14 120,12 127,10 134,8 141,6 148,8 155,6 155,60 15,60"/>
+        <circle class="chart-dot" cx="155" cy="6" fill="#ef4444" r="3"><animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite"/></circle>
+        <line x1="15" y1="50" x2="155" y2="50" stroke="#475569" stroke-width="0.4" stroke-dasharray="1 2"/>
+        <text x="18" y="66" class="chart-label">09:30</text><text x="95" y="66" class="chart-label">12:00</text><text x="135" y="66" class="chart-label">15:00</text>
+        <text x="155" y="5" class="chart-val" fill="#ef4444" text-anchor="end" dx="-4">22.45</text>
+        <text x="18" y="49" class="chart-hi" fill="#475569">Open 18.65</text>
+      </svg>
+    </div>
   </div>
 </div>
 
