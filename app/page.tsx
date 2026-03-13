@@ -1,3 +1,5 @@
+"use client";
+
 import TopBar from "./components/layout/TopBar";
 import AlertTicker from "./components/layout/AlertTicker";
 import MarketTickerBar from "./components/layout/MarketTickerBar";

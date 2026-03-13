@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type) {
-      const vessels = await repo.findByType(type);
+      const vessels = await repo.findByTypeWithPosition(type);
       return NextResponse.json({ data: vessels, count: vessels.length });
     }
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     ];
     const results = [];
     for (const t of tankerTypes) {
-      const vessels = await repo.findByType(t);
+      const vessels = await repo.findByTypeWithPosition(t);
       results.push(...vessels);
     }
 
