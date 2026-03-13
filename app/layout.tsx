@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "./lib/language-context";
+import { QueryProvider } from "./lib/query-provider";
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
@@ -29,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${ibmPlexMono.variable} ${notoSansKR.variable} antialiased`}
       >
-        {children}
+        <QueryProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </QueryProvider>
       </body>
     </html>
   );

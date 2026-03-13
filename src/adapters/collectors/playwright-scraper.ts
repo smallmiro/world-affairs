@@ -2,7 +2,7 @@ import { chromium, type Browser } from "playwright";
 import * as cheerio from "cheerio";
 import type { NewsCollectorPort } from "../../domain/news/ports";
 import type { RawArticle } from "../../domain/news/entities";
-import type { CollectionResult } from "../../shared/types";
+import type { CollectionResult, Language } from "../../shared/types";
 import { classifyCategory, classifyRegionFromText, hashString } from "../../shared/classify";
 import type { SiteConfig } from "./scraper-selectors";
 import { SCRAPER_CONFIGS } from "./scraper-selectors";
@@ -72,7 +72,7 @@ export function parseArticlesFromHtml(
       category: classifyCategory(text),
       region: classifyRegionFromText(text),
       imageUrl,
-      originalLanguage: config.originalLanguage ?? "en",
+      originalLanguage: (config.originalLanguage ?? "en") as Language,
     });
   });
 

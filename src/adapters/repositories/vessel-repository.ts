@@ -56,6 +56,34 @@ export class VesselRepository implements VesselRepositoryPort {
     }));
   }
 
+  async findByTypeWithPosition(type: VesselType): Promise<(Vessel & { latestPosition: VesselPosition | null })[]> {
+    const rows = await this.prisma.vessel.findMany({
+      where: { type },
+      include: { positions: { orderBy: { timestamp: "desc" }, take: 1 } },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      mmsi: r.mmsi,
+      name: r.name,
+      type: r.type as VesselType,
+      flag: r.flag,
+      tonnage: r.tonnage,
+      latestPosition: r.positions[0]
+        ? {
+            id: r.positions[0].id,
+            vesselId: r.positions[0].vesselId,
+            lat: r.positions[0].lat,
+            lon: r.positions[0].lon,
+            speed: r.positions[0].speed,
+            course: r.positions[0].course,
+            zone: r.positions[0].zone as MaritimeZone | null,
+            status: r.positions[0].status as VesselPosition["status"],
+            timestamp: r.positions[0].timestamp,
+          }
+        : null,
+    }));
+  }
+
   async findByZone(zone: MaritimeZone): Promise<(Vessel & { latestPosition: VesselPosition })[]> {
     const positions = await this.prisma.vesselPosition.findMany({
       where: { zone },

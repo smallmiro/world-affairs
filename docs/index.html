@@ -248,20 +248,156 @@ body::after {
 .trend-down { color: var(--accent-green); }
 .issue-countries { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); }
 
-/* ── Vessel Tracking ── */
-.vessel-section { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: 1fr 340px; gap: 1px; background: var(--border); padding: 0; }
-.vessel-section > * { background: var(--bg-primary); }
-.vessel-map-panel { padding: 20px; }
-.vessel-info-panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-#vessel-map { width: 100%; height: 340px; border: 1px solid var(--border); }
+/* ── Tracking Row (Vessel + Airport) ── */
+.tracking-row {
+  grid-column: 1 / -1; grid-row: 3;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border); padding: 0;
+}
+.tracking-row > * { background: var(--bg-primary); }
 
-.passage-stats { display: flex; flex-direction: column; gap: 8px; }
-.passage-stat { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-secondary); border: 1px solid var(--border); }
-.passage-name { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); letter-spacing: 0.5px; }
-.passage-data { display: flex; align-items: center; gap: 12px; }
-.passage-count { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
-.passage-unit { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); }
-.passage-trend { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; }
+/* ── Vessel Tracking (Compact) ── */
+.vessel-compact { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+#vessel-map { width: 100%; height: 340px; border: 1px solid var(--border); }
+.vessel-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vessel-stat-mini { padding: 8px 10px; background: var(--bg-secondary); border: 1px solid var(--border); }
+.vessel-stat-mini .vstat-label { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 2px; }
+.vessel-stat-mini .vstat-val { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.vessel-stat-mini .vstat-sub { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); }
+
+/* ── Dubai Airport Section ── */
+.airport-section { padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+#airport-map { width: 100%; height: 100%; min-height: 420px; border: 1px solid var(--border); position: relative; }
+
+/* Radar sweep overlay */
+.radar-sweep {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 500;
+  background: conic-gradient(from 0deg at 60% 45%, rgba(6,182,212,0.08) 0deg, transparent 60deg, transparent 360deg);
+  animation: radar-rotate 4s linear infinite;
+}
+@keyframes radar-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.airport-status-bar {
+  display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+}
+.status-light {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.status-light.green { background: var(--accent-green); box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+.status-light.amber { background: var(--accent-amber); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+.status-light.red { background: var(--accent-red); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+.airport-status-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1px; color: var(--accent-green); font-weight: 600; }
+.airport-status-detail { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); margin-left: auto; }
+
+/* (routes-panel replaced by route-badges) */
+
+/* Vertical Timeline */
+.vtl-container {
+  overflow-y: auto; max-height: 480px; padding: 8px 0 8px 0;
+  scrollbar-width: thin; scrollbar-color: var(--border-active) transparent;
+}
+.vtl-container::-webkit-scrollbar { width: 3px; }
+.vtl-container::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
+.vtl-item {
+  display: grid; grid-template-columns: 52px 20px 1fr; gap: 0; align-items: start;
+  position: relative; min-height: 52px;
+}
+.vtl-date {
+  font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-muted);
+  text-align: right; padding-top: 6px; padding-right: 8px; letter-spacing: 0.3px; line-height: 1.2;
+}
+.vtl-date .vtl-day { display: block; font-size: 0.48rem; color: var(--text-muted); opacity: 0.6; }
+.vtl-item.today .vtl-date { color: var(--accent-cyan); }
+.vtl-item.today .vtl-date .vtl-day { color: var(--accent-cyan); opacity: 0.8; }
+.vtl-stem {
+  display: flex; flex-direction: column; align-items: center; position: relative;
+}
+.vtl-stem::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+  background: var(--border); transform: translateX(-50%);
+}
+.vtl-dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 8px;
+  position: relative; z-index: 1; flex-shrink: 0;
+}
+.vtl-dot.conflict { background: var(--accent-red); box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+.vtl-dot.ops { background: var(--accent-amber); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
+.vtl-dot.normal { background: var(--accent-green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+.vtl-dot.info { background: var(--accent-cyan); box-shadow: 0 0 6px rgba(6,182,212,0.4); }
+.vtl-card {
+  margin: 4px 0 4px 6px; padding: 6px 10px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  font-size: 0.6rem; color: var(--text-secondary); line-height: 1.45;
+}
+.vtl-item.today .vtl-card { border-color: rgba(6,182,212,0.25); background: rgba(6,182,212,0.04); }
+.vtl-card .tl-tag {
+  font-family: var(--font-mono); font-size: 0.46rem; font-weight: 600;
+  letter-spacing: 0.5px; padding: 1px 4px; display: inline-block; margin-right: 3px;
+  vertical-align: middle;
+}
+.tl-tag.conflict { color: var(--accent-red); background: var(--accent-red-dim); }
+.tl-tag.ops { color: var(--accent-amber); background: var(--accent-amber-dim); }
+.tl-tag.normal { color: var(--accent-green); background: var(--accent-green-dim); }
+.tl-tag.info { color: var(--accent-cyan); background: var(--accent-cyan-dim); }
+
+/* Airport inner grid: map + timeline side by side */
+.airport-inner-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border);
+}
+.airport-inner-grid > * { background: var(--bg-primary); }
+
+/* Route badges (compact grid) */
+.route-badges { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+.route-badge {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; font-family: var(--font-mono); font-size: 0.55rem;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+}
+.route-badge .rb-dest { color: var(--text-secondary); letter-spacing: 0.3px; }
+.route-badge .rb-code { color: var(--text-muted); font-size: 0.5rem; }
+.route-badge .rb-status { font-size: 0.48rem; font-weight: 600; letter-spacing: 0.3px; padding: 0 3px; }
+.route-badge .rb-status.open { color: var(--accent-green); background: var(--accent-green-dim); }
+.route-badge .rb-status.diverted { color: var(--accent-amber); background: var(--accent-amber-dim); }
+.route-badge .rb-status.suspended { color: var(--accent-red); background: var(--accent-red-dim); }
+
+/* Airline status table */
+.airline-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+.airline-card {
+  padding: 6px 10px; background: var(--bg-secondary); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.airline-name { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-secondary); flex: 1; }
+.airline-flights { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+.airline-status-dot { width: 5px; height: 5px; border-radius: 50%; }
+.airline-status-dot.normal { background: var(--accent-green); }
+.airline-status-dot.delays { background: var(--accent-amber); }
+.airline-status-dot.disrupted { background: var(--accent-red); }
+
+/* Aircraft marker */
+.aircraft-marker {
+  font-size: 12px; line-height: 1; filter: drop-shadow(0 0 4px rgba(6,182,212,0.6));
+  transition: transform 0.3s;
+}
+.aircraft-marker.ek { color: #f59e0b; filter: drop-shadow(0 0 4px rgba(245,158,11,0.6)); }
+.aircraft-marker.other { color: #94a3b8; filter: drop-shadow(0 0 3px rgba(148,163,184,0.4)); }
+.aircraft-marker.conflict-zone { color: #ef4444; filter: drop-shadow(0 0 6px rgba(239,68,68,0.6)); }
+
+.passage-stats { display: flex; flex-direction: column; gap: 4px; }
+.passage-stat { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--bg-secondary); border: 1px solid var(--border); }
+.passage-stat.tight { padding: 5px 8px; }
+.passage-stat.tight .passage-name { font-size: 0.58rem; }
+.passage-stat.tight .passage-count { font-size: 0.8rem; }
+.passage-stat.tight .passage-unit { font-size: 0.46rem; }
+.passage-name { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.5px; }
+.passage-data { display: flex; align-items: center; gap: 6px; }
+.passage-count { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.passage-unit { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text-muted); }
+.passage-trend { font-family: var(--font-mono); font-size: 0.52rem; font-weight: 600; }
 
 .anomaly-section h3 { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1.5px; color: var(--accent-amber); text-transform: uppercase; margin-bottom: 8px; }
 .anomaly-list { display: flex; flex-direction: column; gap: 4px; }
@@ -404,14 +540,15 @@ body::after {
 .map-section { animation-delay: 0.05s; }
 .news-section { animation-delay: 0.1s; }
 .issues-section { animation-delay: 0.15s; }
-.vessel-section { animation-delay: 0.2s; }
+.tracking-row { animation: fade-in-up 0.4s ease-out 0.2s both; }
 .market-section { animation-delay: 0.25s; }
 .ai-section { animation-delay: 0.3s; }
 
 @media (max-width: 1200px) {
   .dashboard { grid-template-columns: 1fr; }
   .news-section { grid-column: 1; grid-row: auto; max-height: 400px; }
-  .vessel-section { grid-column: 1; grid-template-columns: 1fr; }
+  .tracking-row { grid-column: 1; grid-template-columns: 1fr; }
+  .airport-inner-grid { grid-template-columns: 1fr; }
   .issues-grid { grid-template-columns: repeat(2,1fr); }
   .ai-section { grid-column: 1; grid-template-columns: 1fr; }
 }
@@ -793,10 +930,12 @@ body::after {
     </div>
   </section>
 
-  <!-- ── VESSEL TRACKING ── -->
-  <section class="vessel-section">
-    <div class="vessel-map-panel">
-      <div class="widget-header">
+  <!-- ── VESSEL + AIRPORT TRACKING ROW ── -->
+  <section class="tracking-row">
+
+    <!-- LEFT: Vessel Tracking (Compact) -->
+    <div class="vessel-compact">
+      <div class="widget-header" style="margin-bottom:8px">
         <div class="widget-title"><div class="indicator"></div><h2>중동 해역 선박 추적</h2></div>
         <div class="widget-controls">
           <button class="ctrl-btn active">전체</button>
@@ -804,51 +943,198 @@ body::after {
           <button class="ctrl-btn">LPG/LNG</button>
         </div>
       </div>
-      <div id="vessel-map"></div>
-    </div>
-    <div class="vessel-info-panel">
-      <div class="passage-stats">
-        <h3 style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">해협별 통과 현황 (24H)</h3>
-        <div class="passage-stat">
-          <div><div class="passage-name">호르무즈 해협</div><div class="passage-unit">Strait of Hormuz</div></div>
-          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -12%</span><span class="passage-count">23</span><span class="passage-unit">척</span></div>
+      <div id="vessel-map" style="min-height:340px"></div>
+      <!-- Passage Stats + Anomaly Alerts (below map) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <div class="passage-stats">
+          <h3 style="font-family:var(--font-mono);font-size:0.55rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px">해협별 통과 현황 (24H)</h3>
+          <div class="passage-stat tight">
+            <div><div class="passage-name">호르무즈 해협</div><div class="passage-unit">Strait of Hormuz</div></div>
+            <div class="passage-data"><span class="passage-trend trend-down">▼ -12%</span><span class="passage-count">23</span><span class="passage-unit">척</span></div>
+          </div>
+          <div class="passage-stat tight">
+            <div><div class="passage-name">바브엘만데브</div><div class="passage-unit">Bab el-Mandeb</div></div>
+            <div class="passage-data"><span class="passage-trend trend-down">▼ -34%</span><span class="passage-count">8</span><span class="passage-unit">척</span></div>
+          </div>
+          <div class="passage-stat tight">
+            <div><div class="passage-name">수에즈 운하</div><div class="passage-unit">Suez Canal</div></div>
+            <div class="passage-data"><span class="passage-trend trend-down">▼ -28%</span><span class="passage-count">11</span><span class="passage-unit">척</span></div>
+          </div>
         </div>
-        <div class="passage-stat">
-          <div><div class="passage-name">바브엘만데브</div><div class="passage-unit">Bab el-Mandeb</div></div>
-          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -34%</span><span class="passage-count">8</span><span class="passage-unit">척</span></div>
-        </div>
-        <div class="passage-stat">
-          <div><div class="passage-name">수에즈 운하</div><div class="passage-unit">Suez Canal</div></div>
-          <div class="passage-data"><span class="passage-trend trend-down" style="font-size:0.6rem">&#9660; -28%</span><span class="passage-count">11</span><span class="passage-unit">척</span></div>
+        <div class="anomaly-section" style="margin:0">
+          <h3>이상 감지 알림</h3>
+          <div class="anomaly-list">
+            <div class="anomaly-item critical-anomaly">
+              <span class="anomaly-icon">!!</span>
+              <div>
+                <div style="font-size:0.68rem;color:var(--accent-red);font-weight:500;margin-bottom:2px">유조선 3척 희망봉 우회 항로 진입</div>
+                <div style="font-size:0.6rem;color:var(--text-muted)">VLCC Atlantic Pioneer 외 2척 · 홍해 회피</div>
+              </div>
+            </div>
+            <div class="anomaly-item">
+              <span class="anomaly-icon">!</span>
+              <div>
+                <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">아덴만 비정상 정박 감지</div>
+                <div style="font-size:0.6rem;color:var(--text-muted)">LPG선 Gulf Energy · 48시간 이상 정박</div>
+              </div>
+            </div>
+            <div class="anomaly-item">
+              <span class="anomaly-icon">!</span>
+              <div>
+                <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">호르무즈 해협 통과량 급감</div>
+                <div style="font-size:0.6rem;color:var(--text-muted)">전일 대비 -12% · 이란 해군 훈련 영향 추정</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="anomaly-section">
-        <h3>이상 감지 알림</h3>
-        <div class="anomaly-list">
-          <div class="anomaly-item critical-anomaly">
-            <span class="anomaly-icon">!!</span>
-            <div>
-              <div style="font-size:0.68rem;color:var(--accent-red);font-weight:500;margin-bottom:2px">유조선 3척 희망봉 우회 항로 진입</div>
-              <div style="font-size:0.6rem;color:var(--text-muted)">VLCC Atlantic Pioneer 외 2척 · 홍해 회피</div>
-            </div>
+    </div>
+
+    <!-- RIGHT: Dubai Airport Monitor -->
+    <div class="airport-section">
+      <div class="widget-header" style="margin-bottom:0">
+        <div class="widget-title">
+          <div class="indicator" style="background:var(--accent-amber)"></div>
+          <h2>DUBAI INTL (DXB) — 항공 모니터</h2>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-muted);letter-spacing:1px">1H CYCLE · LAST 7D</div>
+      </div>
+
+      <!-- Airport Status Bar -->
+      <div class="airport-status-bar">
+        <div class="status-light green"></div>
+        <span class="airport-status-label">OPERATIONAL</span>
+        <span style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text-muted)">RWY 12L/30R · 12R/30L ACTIVE</span>
+        <span class="airport-status-detail">VIS 10km+ · WIND 320°/12kt</span>
+      </div>
+
+      <!-- Map + Vertical Timeline (side by side) -->
+      <div class="airport-inner-grid">
+        <!-- LEFT: Airport Map with Radar -->
+        <div style="position:relative;padding:0">
+          <div id="airport-map" style="height:420px"></div>
+          <div class="radar-sweep"></div>
+          <div style="position:absolute;top:8px;left:8px;z-index:600;background:rgba(10,14,23,0.85);border:1px solid var(--border);padding:4px 8px;font-family:var(--font-mono);font-size:0.6rem">
+            <span style="color:var(--accent-cyan)">✈ 24</span>
+            <span style="color:var(--text-muted);margin:0 4px">TRACKED</span>
+            <span style="color:var(--accent-amber)">EK 8</span>
+            <span style="color:var(--text-muted);margin-left:4px">OTHER 16</span>
           </div>
-          <div class="anomaly-item">
-            <span class="anomaly-icon">!</span>
-            <div>
-              <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">아덴만 비정상 정박 감지</div>
-              <div style="font-size:0.6rem;color:var(--text-muted)">LPG선 Gulf Energy · 48시간 이상 정박</div>
-            </div>
+          <div style="position:absolute;bottom:8px;right:8px;z-index:600;background:rgba(10,14,23,0.85);border:1px solid var(--border);padding:4px 8px;font-family:var(--font-mono);font-size:0.55rem">
+            <span style="color:var(--accent-red)">◉ 분쟁구역</span>
+            <span style="color:var(--accent-amber);margin-left:6px">◉ 경계구역</span>
+            <span style="color:var(--accent-green);margin-left:6px">◉ 안전</span>
           </div>
-          <div class="anomaly-item">
-            <span class="anomaly-icon">!</span>
-            <div>
-              <div style="font-size:0.68rem;color:var(--accent-amber);font-weight:500;margin-bottom:2px">호르무즈 해협 통과량 급감</div>
-              <div style="font-size:0.6rem;color:var(--text-muted)">전일 대비 -12% · 이란 해군 훈련 영향 추정</div>
+        </div>
+
+        <!-- RIGHT: Vertical Timeline -->
+        <div style="padding:12px 10px 12px 0">
+          <div style="font-family:var(--font-mono);font-size:0.58rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;padding-left:10px">7일 타임라인</div>
+          <div class="vtl-container">
+            <div class="vtl-item today">
+              <div class="vtl-date">3/14<span class="vtl-day">TODAY</span></div>
+              <div class="vtl-stem"><div class="vtl-dot normal"></div></div>
+              <div class="vtl-card"><span class="tl-tag normal">OPS</span>DXB 전 활주로 정상운영<br><span class="tl-tag conflict">WATCH</span>이란 훈련 지속 · 항로 감시중</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/13<span class="vtl-day">THU</span></div>
+              <div class="vtl-stem"><div class="vtl-dot info"></div></div>
+              <div class="vtl-card"><span class="tl-tag info">INTEL</span>UAE 방공체계 경계 격상</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/12<span class="vtl-day">WED</span></div>
+              <div class="vtl-stem"><div class="vtl-dot ops"></div></div>
+              <div class="vtl-card"><span class="tl-tag ops">DELAY</span>IKA행 평균 1.5H 지연<br><span class="tl-tag normal">SAFE</span>DXB 동측 항로 정상화</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/11<span class="vtl-day">TUE</span></div>
+              <div class="vtl-stem"><div class="vtl-dot conflict"></div></div>
+              <div class="vtl-card"><span class="tl-tag conflict">STRIKE</span>이란 IRGC 걸프만 미사일 시험</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/10<span class="vtl-day">MON</span></div>
+              <div class="vtl-stem"><div class="vtl-dot ops"></div></div>
+              <div class="vtl-card"><span class="tl-tag ops">REROUTE</span>DXB-유럽 노선 남측 우회<br><span class="tl-tag info">EK</span>TLV/BEY 노선 중단 발표</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/9<span class="vtl-day">SUN</span></div>
+              <div class="vtl-stem"><div class="vtl-dot conflict"></div></div>
+              <div class="vtl-card"><span class="tl-tag conflict">ALERT</span>이란 해군 호르무즈 훈련 개시</div>
+            </div>
+            <div class="vtl-item">
+              <div class="vtl-date">3/8<span class="vtl-day">SAT</span></div>
+              <div class="vtl-stem"><div class="vtl-dot conflict"></div></div>
+              <div class="vtl-card"><span class="tl-tag conflict">STRIKE</span>예멘 후티, 홍해 드론 공격<br><span class="tl-tag ops">NOTAM</span>DXB 남측 항로 제한</div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Bottom row: Airlines + Routes (compact) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <!-- Airlines -->
+        <div>
+          <div style="font-family:var(--font-mono);font-size:0.58rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">주요 항공사 (24H)</div>
+          <div class="airline-grid">
+            <div class="airline-card">
+              <div class="airline-status-dot normal"></div>
+              <span class="airline-name">에미레이트 (EK)</span>
+              <span class="airline-flights">142편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-green)">98%</span>
+            </div>
+            <div class="airline-card">
+              <div class="airline-status-dot normal"></div>
+              <span class="airline-name">플라이두바이 (FZ)</span>
+              <span class="airline-flights">86편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-green)">95%</span>
+            </div>
+            <div class="airline-card">
+              <div class="airline-status-dot delays"></div>
+              <span class="airline-name">카타르항공 (QR)</span>
+              <span class="airline-flights">38편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-amber)">82%</span>
+            </div>
+            <div class="airline-card">
+              <div class="airline-status-dot normal"></div>
+              <span class="airline-name">대한항공 (KE)</span>
+              <span class="airline-flights">4편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-green)">100%</span>
+            </div>
+            <div class="airline-card">
+              <div class="airline-status-dot delays"></div>
+              <span class="airline-name">루프트한자 (LH)</span>
+              <span class="airline-flights">6편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-amber)">78%</span>
+            </div>
+            <div class="airline-card">
+              <div class="airline-status-dot disrupted"></div>
+              <span class="airline-name">이란항공 (IR)</span>
+              <span class="airline-flights">2편</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--accent-red)">50%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Emirates Routes (compact badges) -->
+        <div>
+          <div style="font-family:var(--font-mono);font-size:0.58rem;letter-spacing:1.5px;color:var(--accent-amber);text-transform:uppercase;margin-bottom:6px">EK 노선 현황</div>
+          <div class="route-badges">
+            <div class="route-badge"><span class="rb-dest">ICN</span><span class="rb-code">EK322</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">LHR</span><span class="rb-code">EK001</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">NRT</span><span class="rb-code">EK318</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">SIN</span><span class="rb-code">EK354</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">JFK</span><span class="rb-code">EK201</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">CDG</span><span class="rb-code">EK073</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">IKA</span><span class="rb-code">EK971</span><span class="rb-status diverted">DIVRT</span></div>
+            <div class="route-badge"><span class="rb-dest">TLV</span><span class="rb-code">EK931</span><span class="rb-status suspended">SUSP</span></div>
+            <div class="route-badge"><span class="rb-dest">BEY</span><span class="rb-code">EK957</span><span class="rb-status suspended">SUSP</span></div>
+            <div class="route-badge"><span class="rb-dest">DME</span><span class="rb-code">EK131</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">BKK</span><span class="rb-code">EK384</span><span class="rb-status open">OPEN</span></div>
+            <div class="route-badge"><span class="rb-dest">SYD</span><span class="rb-code">EK414</span><span class="rb-status open">OPEN</span></div>
+          </div>
+        </div>
+      </div>
     </div>
+
   </section>
 
   <!-- ── MARKET DATA ── -->
@@ -1298,6 +1584,157 @@ L.marker([4.0, 44.5], {
   }),
   interactive: false
 }).addTo(vesselMap);
+
+// ═══ DUBAI AIRPORT MAP (Leaflet) ═══
+const airportMap = L.map('airport-map', {
+  center: [25.25, 55.36],
+  zoom: 7,
+  minZoom: 5,
+  maxZoom: 10,
+  zoomControl: false,
+  attributionControl: false
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(airportMap);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19, opacity: 0.4
+}).addTo(airportMap);
+
+// DXB Airport marker
+const dxbIcon = L.divIcon({
+  className: '',
+  html: '<div style="font-family:IBM Plex Mono;font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:2px;text-shadow:0 0 12px rgba(245,158,11,0.6);white-space:nowrap">✦ DXB</div>',
+  iconSize: [50, 16], iconAnchor: [8, 8]
+});
+L.marker([25.253, 55.365], { icon: dxbIcon, interactive: false }).addTo(airportMap);
+
+// DXB approach/departure zones
+L.circle([25.253, 55.365], {
+  radius: 60000, color: '#f59e0b', fillColor: '#f59e0b',
+  fillOpacity: 0.04, weight: 1, opacity: 0.3, dashArray: '3 5'
+}).addTo(airportMap);
+L.circle([25.253, 55.365], {
+  radius: 150000, color: '#06b6d4', fillColor: '#06b6d4',
+  fillOpacity: 0.02, weight: 0.5, opacity: 0.2, dashArray: '2 6'
+}).addTo(airportMap);
+
+// Conflict / Danger zones
+// Yemen (Houthi zone)
+L.circle([15.5, 44.2], {
+  radius: 300000, color: '#ef4444', fillColor: '#ef4444',
+  fillOpacity: 0.08, weight: 1.5, opacity: 0.5, dashArray: '5 3'
+}).addTo(airportMap);
+L.marker([15.5, 44.2], {
+  icon: L.divIcon({
+    className: '',
+    html: '<div style="font-family:IBM Plex Mono;font-size:8px;color:#ef4444;letter-spacing:1px;text-shadow:0 0 6px rgba(239,68,68,0.5);white-space:nowrap">⚠ YEMEN<br>CONFLICT ZONE</div>',
+    iconSize: [90, 24], iconAnchor: [45, 12]
+  }), interactive: false
+}).addTo(airportMap);
+
+// Iran military zone
+L.circle([27.5, 54.5], {
+  radius: 200000, color: '#f59e0b', fillColor: '#f59e0b',
+  fillOpacity: 0.06, weight: 1, opacity: 0.4, dashArray: '4 4'
+}).addTo(airportMap);
+L.marker([28.5, 54.0], {
+  icon: L.divIcon({
+    className: '',
+    html: '<div style="font-family:IBM Plex Mono;font-size:7px;color:#f59e0b;letter-spacing:0.5px;text-shadow:0 0 4px rgba(245,158,11,0.4);white-space:nowrap">IRAN NAVAL EXERCISE</div>',
+    iconSize: [120, 12], iconAnchor: [60, 6]
+  }), interactive: false
+}).addTo(airportMap);
+
+// Iraq/Syria zone
+L.circle([33.5, 44.0], {
+  radius: 250000, color: '#ef4444', fillColor: '#ef4444',
+  fillOpacity: 0.05, weight: 1, opacity: 0.3, dashArray: '4 4'
+}).addTo(airportMap);
+
+// Hormuz strait danger
+L.circle([26.6, 56.2], {
+  radius: 40000, color: '#ef4444', fillColor: '#ef4444',
+  fillOpacity: 0.12, weight: 1.5, opacity: 0.6, dashArray: '3 3'
+}).addTo(airportMap);
+
+// Flight paths from DXB
+function flightArc(dest, color, dash) {
+  L.polyline([[25.253, 55.365], dest], {
+    color: color, weight: 1.2, opacity: 0.4, dashArray: dash || '4 6'
+  }).addTo(airportMap);
+}
+flightArc([37.47, 127.44], '#06b6d4');   // ICN
+flightArc([51.47, -0.46], '#06b6d4');    // LHR
+flightArc([35.76, 140.39], '#06b6d4');   // NRT
+flightArc([35.69, 51.31], '#f59e0b', '3 4'); // IKA (diverted)
+flightArc([25.27, 51.61], '#06b6d4');    // DOH
+flightArc([40.08, 116.60], '#06b6d4');   // PEK
+
+// Aircraft icons
+function aircraftIcon(cls, rotation) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="aircraft-marker ${cls}" style="transform:rotate(${rotation}deg)">✈</div>`,
+    iconSize: [14, 14], iconAnchor: [7, 7]
+  });
+}
+
+// Emirates flights (amber)
+const ekFlights = [
+  { lat: 26.8, lng: 58.2, rot: 45, fl: 'EK322 → ICN', alt: 'FL380 · 920km/h' },
+  { lat: 29.0, lng: 52.0, rot: -30, fl: 'EK971 → IKA', alt: 'FL340 · 880km/h · DIVERTED' },
+  { lat: 24.8, lng: 54.0, rot: 210, fl: 'EK412 ← SYD', alt: 'FL120 · APPROACH' },
+  { lat: 25.5, lng: 56.5, rot: 90, fl: 'EK001 → LHR', alt: 'FL390 · 940km/h' },
+  { lat: 31.0, lng: 62.0, rot: 60, fl: 'EK318 → NRT', alt: 'FL360 · 910km/h' },
+  { lat: 25.0, lng: 53.5, rot: 280, fl: 'EK856 ← MNL', alt: 'FL180 · DESCENT' },
+  { lat: 22.5, lng: 57.0, rot: 130, fl: 'EK500 → BOM', alt: 'FL350 · 870km/h' },
+  { lat: 25.1, lng: 55.0, rot: 300, fl: 'EK206 ← CDG', alt: 'FL080 · FINAL' },
+];
+ekFlights.forEach(f => {
+  const m = L.marker([f.lat, f.lng], { icon: aircraftIcon('ek', f.rot) }).addTo(airportMap);
+  m.bindPopup(
+    `<div class="popup-title amber">${f.fl}</div><div class="popup-desc">${f.alt}</div>`,
+    { className: 'hotspot-popup', maxWidth: 220 }
+  );
+});
+
+// Other airline flights (gray/cyan)
+const otherFlights = [
+  { lat: 27.5, lng: 50.5, rot: -20, fl: 'QR304 → DOH', cls: 'other' },
+  { lat: 25.8, lng: 51.8, rot: 250, fl: 'QR1082 ← DOH', cls: 'other' },
+  { lat: 33.0, lng: 58.0, rot: 55, fl: 'KE952 → ICN', cls: 'other' },
+  { lat: 24.0, lng: 56.2, rot: 180, fl: 'FZ561 → CMB', cls: 'other' },
+  { lat: 26.0, lng: 54.5, rot: 0, fl: 'FZ1427 → TBS', cls: 'other' },
+  { lat: 28.5, lng: 48.5, rot: -45, fl: 'LH629 → FRA', cls: 'other' },
+  { lat: 25.4, lng: 55.8, rot: 120, fl: 'FZ723 → BOM', cls: 'other' },
+  { lat: 23.5, lng: 54.0, rot: 350, fl: 'EY305 ← AUH', cls: 'other' },
+  { lat: 30.0, lng: 56.5, rot: 40, fl: 'IR659 → IKA', cls: 'conflict-zone' },
+  { lat: 25.3, lng: 55.1, rot: 270, fl: 'KE951 ← ICN', cls: 'other' },
+  { lat: 21.0, lng: 55.5, rot: 150, fl: 'EK770 → JNB', cls: 'other' },
+  { lat: 36.0, lng: 51.5, rot: 220, fl: 'IR658 ← IKA', cls: 'conflict-zone' },
+  { lat: 24.5, lng: 55.5, rot: 30, fl: 'FZ002 TAXI', cls: 'other' },
+  { lat: 26.5, lng: 53.0, rot: -10, fl: 'SV553 → RUH', cls: 'other' },
+  { lat: 25.2, lng: 55.5, rot: 90, fl: 'EK CARGO', cls: 'ek' },
+  { lat: 19.0, lng: 56.0, rot: 160, fl: 'FZ415 → MCT', cls: 'other' },
+];
+otherFlights.forEach(f => {
+  const m = L.marker([f.lat, f.lng], { icon: aircraftIcon(f.cls, f.rot) }).addTo(airportMap);
+  m.bindPopup(
+    `<div class="popup-title" style="color:var(--text-secondary)">${f.fl}</div>`,
+    { className: 'hotspot-popup', maxWidth: 180 }
+  );
+});
+
+// Animate aircraft positions slightly
+setInterval(() => {
+  ekFlights.forEach((f, i) => {
+    f.lat += (Math.random() - 0.5) * 0.02;
+    f.lng += (Math.random() - 0.5) * 0.02;
+  });
+}, 3000);
 
 </script>
 </body>

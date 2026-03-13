@@ -1,27 +1,60 @@
 "use client";
 
-const ALERTS = [
-  { level: "긴급", text: "호르무즈 해협 인근 이란 해군 훈련 감지 — 유조선 3척 우회 항로 진입" },
-  { level: "속보", text: "예멘 후티 반군, 홍해 상선 공격 재개 선언 — 바브엘만데브 해협 위험도 상향" },
-  { level: "주의", text: "남중국해 필리핀 EEZ 내 중국 해경선 4척 진입 확인" },
-];
+import { useNews } from "../../hooks/use-news";
+import { useGeoEvents } from "../../hooks/use-geo-events";
+import { useLanguage } from "../../lib/language-context";
+import { getTranslatedText } from "../../lib/display-mappers";
+
+interface AlertItem {
+  level: string;
+  text: string;
+}
 
 export default function AlertTicker() {
-  const doubled = [...ALERTS, ...ALERTS];
+  const { lang } = useLanguage();
+  const { data: news } = useNews({ limit: 50 });
+  const { data: events } = useGeoEvents({ limit: 50 });
+
+  const alerts: AlertItem[] = [];
+
+  if (news) {
+    for (const article of news) {
+      if (article.severity === "critical") {
+        alerts.push({ level: "긴급", text: getTranslatedText(article.title, lang) });
+      }
+    }
+  }
+
+  if (events) {
+    for (const event of events) {
+      if (event.severity === "critical") {
+        alerts.push({ level: "속보", text: getTranslatedText(event.title, lang) });
+      } else if (event.severity === "high") {
+        alerts.push({ level: "주의", text: getTranslatedText(event.title, lang) });
+      }
+    }
+  }
+
+  const displayAlerts =
+    alerts.length > 0
+      ? alerts.slice(0, 10)
+      : [{ level: "INFO", text: "현재 긴급 알림이 없습니다" }];
+
+  const doubled = [...displayAlerts, ...displayAlerts];
 
   return (
     <div
       className="flex items-center gap-3 px-6 py-1.5 overflow-hidden border-b"
       style={{
-        background: "var(--accent-red-dim)",
-        borderColor: "rgba(239,68,68,0.2)",
+        background: alerts.length > 0 ? "var(--accent-red-dim)" : "var(--bg-secondary)",
+        borderColor: alerts.length > 0 ? "rgba(239,68,68,0.2)" : "var(--border)",
       }}
     >
       <span
         className="font-mono text-[0.65rem] font-bold tracking-[2px] uppercase whitespace-nowrap"
         style={{
-          color: "var(--accent-red)",
-          animation: "blink-label 1s step-end infinite",
+          color: alerts.length > 0 ? "var(--accent-red)" : "var(--text-muted)",
+          animation: alerts.length > 0 ? "blink-label 1s step-end infinite" : undefined,
         }}
       >
         ALERT

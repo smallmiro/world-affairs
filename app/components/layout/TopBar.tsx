@@ -1,12 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "../../lib/language-context";
+import { useNews } from "../../hooks/use-news";
+import { useGeoEvents } from "../../hooks/use-geo-events";
 
 const NAV_TABS = ["OVERVIEW", "MAP", "VESSELS", "MARKETS", "ANALYSIS", "BRIEFING"] as const;
+
+const LANG_DISPLAY: Record<string, string> = {
+  ko: "KR",
+  en: "EN",
+  ja: "JA",
+};
 
 export default function TopBar() {
   const [activeTab, setActiveTab] = useState<string>("OVERVIEW");
   const [time, setTime] = useState("");
+  const { lang, cycleLang } = useLanguage();
+  const { data: news } = useNews({ limit: 50 });
+  const { data: events } = useGeoEvents({ limit: 50 });
 
   useEffect(() => {
     const update = () =>
@@ -15,6 +27,10 @@ export default function TopBar() {
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
+
+  const criticalCount =
+    (news?.filter((a) => a.severity === "critical").length ?? 0) +
+    (events?.filter((e) => e.severity === "critical").length ?? 0);
 
   return (
     <header
@@ -88,15 +104,17 @@ export default function TopBar() {
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-          <span
-            className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full grid place-items-center font-mono text-[0.55rem] text-white"
-            style={{
-              background: "var(--accent-red)",
-              animation: "pulse-badge 1.5s ease-in-out infinite",
-            }}
-          >
-            3
-          </span>
+          {criticalCount > 0 && (
+            <span
+              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full grid place-items-center font-mono text-[0.55rem] text-white"
+              style={{
+                background: "var(--accent-red)",
+                animation: "pulse-badge 1.5s ease-in-out infinite",
+              }}
+            >
+              {criticalCount}
+            </span>
+          )}
         </button>
         <button
           aria-label="설정"
@@ -110,10 +128,11 @@ export default function TopBar() {
         </button>
         <button
           aria-label="언어 변경"
+          onClick={cycleLang}
           className="w-8 h-8 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
-          KR
+          {LANG_DISPLAY[lang]}
         </button>
       </div>
     </header>
