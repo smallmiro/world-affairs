@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { buildPrompt, parseResponse } from "../src/adapters/translators/gemini-translator";
+import { buildPrompt, parseResponse } from "../src/adapters/ai/gemini-translator";
 
 describe("buildPrompt", () => {
   it("should build Korean translation prompt", () => {
@@ -59,7 +59,7 @@ describe("GeminiTranslator", () => {
     // We test the logic without actual API by importing the class
     // and mocking the API call
     const { GeminiTranslator } = await import(
-      "../src/adapters/translators/gemini-translator"
+      "../src/adapters/ai/gemini-translator"
     );
 
     // Mock the genAI to avoid needing a real API key
@@ -79,7 +79,7 @@ describe("GeminiTranslator", () => {
 
   it("should fall back to original text on API failure", async () => {
     const { GeminiTranslator } = await import(
-      "../src/adapters/translators/gemini-translator"
+      "../src/adapters/ai/gemini-translator"
     );
 
     const translator = Object.create(GeminiTranslator.prototype);
@@ -101,7 +101,7 @@ describe("GeminiTranslator", () => {
 
   it("should batch translate with fallback on failure", async () => {
     const { GeminiTranslator } = await import(
-      "../src/adapters/translators/gemini-translator"
+      "../src/adapters/ai/gemini-translator"
     );
 
     const translator = Object.create(GeminiTranslator.prototype);
@@ -135,7 +135,7 @@ describe("GeminiTranslator", () => {
 
   it("should return empty array for empty batch", async () => {
     const { GeminiTranslator } = await import(
-      "../src/adapters/translators/gemini-translator"
+      "../src/adapters/ai/gemini-translator"
     );
 
     const translator = Object.create(GeminiTranslator.prototype);
