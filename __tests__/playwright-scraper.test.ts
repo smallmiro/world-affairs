@@ -153,4 +153,38 @@ describe("parseArticlesFromHtml", () => {
 
     expect(articles[0].summary).toBeNull();
   });
+
+  it("should reject javascript: URLs", () => {
+    const xssHtml = `
+    <html><body>
+      <div data-component-name="card">
+        <a href="javascript:alert(1)"><span class="container__headline-text">XSS Attack</span></a>
+      </div>
+    </body></html>`;
+
+    const articles = parseArticlesFromHtml(xssHtml, CNN_CONFIG);
+    expect(articles).toHaveLength(0);
+  });
+
+  it("should handle protocol-relative URLs", () => {
+    const protoRelHtml = `
+    <html><body>
+      <div data-component-name="card">
+        <a href="//cdn.cnn.com/world/article"><span class="container__headline-text">Proto-relative link</span></a>
+      </div>
+    </body></html>`;
+
+    const articles = parseArticlesFromHtml(protoRelHtml, CNN_CONFIG);
+    expect(articles).toHaveLength(1);
+    expect(articles[0].url).toBe("https://cdn.cnn.com/world/article");
+  });
+
+  it("should use originalLanguage from config", () => {
+    const koConfig: SiteConfig = {
+      ...CNN_CONFIG,
+      originalLanguage: "ko",
+    };
+    const articles = parseArticlesFromHtml(MOCK_CNN_HTML, koConfig);
+    expect(articles[0].originalLanguage).toBe("ko");
+  });
 });

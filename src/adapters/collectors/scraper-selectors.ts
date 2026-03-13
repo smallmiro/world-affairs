@@ -9,6 +9,7 @@ export interface SiteConfig {
     imageUrl?: string;
   };
   waitFor?: string;
+  originalLanguage?: string;
 }
 
 export const SCRAPER_CONFIGS: SiteConfig[] = [

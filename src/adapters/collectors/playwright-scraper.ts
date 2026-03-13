@@ -1,10 +1,9 @@
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium, type Browser } from "playwright";
 import * as cheerio from "cheerio";
-import { createHash } from "crypto";
 import type { NewsCollectorPort } from "../../domain/news/ports";
 import type { RawArticle } from "../../domain/news/entities";
 import type { CollectionResult } from "../../shared/types";
-import { classifyCategory, classifyRegionFromText } from "../../shared/classify";
+import { classifyCategory, classifyRegionFromText, hashString } from "../../shared/classify";
 import type { SiteConfig } from "./scraper-selectors";
 import { SCRAPER_CONFIGS } from "./scraper-selectors";
 
@@ -17,15 +16,21 @@ const USER_AGENTS = [
 const MAX_RETRIES = 3;
 const TIMEOUT_MS = 30_000;
 
-function hashString(str: string): string {
-  return createHash("sha256").update(str).digest("hex").slice(0, 16);
-}
-
 function randomUserAgent(): string {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
+function isValidHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function resolveUrl(href: string, baseUrl: string): string {
+  if (href.startsWith("//")) return `https:${href}`;
   if (href.startsWith("http")) return href;
   const base = new URL(baseUrl);
   return new URL(href, base.origin).toString();
@@ -46,13 +51,16 @@ export function parseArticlesFromHtml(
     const summary = config.selectors.summary
       ? $el.find(config.selectors.summary).first().text().trim() || null
       : null;
-    const imageUrl = config.selectors.imageUrl
+    const rawImageUrl = config.selectors.imageUrl
       ? $el.find(config.selectors.imageUrl).first().attr("src") ?? null
       : null;
 
     if (!title || !href) return;
 
     const url = resolveUrl(href, config.url);
+    if (!isValidHttpUrl(url)) return;
+
+    const imageUrl = rawImageUrl && isValidHttpUrl(rawImageUrl) ? rawImageUrl : null;
     const text = `${title} ${summary ?? ""}`;
 
     articles.push({
@@ -64,7 +72,7 @@ export function parseArticlesFromHtml(
       category: classifyCategory(text),
       region: classifyRegionFromText(text),
       imageUrl,
-      originalLanguage: "en",
+      originalLanguage: config.originalLanguage ?? "en",
     });
   });
 
@@ -81,9 +89,9 @@ async function fetchWithRetry(
     const context = await browser.newContext({
       userAgent: randomUserAgent(),
     });
-    const page = await context.newPage();
 
     try {
+      const page = await context.newPage();
       await page.goto(config.url, {
         waitUntil: "domcontentloaded",
         timeout: TIMEOUT_MS,
@@ -131,10 +139,10 @@ export class PlaywrightScraper implements NewsCollectorPort {
           const parsed = parseArticlesFromHtml(html, config);
           const now = new Date();
 
-          const articles: RawArticle[] = parsed.map((a) => ({
+          const articles = parsed.map((a) => ({
             ...a,
             publishedAt: now,
-          }));
+          } satisfies RawArticle));
 
           allArticles.push(...articles);
         } catch (error) {
@@ -145,7 +153,9 @@ export class PlaywrightScraper implements NewsCollectorPort {
         }
       }
     } finally {
-      await browser.close();
+      await browser.close().catch((err) =>
+        console.error("Failed to close browser:", err),
+      );
     }
 
     return {

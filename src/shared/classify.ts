@@ -1,4 +1,9 @@
 import type { MaritimeZone, NewsCategory, Region, VesselType } from "./types";
+import { createHash } from "crypto";
+
+export function hashString(str: string): string {
+  return createHash("sha256").update(str).digest("hex").slice(0, 16);
+}
 
 const COUNTRY_TO_REGION: Record<string, Region> = {
   // East Asia
