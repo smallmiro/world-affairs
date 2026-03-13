@@ -14,6 +14,8 @@
     "batch": "tsx src/batch/scheduler.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
+    "@prisma/adapter-libsql": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "next": "16.1.6",
     "node-cron": "^4.2.1",
