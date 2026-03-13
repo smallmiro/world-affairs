@@ -1,7 +1,6 @@
 import type { GeoCollectorPort } from "../../domain/geopolitics/ports";
 import type { RawGeoEvent } from "../../domain/geopolitics/entities";
 import type { CollectionResult, GeoEventType } from "../../shared/types";
-import { createHash } from "crypto";
 
 const GDELT_GKG_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
@@ -36,10 +35,6 @@ function parseGdeltDate(seendate: string): Date {
   const min = seendate.slice(11, 13);
   const sec = seendate.slice(13, 15);
   return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
-}
-
-function hashString(str: string): string {
-  return createHash("sha256").update(str).digest("hex").slice(0, 16);
 }
 
 const EVENT_TYPE_KEYWORDS: [GeoEventType, string[]][] = [

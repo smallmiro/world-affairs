@@ -1,6 +1,6 @@
 import type { VesselCollectorPort } from "../../domain/vessel/ports";
 import type { RawAisMessage } from "../../domain/vessel/entities";
-import type { MaritimeZone } from "../../shared/types";
+import { classifyShipType } from "../../shared/classify";
 
 interface AisStreamMessage {
   MessageType: string;
@@ -30,39 +30,6 @@ interface AisStreamMessage {
       CallSign: string;
     };
   };
-}
-
-// Middle East maritime bounding boxes
-const MARITIME_ZONES: { zone: MaritimeZone; bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number } }[] = [
-  { zone: "hormuz", bounds: { minLat: 25.5, maxLat: 27.0, minLon: 55.5, maxLon: 57.0 } },
-  { zone: "bab_el_mandeb", bounds: { minLat: 12.0, maxLat: 13.5, minLon: 43.0, maxLon: 44.0 } },
-  { zone: "suez", bounds: { minLat: 29.5, maxLat: 31.5, minLon: 32.0, maxLon: 33.0 } },
-  { zone: "persian_gulf", bounds: { minLat: 24.0, maxLat: 30.0, minLon: 48.0, maxLon: 56.5 } },
-  { zone: "red_sea", bounds: { minLat: 13.5, maxLat: 29.5, minLon: 32.5, maxLon: 43.5 } },
-  { zone: "gulf_of_aden", bounds: { minLat: 10.5, maxLat: 15.0, minLon: 43.0, maxLon: 51.0 } },
-];
-
-export function classifyZone(lat: number, lon: number): MaritimeZone | null {
-  for (const { zone, bounds } of MARITIME_ZONES) {
-    if (lat >= bounds.minLat && lat <= bounds.maxLat && lon >= bounds.minLon && lon <= bounds.maxLon) {
-      return zone;
-    }
-  }
-  return null;
-}
-
-// AIS ship type codes → our VesselType
-// See: https://coast.noaa.gov/data/marinecadastre/ais/VesselTypeCodes2018.pdf
-const TANKER_CODES = new Set([80, 81, 82, 83, 84, 85, 86, 87, 88, 89]);
-const LPG_CODE = 82;
-const LNG_CODE = 84;
-
-export function classifyShipType(aisType: number): "tanker_crude" | "tanker_product" | "lpg" | "lng" | null {
-  if (aisType === LPG_CODE) return "lpg";
-  if (aisType === LNG_CODE) return "lng";
-  if (aisType === 81) return "tanker_crude";
-  if (TANKER_CODES.has(aisType)) return "tanker_product";
-  return null;
 }
 
 export class AisStreamCollector implements VesselCollectorPort {
@@ -110,7 +77,8 @@ export class AisStreamCollector implements VesselCollectorPort {
           const shipType = data.Message.ShipStaticData?.Type ?? 0;
 
           // Only process tankers/LPG/LNG
-          if (!classifyShipType(shipType) && !posReport) return;
+          const vesselType = classifyShipType(shipType);
+          if (!vesselType) return;
 
           const raw: RawAisMessage = {
             mmsi: String(meta.MMSI),
@@ -126,8 +94,8 @@ export class AisStreamCollector implements VesselCollectorPort {
           };
 
           this.messageHandler(raw);
-        } catch {
-          // Skip malformed messages
+        } catch (error) {
+          console.warn("AIS message parse error:", error instanceof Error ? error.message : error);
         }
       };
     });

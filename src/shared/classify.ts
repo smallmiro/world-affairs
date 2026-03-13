@@ -1,4 +1,4 @@
-import type { NewsCategory, Region } from "./types";
+import type { MaritimeZone, NewsCategory, Region, VesselType } from "./types";
 
 const COUNTRY_TO_REGION: Record<string, Region> = {
   // East Asia
@@ -131,5 +131,39 @@ export function classifyRegionFromText(text: string): Region | null {
     }
   }
 
+  return null;
+}
+
+// ─── Maritime Zone Classification ──────────────────────────────
+
+const MARITIME_ZONES: { zone: MaritimeZone; bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number } }[] = [
+  { zone: "hormuz", bounds: { minLat: 25.5, maxLat: 27.0, minLon: 55.5, maxLon: 57.0 } },
+  { zone: "bab_el_mandeb", bounds: { minLat: 12.0, maxLat: 13.5, minLon: 43.0, maxLon: 44.0 } },
+  { zone: "suez", bounds: { minLat: 29.5, maxLat: 31.5, minLon: 32.0, maxLon: 33.0 } },
+  { zone: "persian_gulf", bounds: { minLat: 24.0, maxLat: 30.0, minLon: 48.0, maxLon: 56.5 } },
+  { zone: "red_sea", bounds: { minLat: 13.5, maxLat: 29.5, minLon: 32.5, maxLon: 43.5 } },
+  { zone: "gulf_of_aden", bounds: { minLat: 10.5, maxLat: 15.0, minLon: 43.0, maxLon: 51.0 } },
+];
+
+export function classifyZone(lat: number, lon: number): MaritimeZone | null {
+  for (const { zone, bounds } of MARITIME_ZONES) {
+    if (lat >= bounds.minLat && lat <= bounds.maxLat && lon >= bounds.minLon && lon <= bounds.maxLon) {
+      return zone;
+    }
+  }
+  return null;
+}
+
+// ─── Vessel Type Classification ────────────────────────────────
+
+const TANKER_CODES = new Set([80, 81, 82, 83, 84, 85, 86, 87, 88, 89]);
+const LPG_CODE = 82;
+const LNG_CODE = 84;
+
+export function classifyShipType(aisType: number): VesselType | null {
+  if (aisType === LPG_CODE) return "lpg";
+  if (aisType === LNG_CODE) return "lng";
+  if (aisType === 81) return "tanker_crude";
+  if (TANKER_CODES.has(aisType)) return "tanker_product";
   return null;
 }

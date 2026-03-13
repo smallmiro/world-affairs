@@ -38,6 +38,7 @@ function rawToGeoEvent(raw: RawGeoEvent): GeoEvent {
 export interface CollectGeoEventsResult {
   total: number;
   saved: number;
+  skipped: number;
 }
 
 export async function collectGeoEvents(
@@ -46,20 +47,32 @@ export async function collectGeoEvents(
 ): Promise<CollectGeoEventsResult> {
   let total = 0;
   let saved = 0;
+  let skipped = 0;
 
   for (const collector of collectors) {
     const result = await collector.collect();
     total += result.data.length;
 
-    const events = result.data.map(rawToGeoEvent);
+    // Deduplicate by title (GDELT articles have unique titles)
+    const titles = result.data.map((r) => r.title);
+    const existingTitles = await repository.filterExistingTitles(titles);
 
-    if (events.length > 0) {
-      await repository.save(events);
-      saved += events.length;
+    const newEvents: GeoEvent[] = [];
+    for (const raw of result.data) {
+      if (existingTitles.has(raw.title)) {
+        skipped++;
+        continue;
+      }
+      newEvents.push(rawToGeoEvent(raw));
+    }
+
+    if (newEvents.length > 0) {
+      await repository.save(newEvents);
+      saved += newEvents.length;
     }
   }
 
-  return { total, saved };
+  return { total, saved, skipped };
 }
 
 // Exported for testing

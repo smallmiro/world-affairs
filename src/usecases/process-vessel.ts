@@ -1,7 +1,7 @@
 import type { VesselRepositoryPort } from "../domain/vessel/ports";
 import type { RawAisMessage, Vessel, VesselPosition } from "../domain/vessel/entities";
 import type { VesselType } from "../shared/types";
-import { classifyShipType, classifyZone } from "../adapters/collectors/ais-collector";
+import { classifyShipType, classifyZone } from "../shared/classify";
 import { randomUUID } from "crypto";
 
 function rawToVessel(raw: RawAisMessage, vesselType: VesselType): Vessel {

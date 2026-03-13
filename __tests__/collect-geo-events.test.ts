@@ -13,12 +13,15 @@ function createMockCollector(events: RawGeoEvent[]): GeoCollectorPort {
   };
 }
 
-function createMockRepository(): GeoRepositoryPort {
+function createMockRepository(existingTitles: Set<string> = new Set()): GeoRepositoryPort {
   return {
     save: vi.fn().mockResolvedValue(undefined),
     findLatest: vi.fn().mockResolvedValue([]),
     findBySeverity: vi.fn().mockResolvedValue([]),
     findByEventType: vi.fn().mockResolvedValue([]),
+    filterExistingTitles: vi.fn().mockImplementation(
+      () => Promise.resolve(existingTitles),
+    ),
   };
 }
 
@@ -58,6 +61,7 @@ describe("collectGeoEvents", () => {
 
     expect(result.total).toBe(2);
     expect(result.saved).toBe(2);
+    expect(result.skipped).toBe(0);
     expect(repo.save).toHaveBeenCalledTimes(1);
   });
 
@@ -93,6 +97,32 @@ describe("collectGeoEvents", () => {
 
     expect(result.total).toBe(0);
     expect(result.saved).toBe(0);
+    expect(result.skipped).toBe(0);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it("should skip already existing events by title", async () => {
+    const collector = createMockCollector(SAMPLE_EVENTS);
+    const repo = createMockRepository(new Set(["Russia-Ukraine conflict escalation"]));
+
+    const result = await collectGeoEvents([collector], repo);
+
+    expect(result.total).toBe(2);
+    expect(result.saved).toBe(1);
+    expect(result.skipped).toBe(1);
+  });
+
+  it("should skip all when all exist", async () => {
+    const collector = createMockCollector(SAMPLE_EVENTS);
+    const repo = createMockRepository(
+      new Set(["Russia-Ukraine conflict escalation", "New Iran sanctions imposed"]),
+    );
+
+    const result = await collectGeoEvents([collector], repo);
+
+    expect(result.total).toBe(2);
+    expect(result.saved).toBe(0);
+    expect(result.skipped).toBe(2);
     expect(repo.save).not.toHaveBeenCalled();
   });
 });

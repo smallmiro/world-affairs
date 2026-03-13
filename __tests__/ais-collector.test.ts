@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classifyZone, classifyShipType } from "../src/adapters/collectors/ais-collector";
+import { classifyZone, classifyShipType } from "../src/shared/classify";
 
 describe("classifyZone", () => {
   it("should detect Strait of Hormuz", () => {

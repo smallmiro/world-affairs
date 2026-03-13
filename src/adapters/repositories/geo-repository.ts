@@ -3,14 +3,6 @@ import type { GeoEvent } from "../../domain/geopolitics/entities";
 import type { GeoEventType, Language, Severity } from "../../shared/types";
 import type { PrismaClient } from "../../generated/prisma/client";
 
-function langTitle(lang: Language): "titleEn" | "titleKo" | "titleJa" {
-  return lang === "en" ? "titleEn" : lang === "ko" ? "titleKo" : "titleJa";
-}
-
-function langDesc(lang: Language): "descEn" | "descKo" | "descJa" {
-  return lang === "en" ? "descEn" : lang === "ko" ? "descKo" : "descJa";
-}
-
 function toGeoEvent(row: Record<string, unknown>): GeoEvent {
   const countries = typeof row.countries === "string"
     ? JSON.parse(row.countries as string)
@@ -96,5 +88,18 @@ export class GeoRepository implements GeoRepositoryPort {
       take: limit,
     });
     return rows.map((r) => toGeoEvent(r as unknown as Record<string, unknown>));
+  }
+
+  async filterExistingTitles(titles: string[]): Promise<Set<string>> {
+    if (titles.length === 0) return new Set();
+
+    const existing = await this.prisma.geoEvent.findMany({
+      where: {
+        titleEn: { in: titles },
+      },
+      select: { titleEn: true },
+    });
+
+    return new Set(existing.map((r) => r.titleEn));
   }
 }
