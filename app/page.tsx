@@ -7,6 +7,7 @@ import WorldMap from "./components/map/WorldMap";
 import NewsFeed from "./components/news/NewsFeed";
 import IssueTracker from "./components/issues/IssueTracker";
 import VesselTracking from "./components/vessels/VesselTracking";
+import AirportMonitor from "./components/airport/AirportMonitor";
 import MarketSection from "./components/markets/MarketSection";
 import AiAnalysis from "./components/analysis/AiAnalysis";
 
@@ -49,7 +50,11 @@ export default function DashboardPage() {
 
       {/* Full-width sections */}
       <div className="flex flex-col gap-px" style={{ background: "var(--border)" }}>
-        <VesselTracking />
+        {/* Vessel + Airport tracking row */}
+        <div className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
+          <VesselTracking />
+          <AirportMonitor />
+        </div>
         <MarketSection />
         <AiAnalysis />
       </div>
