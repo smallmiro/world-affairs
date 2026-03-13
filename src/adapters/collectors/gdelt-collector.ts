@@ -1,8 +1,7 @@
 import type { NewsCollectorPort } from "../../domain/news/ports";
 import type { RawArticle } from "../../domain/news/entities";
 import type { CollectionResult } from "../../shared/types";
-import { classifyCategory, classifyRegionFromText } from "../../shared/classify";
-import { createHash } from "crypto";
+import { classifyCategory, classifyRegionFromText, hashString } from "../../shared/classify";
 
 const GDELT_API_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
@@ -27,10 +26,6 @@ interface GdeltArticle {
 
 interface GdeltResponse {
   articles?: GdeltArticle[];
-}
-
-function hashUrl(url: string): string {
-  return createHash("sha256").update(url).digest("hex").slice(0, 16);
 }
 
 function parseGdeltDate(seendate: string): Date {
@@ -60,7 +55,7 @@ export class GdeltCollector implements NewsCollectorPort {
     const rawArticles: RawArticle[] = articles.map((article) => {
       const text = `${article.title} ${article.domain}`;
       return {
-        sourceId: hashUrl(article.url),
+        sourceId: hashString(article.url),
         source: "gdelt",
         url: article.url,
         title: article.title,

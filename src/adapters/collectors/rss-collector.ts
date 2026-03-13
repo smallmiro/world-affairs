@@ -2,8 +2,7 @@ import Parser from "rss-parser";
 import type { NewsCollectorPort } from "../../domain/news/ports";
 import type { RawArticle } from "../../domain/news/entities";
 import type { CollectionResult } from "../../shared/types";
-import { classifyCategory, classifyRegionFromText } from "../../shared/classify";
-import { createHash } from "crypto";
+import { classifyCategory, classifyRegionFromText, hashString } from "../../shared/classify";
 
 interface RssFeed {
   name: string;
@@ -15,10 +14,6 @@ const RSS_FEEDS: RssFeed[] = [
   { name: "aljazeera", url: "https://www.aljazeera.com/xml/rss/all.xml" },
   { name: "nbc-world", url: "https://feeds.nbcnews.com/nbcnews/public/world" },
 ];
-
-function hashString(str: string): string {
-  return createHash("sha256").update(str).digest("hex").slice(0, 16);
-}
 
 export class RssCollector implements NewsCollectorPort {
   private parser = new Parser();
