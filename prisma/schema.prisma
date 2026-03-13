@@ -50,7 +50,7 @@ model MarketSnapshot {
   currency  String   @default("USD")
   timestamp DateTime
 
-  @@index([symbol, timestamp])
+  @@unique([symbol, timestamp])
   @@index([type, timestamp])
 }
 
@@ -69,7 +69,7 @@ model Vessel {
 model VesselPosition {
   id        String   @id @default(uuid())
   vesselId  String
-  vessel    Vessel   @relation(fields: [vesselId], references: [id])
+  vessel    Vessel   @relation(fields: [vesselId], references: [id], onDelete: Cascade)
   lat       Float
   lon       Float
   speed     Float?
@@ -94,7 +94,7 @@ model GeoEvent {
   descEn         String?
   descKo         String?
   descJa         String?
-  countries      String
+  countries      String   // JSON array string, e.g. '["US","CN"]' — SQLite tradeoff
   lat            Float?
   lon            Float?
   severity       String
