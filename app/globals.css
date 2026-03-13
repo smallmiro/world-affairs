@@ -141,3 +141,21 @@ body::after {
     opacity: 0.3;
   }
 }
+
+/* Card hover styles */
+.news-item-card {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+.news-item-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+}
+
+.issue-card-item {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+.issue-card-item:hover {
+  border-color: var(--border-active);
+}

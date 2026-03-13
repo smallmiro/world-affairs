@@ -69,24 +69,14 @@ export default function NewsFeed() {
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col gap-0.5">
-        {NEWS_DATA.map((item, i) => {
+        {NEWS_DATA.filter(
+          (item) => activeFilter === "전체" || item.category.includes(activeFilter)
+        ).map((item, i) => {
           const s = SEVERITY_STYLES[item.severity];
           return (
             <div
               key={i}
-              className="relative pl-3 pr-3 py-3 border cursor-pointer transition-all duration-150"
-              style={{
-                background: "var(--bg-secondary)",
-                borderColor: "var(--border)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "var(--bg-card-hover)";
-                e.currentTarget.style.borderColor = "var(--border-active)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "var(--bg-secondary)";
-                e.currentTarget.style.borderColor = "var(--border)";
-              }}
+              className="news-item-card relative pl-3 pr-3 py-3 border cursor-pointer transition-all duration-150"
             >
               {/* Left severity bar */}
               <div

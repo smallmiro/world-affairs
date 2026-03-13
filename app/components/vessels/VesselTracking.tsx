@@ -173,8 +173,8 @@ export default function VesselTracking() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[0.6rem] font-semibold" style={{ color: "var(--accent-green)" }}>
-                    {"\u25BC"} {p.trend}
+                  <span className="font-mono text-[0.6rem] font-semibold" style={{ color: p.trendDir === "down" ? "var(--accent-green)" : "var(--accent-red)" }}>
+                    {p.trendDir === "down" ? "\u25BC" : "\u25B2"} {p.trend}
                   </span>
                   <span className="font-mono text-[1.1rem] font-bold" style={{ color: "var(--text-primary)" }}>
                     {p.count}

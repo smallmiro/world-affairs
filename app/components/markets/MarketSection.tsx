@@ -80,6 +80,7 @@ export default function MarketSection() {
           {STOCK_CARDS.map((card) => {
             const color = card.direction === "up" ? "var(--accent-red)" : "var(--accent-blue)";
             const arrow = card.direction === "up" ? "\u25B2" : "\u25BC";
+            const gradId = `mkt-${card.name.replace(/[^a-zA-Z0-9]/g, "")}`;
             return (
               <div
                 key={card.name}
@@ -103,13 +104,13 @@ export default function MarketSection() {
                 <div className="mt-2.5 h-9">
                   <svg viewBox="0 0 120 36" preserveAspectRatio="none" className="w-full h-full">
                     <defs>
-                      <linearGradient id={`grad-${card.name}`} x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={color === "var(--accent-red)" ? "#ef4444" : "#3b82f6"} stopOpacity="0.15" />
                         <stop offset="100%" stopColor={color === "var(--accent-red)" ? "#ef4444" : "#3b82f6"} stopOpacity="0" />
                       </linearGradient>
                     </defs>
                     <polyline points={card.chartPoints} fill="none" stroke={color === "var(--accent-red)" ? "#ef4444" : "#3b82f6"} strokeWidth="1.5" />
-                    <polyline points={`${card.chartPoints} 120,36 0,36`} fill={`url(#grad-${card.name})`} stroke="none" />
+                    <polyline points={`${card.chartPoints} 120,36 0,36`} fill={`url(#${gradId})`} stroke="none" />
                   </svg>
                 </div>
               </div>

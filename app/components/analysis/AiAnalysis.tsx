@@ -71,7 +71,7 @@ export default function AiAnalysis() {
                 />
               </div>
               <span className="font-mono text-[0.65rem] w-[35px] text-right" style={{ color: valueColor }}>
-                -{s.value}
+                {s.type === "positive" ? "+" : "-"}{s.value}
               </span>
             </div>
           );

@@ -69,13 +69,11 @@ export default function IssueTracker() {
           return (
             <div
               key={issue.name}
-              className="relative overflow-hidden p-3.5 border cursor-pointer transition-all duration-200 hover:-translate-y-px"
+              className="issue-card-item relative overflow-hidden p-3.5 border cursor-pointer transition-all duration-200 hover:-translate-y-px"
               style={{
                 background: "var(--bg-secondary)",
                 borderColor: "var(--border)",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-active)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
             >
               {/* Bottom severity bar */}
               <div

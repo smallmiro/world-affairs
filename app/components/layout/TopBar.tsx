@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const NAV_TABS = ["OVERVIEW", "MAP", "VESSELS", "MARKETS", "ANALYSIS", "BRIEFING"] as const;
 
 export default function TopBar() {
   const [activeTab, setActiveTab] = useState<string>("OVERVIEW");
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const update = () =>
+      setTime(new Date().toLocaleTimeString("ko-KR", { hour12: false }));
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <header
@@ -61,7 +70,7 @@ export default function TopBar() {
           LIVE
         </div>
         <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
-          UPD {new Date().toLocaleTimeString("ko-KR", { hour12: false })} KST
+          UPD {time || "--:--:--"} KST
         </span>
         <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
           SRC: 24 FEEDS
@@ -71,6 +80,7 @@ export default function TopBar() {
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button
+          aria-label="알림"
           className="relative w-8 h-8 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
@@ -89,6 +99,7 @@ export default function TopBar() {
           </span>
         </button>
         <button
+          aria-label="설정"
           className="w-8 h-8 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
@@ -98,6 +109,7 @@ export default function TopBar() {
           </svg>
         </button>
         <button
+          aria-label="언어 변경"
           className="w-8 h-8 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
