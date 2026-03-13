@@ -1,6 +1,7 @@
 # env
 .env
 .env.*
+!.env.example
 
 # dependencies
 node_modules/
@@ -32,3 +33,6 @@ prisma/*.db-journal
 # logs
 *.log
 pm2-*.log
+
+/app/generated/prisma
+.mcp.json

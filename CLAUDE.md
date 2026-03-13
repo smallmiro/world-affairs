@@ -27,16 +27,23 @@
 
 ```
 /
-├── app/              # Next.js App Router (프론트 + API)
-├── batch/
-│   ├── scheduler.ts  # node-cron 배치 스케줄러
-│   └── collectors/   # 데이터 수집 로직
+├── app/                        # Next.js App Router (프론트 + API Routes)
+│   └── api/                    # API 엔드포인트
+├── src/                        # 헥사고날 아키텍처 소스
+│   ├── domain/                 # 도메인 엔티티 + 포트 (순수 비즈니스, 외부 의존성 없음)
+│   ├── adapters/               # 포트 구현체 (외부 의존성)
+│   │   ├── collectors/         # 데이터 수집 어댑터
+│   │   ├── repositories/       # Prisma DB 어댑터
+│   │   └── ai/                 # Gemini API 어댑터
+│   ├── usecases/               # 유스케이스 (도메인 오케스트레이션)
+│   ├── infrastructure/         # 프레임워크 설정 (prisma.ts, gemini.ts)
+│   ├── batch/                  # 배치 스케줄러 (node-cron)
+│   └── shared/                 # 공통 타입, 유틸
 ├── prisma/
-│   └── schema.prisma # DB 스키마
+│   └── schema.prisma           # DB 스키마
 ├── db/
-│   └── data.sqlite   # SQLite DB 파일
-├── lib/              # 공유 라이브러리
-└── docs/             # PRD, 프로토타입
+│   └── data.sqlite             # SQLite DB 파일
+└── docs/                       # PRD, 프로토타입
 ```
 
 ## 실행 방식
