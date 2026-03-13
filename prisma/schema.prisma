@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,121 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+}
+
+// ─── News Context ───────────────────────────────────────────────
+
+model Article {
+  id          String   @id @default(uuid())
+  sourceId    String
+  source      String
+  url         String
+  titleEn     String
+  titleKo     String   @default("")
+  titleJa     String   @default("")
+  summaryEn   String?
+  summaryKo   String?
+  summaryJa   String?
+  category    String
+  region      String
+  severity    String   @default("medium")
+  imageUrl    String?
+  publishedAt DateTime
+  collectedAt DateTime @default(now())
+
+  @@unique([sourceId, source])
+  @@index([region, publishedAt])
+  @@index([category, publishedAt])
+  @@index([severity, publishedAt])
+}
+
+// ─── Market Context ─────────────────────────────────────────────
+
+model MarketSnapshot {
+  id        String   @id @default(uuid())
+  symbol    String
+  type      String
+  name      String
+  price     Float
+  change    Float
+  changePct Float
+  open      Float?
+  high      Float?
+  low       Float?
+  volume    Float?
+  currency  String   @default("USD")
+  timestamp DateTime
+
+  @@unique([symbol, timestamp])
+  @@index([type, timestamp])
+}
+
+// ─── Vessel Context ─────────────────────────────────────────────
+
+model Vessel {
+  id        String           @id @default(uuid())
+  mmsi      String           @unique
+  name      String
+  type      String
+  flag      String
+  tonnage   Float?
+  positions VesselPosition[]
+}
+
+model VesselPosition {
+  id        String   @id @default(uuid())
+  vesselId  String
+  vessel    Vessel   @relation(fields: [vesselId], references: [id], onDelete: Cascade)
+  lat       Float
+  lon       Float
+  speed     Float?
+  course    Float?
+  zone      String?
+  status    String   @default("normal")
+  timestamp DateTime
+
+  @@index([vesselId, timestamp])
+  @@index([zone, timestamp])
+}
+
+// ─── Geopolitics Context ────────────────────────────────────────
+
+model GeoEvent {
+  id             String   @id @default(uuid())
+  source         String
+  eventType      String
+  titleEn        String
+  titleKo        String   @default("")
+  titleJa        String   @default("")
+  descEn         String?
+  descKo         String?
+  descJa         String?
+  countries      String   // JSON array string, e.g. '["US","CN"]' — SQLite tradeoff
+  lat            Float?
+  lon            Float?
+  severity       String
+  goldsteinScale Float?
+  eventDate      DateTime
+  collectedAt    DateTime @default(now())
+
+  @@index([eventType, eventDate])
+  @@index([severity, eventDate])
+}
+
+// ─── Analysis Context ───────────────────────────────────────────
+
+model AiAnalysis {
+  id         String   @id @default(uuid())
+  targetType String
+  targetId   String?
+  type       String
+  resultEn   String
+  resultKo   String   @default("")
+  resultJa   String   @default("")
+  sentiment  Float?
+  model      String
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([type, createdAt])
 }
