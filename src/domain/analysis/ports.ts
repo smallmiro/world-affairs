@@ -1,4 +1,4 @@
-import type { Language, TranslatedText } from "../../shared/types";
+import type { AnalysisTargetType, Language, TranslatedText } from "../../shared/types";
 import type {
   AiAnalysis,
   BriefingReport,
@@ -31,6 +31,6 @@ export interface AnalyzerPort {
 
 export interface AnalysisRepositoryPort {
   save(analysis: AiAnalysis): Promise<void>;
-  findByTarget(targetType: string, targetId: string): Promise<AiAnalysis[]>;
+  findByTarget(targetType: AnalysisTargetType, targetId: string): Promise<AiAnalysis[]>;
   findLatestBriefing(lang: Language): Promise<AiAnalysis | null>;
 }

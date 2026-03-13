@@ -1,2 +1,2 @@
-export type { Vessel, VesselPosition, RawAisMessage } from "./entities";
-export type { VesselCollectorPort, VesselRepositoryPort } from "./ports";
+export type { Vessel, VesselPosition, VesselAnomaly, RawAisMessage } from "./entities";
+export type { VesselCollectorPort, VesselAnomalyDetectorPort, VesselRepositoryPort } from "./ports";

@@ -4,13 +4,15 @@ export type Severity = "critical" | "high" | "medium" | "low";
 
 export type Region =
   | "east-asia"
+  | "southeast-asia"
+  | "south-asia"
+  | "central-asia"
   | "middle-east"
   | "europe"
   | "north-america"
   | "south-america"
   | "africa"
-  | "oceania"
-  | "central-asia";
+  | "oceania";
 
 export type NewsCategory =
   | "diplomacy"
@@ -33,10 +35,13 @@ export type VesselType =
   | "lpg"
   | "lng";
 
-export type Strait =
+export type MaritimeZone =
   | "hormuz"
   | "bab_el_mandeb"
-  | "suez";
+  | "suez"
+  | "persian_gulf"
+  | "red_sea"
+  | "gulf_of_aden";
 
 export type VesselStatus =
   | "normal"
@@ -48,7 +53,18 @@ export type GeoEventType =
   | "conflict"
   | "protest"
   | "diplomacy"
-  | "sanctions";
+  | "sanctions"
+  | "military_exercise"
+  | "trade_dispute"
+  | "humanitarian_crisis"
+  | "other";
+
+export type AnalysisTargetType =
+  | "article"
+  | "geo_event"
+  | "market"
+  | "vessel"
+  | "daily_briefing";
 
 export type AnalysisType =
   | "summary"

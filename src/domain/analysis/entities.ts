@@ -1,4 +1,5 @@
 import type {
+  AnalysisTargetType,
   AnalysisType,
   SentimentLabel,
   TranslatedText,
@@ -6,7 +7,7 @@ import type {
 
 export interface AiAnalysis {
   id: string;
-  targetType: string;
+  targetType: AnalysisTargetType;
   targetId: string | null;
   type: AnalysisType;
   result: TranslatedText;

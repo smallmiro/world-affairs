@@ -1,4 +1,4 @@
-import type { Strait, VesselStatus, VesselType } from "../../shared/types";
+import type { MaritimeZone, VesselStatus, VesselType } from "../../shared/types";
 
 export interface Vessel {
   id: string;
@@ -16,9 +16,17 @@ export interface VesselPosition {
   lon: number;
   speed: number | null;
   course: number | null;
-  strait: Strait | null;
+  zone: MaritimeZone | null;
   status: VesselStatus;
   timestamp: Date;
+}
+
+export interface VesselAnomaly {
+  vesselId: string;
+  type: "speed_anomaly" | "route_deviation" | "abnormal_anchoring";
+  description: string;
+  positions: VesselPosition[];
+  detectedAt: Date;
 }
 
 export interface RawAisMessage {
