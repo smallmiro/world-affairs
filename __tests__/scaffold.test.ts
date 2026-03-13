@@ -14,17 +14,8 @@ describe("Project scaffolding", () => {
     expect(fs.existsSync(path.join(root, "app/api"))).toBe(true);
   });
 
-  it("should have batch directory with scheduler", () => {
-    expect(fs.existsSync(path.join(root, "batch/scheduler.ts"))).toBe(true);
-    expect(fs.existsSync(path.join(root, "batch/collectors"))).toBe(true);
-  });
-
   it("should have prisma schema", () => {
     expect(fs.existsSync(path.join(root, "prisma/schema.prisma"))).toBe(true);
-  });
-
-  it("should have lib/prisma.ts client singleton", () => {
-    expect(fs.existsSync(path.join(root, "lib/prisma.ts"))).toBe(true);
   });
 
   it("should have db directory with .gitkeep", () => {
@@ -43,5 +34,33 @@ describe("Project scaffolding", () => {
     expect(
       fs.existsSync(path.join(root, "app/generated/prisma")),
     ).toBe(true);
+  });
+});
+
+describe("Hexagonal architecture structure (src/)", () => {
+  it("should have domain layer", () => {
+    expect(fs.existsSync(path.join(root, "src/domain"))).toBe(true);
+  });
+
+  it("should have adapters layer", () => {
+    expect(fs.existsSync(path.join(root, "src/adapters/collectors"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "src/adapters/repositories"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "src/adapters/ai"))).toBe(true);
+  });
+
+  it("should have usecases layer", () => {
+    expect(fs.existsSync(path.join(root, "src/usecases"))).toBe(true);
+  });
+
+  it("should have infrastructure layer with prisma singleton", () => {
+    expect(fs.existsSync(path.join(root, "src/infrastructure/prisma.ts"))).toBe(true);
+  });
+
+  it("should have batch scheduler", () => {
+    expect(fs.existsSync(path.join(root, "src/batch/scheduler.ts"))).toBe(true);
+  });
+
+  it("should have shared directory", () => {
+    expect(fs.existsSync(path.join(root, "src/shared"))).toBe(true);
   });
 });

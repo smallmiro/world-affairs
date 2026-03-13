@@ -11,7 +11,7 @@
     "pretest": "npx prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
-    "batch": "tsx batch/scheduler.ts"
+    "batch": "tsx src/batch/scheduler.ts"
   },
   "dependencies": {
     "@prisma/client": "^7.5.0",

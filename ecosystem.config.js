@@ -13,7 +13,7 @@ module.exports = {
     {
       name: "world-affairs-batch",
       script: "node_modules/.bin/tsx",
-      args: "batch/scheduler.ts",
+      args: "src/batch/scheduler.ts",
       cwd: __dirname,
       env: {
         NODE_ENV: "production",

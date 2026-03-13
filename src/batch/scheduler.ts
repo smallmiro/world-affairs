@@ -5,11 +5,6 @@ import cron from "node-cron";
 
 console.log("Batch scheduler started");
 
-// Example: run every hour (disabled by default)
-// cron.schedule("0 * * * *", async () => {
-//   console.log("Running scheduled collection...");
-// });
-
 // Keep process alive
 cron.schedule("*/30 * * * *", () => {
   console.log(`[${new Date().toISOString()}] Scheduler heartbeat`);
