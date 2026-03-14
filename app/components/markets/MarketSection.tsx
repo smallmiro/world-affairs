@@ -1,6 +1,7 @@
 "use client";
 
 import { useAllMarkets } from "../../hooks/use-markets";
+import SectionHeader from "../ui/SectionHeader";
 import {
   formatPrice,
   formatChange,
@@ -98,13 +99,8 @@ export default function MarketSection() {
     >
       {/* Stock market */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2" style={{ background: "var(--accent-amber)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }} />
-            <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-              주식 시장
-            </h2>
-          </div>
+        <div className="mb-4">
+          <SectionHeader title="주식 시장" accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (
@@ -122,13 +118,8 @@ export default function MarketSection() {
 
       {/* Commodities table */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2" style={{ background: "var(--accent-amber)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }} />
-            <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-              원자재 · 현물 · 환율
-            </h2>
-          </div>
+        <div className="mb-4">
+          <SectionHeader title="원자재 · 현물 · 환율" accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (

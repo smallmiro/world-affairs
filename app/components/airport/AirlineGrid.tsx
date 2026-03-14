@@ -1,6 +1,13 @@
-import type { Airline, AirlineStatusType } from "../../lib/airport-data";
+import type { Airline } from "../../lib/airport-data";
+import StatusLight from "../ui/StatusLight";
 
-const STATUS_COLORS: Record<AirlineStatusType, string> = {
+const STATUS_TO_LIGHT: Record<string, "green" | "amber" | "red"> = {
+  normal: "green",
+  delays: "amber",
+  disrupted: "red",
+};
+
+const STATUS_COLORS: Record<string, string> = {
   normal: "var(--accent-green)",
   delays: "var(--accent-amber)",
   disrupted: "var(--accent-red)",
@@ -23,10 +30,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
             className="flex items-center gap-2 px-2.5 py-1.5 border"
             style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
           >
-            <div
-              className="w-[5px] h-[5px] rounded-full shrink-0"
-              style={{ background: STATUS_COLORS[a.status] }}
-            />
+            <StatusLight color={STATUS_TO_LIGHT[a.status] ?? "green"} size={5} pulse={false} glow={false} />
             <span className="font-mono text-[0.58rem] flex-1" style={{ color: "var(--text-secondary)" }}>
               {a.name}
             </span>

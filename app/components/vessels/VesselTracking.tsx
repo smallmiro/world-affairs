@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useVessels } from "../../hooks/use-vessels";
+import SectionHeader from "../ui/SectionHeader";
 import type { VesselWithPosition } from "../../lib/types";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
@@ -49,17 +50,7 @@ export default function VesselTracking() {
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2 h-2"
-            style={{ background: "var(--accent-cyan)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
-          />
-          <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-            중동 해역 선박 추적
-          </h2>
-        </div>
-      </div>
+      <SectionHeader title="중동 해역 선박 추적" accentColor="var(--accent-cyan)" />
 
       {/* Map */}
       <div

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "../../lib/language-context";
 import { useNews } from "../../hooks/use-news";
 import { useGeoEvents } from "../../hooks/use-geo-events";
+import StatusLight from "../ui/StatusLight";
 
 const NAV_TABS = ["OVERVIEW", "MAP", "VESSELS", "MARKETS", "ANALYSIS", "BRIEFING"] as const;
 
@@ -76,13 +77,7 @@ export default function TopBar() {
       {/* Status */}
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-1.5 font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: "var(--accent-green)",
-              animation: "pulse-dot 2s ease-in-out infinite",
-            }}
-          />
+          <StatusLight color="green" size={6} pulse={true} glow={false} />
           LIVE
         </div>
         <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
