@@ -69,7 +69,7 @@ export interface CollectResult {
   skipped: number;
 }
 
-// ─── Flights (time-series, no dedup) ──────────────────────────
+// ─── Flights (upsert by icao24) ───────────────────────────────
 
 export async function collectAirportFlights(
   collector: OpenSkyCollectorPort,
@@ -84,7 +84,6 @@ export async function collectAirportFlights(
   } catch { /* OpenSky flights API may fail */ }
 
   const flights: FlightPosition[] = result.data.map((raw) => {
-    // Match by icao24 against OpenSky flights data
     const route = routeMap?.get(raw.icao24);
     const enriched = route ? {
       ...raw,
@@ -98,11 +97,23 @@ export async function collectAirportFlights(
     };
   });
 
-  if (flights.length > 0) {
-    await repo.saveFlights(flights);
+  // Separate airborne vs ground
+  const airborne = flights.filter((f) => !f.onGround);
+  const grounded = flights.filter((f) => f.onGround);
+
+  if (airborne.length > 0) {
+    await repo.saveFlights(airborne);
   }
 
-  return { total: flights.length, saved: flights.length, skipped: 0 };
+  // Delete grounded aircraft from DB
+  if (grounded.length > 0) {
+    await repo.deleteFlightsByIcao24(grounded.map((f) => f.icao24));
+  }
+
+  // Delete aircraft no longer in API response (left bbox or disappeared)
+  await repo.deleteStaleFlights(airborne.map((f) => f.icao24));
+
+  return { total: flights.length, saved: airborne.length, skipped: grounded.length };
 }
 
 // ─── Ops (status + airlines + routes) ─────────────────────────

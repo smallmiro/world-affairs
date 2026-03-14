@@ -115,13 +115,14 @@ export class AirportRepository implements AirportRepositoryPort {
     return toAirportStatus(row as unknown as Record<string, unknown>);
   }
 
-  // ─── Flights (time-series, always insert) ───────────────────
+  // ─── Flights (upsert by icao24 — one row per aircraft) ──────
 
   async saveFlights(flights: FlightPosition[]): Promise<void> {
     await this.prisma.$transaction(
       flights.map((f) =>
-        this.prisma.flightPosition.create({
-          data: {
+        this.prisma.flightPosition.upsert({
+          where: { icao24: f.icao24 },
+          create: {
             id: f.id,
             icao24: f.icao24,
             callsign: f.callsign,
@@ -139,17 +140,47 @@ export class AirportRepository implements AirportRepositoryPort {
             arrTime: f.arrTime,
             flightStatus: f.flightStatus,
           },
+          update: {
+            callsign: f.callsign,
+            lat: f.lat,
+            lon: f.lon,
+            altitude: f.altitude,
+            speed: f.speed,
+            heading: f.heading,
+            onGround: f.onGround,
+            airlineIata: f.airlineIata,
+            aircraftClass: f.aircraftClass,
+            depAirport: f.depAirport,
+            arrAirport: f.arrAirport,
+            depTime: f.depTime,
+            arrTime: f.arrTime,
+            flightStatus: f.flightStatus,
+            collectedAt: new Date(),
+          },
         }),
       ),
     );
   }
 
+  async deleteFlightsByIcao24(icao24s: string[]): Promise<number> {
+    if (icao24s.length === 0) return 0;
+    const result = await this.prisma.flightPosition.deleteMany({
+      where: { icao24: { in: icao24s } },
+    });
+    return result.count;
+  }
+
+  async deleteStaleFlights(activeIcao24s: string[]): Promise<number> {
+    if (activeIcao24s.length === 0) return 0;
+    const result = await this.prisma.flightPosition.deleteMany({
+      where: { icao24: { notIn: activeIcao24s } },
+    });
+    return result.count;
+  }
+
   async findLatestFlights(limit: number): Promise<FlightPosition[]> {
-    // Get unique airborne flights from the last 30 minutes
-    const cutoff = new Date(Date.now() - 30 * 60 * 1000);
     const rows = await this.prisma.flightPosition.findMany({
-      where: { collectedAt: { gt: cutoff }, onGround: false },
-      distinct: ["callsign"],
+      where: { onGround: false },
       orderBy: { collectedAt: "desc" },
       take: limit,
     });

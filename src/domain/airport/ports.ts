@@ -38,6 +38,8 @@ export interface AirportRepositoryPort {
   // Flights
   saveFlights(flights: FlightPosition[]): Promise<void>;
   findLatestFlights(limit: number): Promise<FlightPosition[]>;
+  deleteFlightsByIcao24(icao24s: string[]): Promise<number>;
+  deleteStaleFlights(activeIcao24s: string[]): Promise<number>;
 
   // Events
   saveEvents(events: AirportEvent[]): Promise<void>;
