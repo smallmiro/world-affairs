@@ -14,7 +14,7 @@ export default function SectionHeader({ title, accentColor = "var(--accent-cyan)
           className="w-2 h-2"
           style={{ background: accentColor, clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
         />
-        <h2 className="font-mono text-[0.95rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
+        <h2 className="font-mono text-[1.05rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
           {title}
         </h2>
       </div>
