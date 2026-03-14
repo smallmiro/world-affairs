@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useNews } from "../../hooks/use-news";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import SectionHeader from "../ui/SectionHeader";
 import ArticleDetailModal from "./ArticleDetailModal";
 import type { Article } from "../../../src/domain/news/entities";
@@ -16,21 +17,21 @@ import {
 } from "../../lib/display-mappers";
 import type { NewsCategory, Region } from "../../lib/types";
 
-const FILTERS: { label: string; category?: NewsCategory }[] = [
-  { label: "전체" },
-  { label: "외교", category: "diplomacy" },
-  { label: "군사", category: "military" },
-  { label: "경제", category: "economy" },
-  { label: "환경", category: "environment" },
-  { label: "인권", category: "human_rights" },
+const FILTERS: { key: string; category?: NewsCategory }[] = [
+  { key: "common.all" },
+  { key: "news.diplomacy", category: "diplomacy" },
+  { key: "news.military", category: "military" },
+  { key: "news.economy", category: "economy" },
+  { key: "news.environment", category: "environment" },
+  { key: "news.human_rights", category: "human_rights" },
 ];
 
-const REGION_FILTERS: { label: string; region?: Region }[] = [
-  { label: "전체" },
-  { label: "동아시아", region: "east-asia" },
-  { label: "중동", region: "middle-east" },
-  { label: "유럽", region: "europe" },
-  { label: "북미", region: "north-america" },
+const REGION_FILTERS: { key: string; region?: Region }[] = [
+  { key: "common.all" },
+  { key: "news.eastAsia", region: "east-asia" },
+  { key: "news.middleEast", region: "middle-east" },
+  { key: "news.europe", region: "europe" },
+  { key: "news.northAmerica", region: "north-america" },
 ];
 
 export default function NewsFeed() {
@@ -38,6 +39,7 @@ export default function NewsFeed() {
   const [activeRegion, setActiveRegion] = useState(0);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { lang } = useLanguage();
+  const t = useT();
   const filterCategory = FILTERS[activeFilter].category;
   const filterRegion = REGION_FILTERS[activeRegion].region;
   const { data: articles, isLoading, error } = useNews({
@@ -52,13 +54,13 @@ export default function NewsFeed() {
       style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}
     >
       <div className="mb-4">
-        <SectionHeader title="실시간 뉴스" accentColor="var(--accent-cyan)" />
+        <SectionHeader title={t("news.title")} accentColor="var(--accent-cyan)" />
       </div>
 
       <div className="flex gap-1 flex-wrap mb-3">
         {FILTERS.map((f, i) => (
           <button
-            key={f.label}
+            key={f.key}
             onClick={() => setActiveFilter(i)}
             className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
             style={{
@@ -67,7 +69,7 @@ export default function NewsFeed() {
               background: activeFilter === i ? "var(--accent-cyan-dim)" : "transparent",
             }}
           >
-            {f.label}
+            {t(f.key)}
           </button>
         ))}
       </div>
@@ -75,7 +77,7 @@ export default function NewsFeed() {
       <div className="flex gap-1 flex-wrap mb-3">
         {REGION_FILTERS.map((f, i) => (
           <button
-            key={f.label}
+            key={f.key}
             onClick={() => setActiveRegion(i)}
             className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
             style={{
@@ -84,7 +86,7 @@ export default function NewsFeed() {
               background: activeRegion === i ? "var(--accent-cyan-dim)" : "transparent",
             }}
           >
-            {f.label}
+            {t(f.key)}
           </button>
         ))}
       </div>
@@ -93,14 +95,14 @@ export default function NewsFeed() {
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <span className="font-mono text-[0.72rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-              LOADING...
+              {t("common.loading")}
             </span>
           </div>
         )}
         {error && (
           <div className="flex items-center justify-center py-12">
             <span className="font-mono text-[0.72rem]" style={{ color: "var(--accent-red)" }}>
-              데이터를 불러올 수 없습니다
+              {t("news.loadError")}
             </span>
           </div>
         )}
@@ -150,7 +152,7 @@ export default function NewsFeed() {
         {articles?.length === 0 && !isLoading && (
           <div className="flex items-center justify-center py-12">
             <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>
-              NO DATA
+              {t("common.noData")}
             </span>
           </div>
         )}

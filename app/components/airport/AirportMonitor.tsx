@@ -16,6 +16,7 @@ import type { SSEFlightPosition } from "../../hooks/use-sse-positions";
 import { toStaticStatus, toMapData, toTimelineEvents, toAirlines, toRoutes } from "../../lib/airport-mappers";
 import type { FlightPositionResponse } from "../../lib/api-client";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
 import EKRouteBadges from "./EKRouteBadges";
@@ -79,6 +80,7 @@ export default function AirportMonitor() {
   const { data: dxbStats } = useDxbStats();
   const { flights: sseFlights, connected: sseConnected } = useSSEPositions();
   const { lang } = useLanguage();
+  const t = useT();
 
   const effectiveFlights = useMemo(() => {
     if (sseFlights.length > 0) return sseToFlightPositions(sseFlights);
@@ -118,7 +120,7 @@ export default function AirportMonitor() {
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
       <SectionHeader
-        title="DUBAI INTL (DXB) — 항공 모니터"
+        title={t("airport.title")}
         accentColor="var(--accent-amber)"
         controls={
           <span className="flex items-center gap-2">
@@ -131,7 +133,7 @@ export default function AirportMonitor() {
               </span>
             )}
             <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-              1H CYCLE · LAST 7D
+              {t("airport.cycle")}
             </span>
           </span>
         }
@@ -217,9 +219,9 @@ export default function AirportMonitor() {
             className="absolute bottom-2 right-2 z-[600] px-2 py-1 font-mono text-[0.55rem] border"
             style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
           >
-            <span style={{ color: "var(--accent-red)" }}>◉ 분쟁구역</span>
-            <span className="ml-1.5" style={{ color: "var(--accent-amber)" }}>◉ 경계구역</span>
-            <span className="ml-1.5" style={{ color: "var(--accent-green)" }}>◉ 안전</span>
+            <span style={{ color: "var(--accent-red)" }}>◉ {t("map.conflictZone")}</span>
+            <span className="ml-1.5" style={{ color: "var(--accent-amber)" }}>◉ {t("map.cautionZone")}</span>
+            <span className="ml-1.5" style={{ color: "var(--accent-green)" }}>◉ {t("map.safeZone")}</span>
           </div>
         </div>
 

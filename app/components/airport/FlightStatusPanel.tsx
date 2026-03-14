@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useT } from "../../hooks/use-t";
 
 interface DxbFlight {
   id: string;
@@ -40,6 +41,7 @@ async function fetchDxbFlights(direction: string): Promise<DxbFlight[]> {
 
 export default function FlightStatusPanel() {
   const [activeTab, setActiveTab] = useState<Tab>("departures");
+  const t = useT();
   const direction = activeTab === "departures" ? "departure" : "arrival";
 
   const { data: flights } = useQuery({
@@ -57,7 +59,7 @@ export default function FlightStatusPanel() {
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5" style={{ background: "var(--accent-amber)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }} />
           <span className="font-mono text-[0.62rem] font-semibold tracking-[1.5px] uppercase" style={{ color: "var(--text-secondary)" }}>
-            DXB FLIGHT STATUS
+            {t("airport.flightStatus")}
           </span>
         </div>
         <span className="font-mono text-[0.46rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
@@ -78,7 +80,7 @@ export default function FlightStatusPanel() {
               background: activeTab === tab ? "var(--accent-amber-dim)" : "transparent",
             }}
           >
-            {tab === "departures" ? "출발 DEPARTURES" : "도착 ARRIVALS"} ({activeTab === tab ? list.length : "..."})
+            {tab === "departures" ? t("airport.departures") : t("airport.arrivals")} ({activeTab === tab ? list.length : "..."})
           </button>
         ))}
       </div>
@@ -88,18 +90,18 @@ export default function FlightStatusPanel() {
         <table className="w-full border-collapse font-mono text-[0.58rem]">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>편명</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>항공사</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{activeTab === "departures" ? "목적지" : "출발지"}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>예정</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>실제</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>터미널</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>상태</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.flightCode")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.airline")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{activeTab === "departures" ? t("airport.destination") : t("airport.origin")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.scheduled")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.actual")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.terminal")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.status")}</th>
             </tr>
           </thead>
           <tbody>
             {list.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-4" style={{ color: "var(--text-muted)" }}>데이터 로딩 중...</td></tr>
+              <tr><td colSpan={7} className="text-center py-4" style={{ color: "var(--text-muted)" }}>{t("airport.dataLoading")}</td></tr>
             )}
             {list.map((f, i) => {
               const isEK = f.flightCode.startsWith("EK ");

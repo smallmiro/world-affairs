@@ -1,6 +1,7 @@
 "use client";
 
 import { useAllMarkets } from "../../hooks/use-markets";
+import { useT } from "../../hooks/use-t";
 import SectionHeader from "../ui/SectionHeader";
 import {
   formatPrice,
@@ -96,6 +97,7 @@ function CommodityRow({ item }: { item: MarketSnapshot }) {
 
 export default function MarketSection() {
   const { data, isLoading } = useAllMarkets();
+  const t = useT();
 
   const stockIndices = data?.stock_index ?? [];
   const commodities = data?.commodity ?? [];
@@ -114,12 +116,12 @@ export default function MarketSection() {
       {/* Stock market */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
         <div className="mb-4">
-          <SectionHeader title="주식 시장" accentColor="var(--accent-amber)" />
+          <SectionHeader title={t("markets.stocks")} accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>LOADING...</span>
+            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -133,18 +135,18 @@ export default function MarketSection() {
       {/* Commodities table */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
         <div className="mb-4">
-          <SectionHeader title="원자재 · 현물 · 환율" accentColor="var(--accent-amber)" />
+          <SectionHeader title={t("markets.commodities")} accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>LOADING...</span>
+            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                {["종목", "가격", "변동", "등락률"].map((th, i) => (
+                {[t("markets.symbol"), t("markets.price"), t("markets.change"), t("markets.changePct")].map((th, i) => (
                   <th
                     key={th}
                     className="font-mono text-[0.55rem] tracking-[1px] uppercase py-1.5 px-2.5 border-b"

@@ -6,6 +6,7 @@ import { useVessels } from "../../hooks/use-vessels";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useSSEPositions } from "../../hooks/use-sse-positions";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import { getTranslatedText, formatTime } from "../../lib/display-mappers";
 import SectionHeader from "../ui/SectionHeader";
 import type { VesselWithPosition, GeoEvent } from "../../lib/types";
@@ -14,12 +15,12 @@ const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false })
 
 type VesselFilter = "all" | "tanker" | "lpg_lng" | "cargo" | "passenger";
 
-const FILTER_BUTTONS: { key: VesselFilter; label: string }[] = [
-  { key: "all", label: "전체" },
-  { key: "tanker", label: "유조선" },
-  { key: "lpg_lng", label: "LPG|LNG" },
-  { key: "cargo", label: "화물선" },
-  { key: "passenger", label: "여객선" },
+const FILTER_BUTTONS: { key: VesselFilter; i18nKey: string }[] = [
+  { key: "all", i18nKey: "common.all" },
+  { key: "tanker", i18nKey: "vessels.tanker" },
+  { key: "lpg_lng", i18nKey: "vessels.lpgLng" },
+  { key: "cargo", i18nKey: "vessels.cargo" },
+  { key: "passenger", i18nKey: "vessels.passenger" },
 ];
 
 const ZONE_LABELS: Record<string, { ko: string; en: string }> = {
@@ -120,6 +121,7 @@ export default function VesselTracking() {
   const { vessels: sseVessels, connected: sseConnected } = useSSEPositions();
   const { data: geoEvents } = useGeoEvents({ limit: 100 });
   const { lang } = useLanguage();
+  const t = useT();
 
   const maritimeNews = useMemo(
     () => filterMaritimeEvents(geoEvents ?? []).slice(0, 5),
@@ -155,7 +157,7 @@ export default function VesselTracking() {
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
       <SectionHeader
-        title="중동 해역 선박 추적"
+        title={t("vessels.title")}
         accentColor="var(--accent-cyan)"
         controls={
           sseConnected ? (
@@ -182,7 +184,7 @@ export default function VesselTracking() {
               background: activeFilter === btn.key ? "rgba(0,255,255,0.05)" : "transparent",
             }}
           >
-            {btn.label}
+            {t(btn.i18nKey)}
           </button>
         ))}
       </div>
@@ -195,7 +197,7 @@ export default function VesselTracking() {
         {isLoading ? (
           <div className="flex items-center justify-center h-full" style={{ background: "#0a0e17" }}>
             <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
-              LOADING MAP...
+              {t("common.loadingMap")}
             </span>
           </div>
         ) : (
@@ -208,13 +210,13 @@ export default function VesselTracking() {
         {/* Passage stats */}
         <div>
           <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
-            해협별 통과 현황 (24H)
+            {t("vessels.passageStats")}
           </h3>
           <div className="flex flex-col gap-1">
             {isLoading ? (
-              <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>LOADING...</span>
+              <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
             ) : zoneStats.length === 0 ? (
-              <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>NO DATA</span>
+              <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>{t("common.noData")}</span>
             ) : (
               zoneStats.slice(0, 3).map((z) => (
                 <div
@@ -235,7 +237,7 @@ export default function VesselTracking() {
                       {z.count}
                     </span>
                     <span className="font-mono text-[0.46rem]" style={{ color: "var(--text-muted)" }}>
-                      척
+                      {t("vessels.ships")}
                     </span>
                   </div>
                 </div>
@@ -247,7 +249,7 @@ export default function VesselTracking() {
         {/* Maritime situation alerts */}
         <div>
           <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
-            해상 상황 알림
+            {t("vessels.maritimeAlerts")}
           </h3>
           <div className="flex flex-col gap-1" style={{ maxHeight: 200, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
             {/* Vessel anomalies */}
@@ -307,7 +309,7 @@ export default function VesselTracking() {
 
             {anomalies.length === 0 && maritimeNews.length === 0 && (
               <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>
-                이상 감지 없음
+                {t("vessels.noAnomalies")}
               </span>
             )}
           </div>

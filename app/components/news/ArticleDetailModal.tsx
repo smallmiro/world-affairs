@@ -11,19 +11,7 @@ import {
   SEVERITY_STYLES,
   SEVERITY_LABELS,
 } from "../../lib/display-mappers";
-
-const REGION_LABELS: Record<string, string> = {
-  "east-asia": "동아시아",
-  "southeast-asia": "동남아시아",
-  "south-asia": "남아시아",
-  "central-asia": "중앙아시아",
-  "middle-east": "중동",
-  europe: "유럽",
-  "north-america": "북미",
-  "south-america": "남미",
-  africa: "아프리카",
-  oceania: "오세아니아",
-};
+import { t } from "../../i18n";
 
 interface ArticleDetailModalProps {
   article: Article;
@@ -80,7 +68,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
               className="font-mono text-[0.55rem] tracking-[0.5px] px-1.5 py-px border"
               style={{ color: "var(--text-muted)", borderColor: "var(--border)" }}
             >
-              {REGION_LABELS[article.region] ?? article.region}
+              {t(lang, `regions.${article.region}`)}
             </span>
           </div>
           <button
@@ -134,7 +122,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
                 className="font-mono text-[0.55rem] tracking-[1px] uppercase mb-2"
                 style={{ color: "var(--text-muted)" }}
               >
-                요약
+                {t(lang, "news.summary")}
               </div>
               <div
                 className="text-[0.82rem] leading-[1.6]"
@@ -151,7 +139,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
               className="font-mono text-[0.55rem] tracking-[1px] uppercase mb-2"
               style={{ color: "var(--text-muted)" }}
             >
-              다국어
+              {t(lang, "news.multilingual")}
             </div>
             <div className="flex flex-col gap-1.5">
               {article.title.en && (
@@ -188,7 +176,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
                 background: "var(--accent-cyan-dim)",
               }}
             >
-              원문 보기 →
+              {t(lang, "news.viewOriginal")}
             </a>
           </div>
         </div>

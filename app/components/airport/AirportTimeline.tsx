@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "../../hooks/use-t";
 import type { TimelineEvent, TimelineEventType } from "../../lib/airport-data";
 
 const DOT_STYLES: Record<TimelineEventType, string> = {
@@ -19,13 +22,14 @@ interface AirportTimelineProps {
 }
 
 export default function AirportTimeline({ events }: AirportTimelineProps) {
+  const t = useT();
   return (
     <div>
       <div
         className="font-mono text-[0.58rem] tracking-[1.5px] uppercase mb-2"
         style={{ color: "var(--text-muted)", paddingLeft: 10 }}
       >
-        7일 타임라인
+        {t("airport.timeline")}
       </div>
       <div
         className="overflow-y-auto py-1"

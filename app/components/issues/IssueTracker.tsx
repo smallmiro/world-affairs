@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import SectionHeader from "../ui/SectionHeader";
 import { aggregateByRegion, type RegionIssue } from "../../lib/geo-aggregation";
 import type { Severity } from "../../lib/types";
@@ -22,9 +23,9 @@ const TREND_STYLES: Record<string, { color: string; arrow: string }> = {
   down: { color: "var(--accent-green)", arrow: "\u25BC" },
 };
 
-const SORT_BUTTONS: { label: string; mode: SortMode }[] = [
-  { label: "심각도순", mode: "severity" },
-  { label: "최신순", mode: "latest" },
+const SORT_BUTTONS: { key: string; mode: SortMode }[] = [
+  { key: "issues.bySeverity", mode: "severity" },
+  { key: "issues.byLatest", mode: "latest" },
 ];
 
 function sortIssues(issues: RegionIssue[], mode: SortMode): RegionIssue[] {
@@ -36,6 +37,7 @@ function sortIssues(issues: RegionIssue[], mode: SortMode): RegionIssue[] {
 
 export default function IssueTracker() {
   const { lang } = useLanguage();
+  const t = useT();
   const { data: events, isLoading } = useGeoEvents({ limit: 100 });
   const [sortMode, setSortMode] = useState<SortMode>("severity");
 
@@ -48,15 +50,15 @@ export default function IssueTracker() {
     >
       <div className="mb-4">
         <SectionHeader
-          title="이슈 트래커"
+          title={t("issues.title")}
           accentColor="var(--accent-cyan)"
           controls={
             <div className="flex gap-1">
-              {SORT_BUTTONS.map(({ label, mode }) => {
+              {SORT_BUTTONS.map(({ key, mode }) => {
                 const isActive = sortMode === mode;
                 return (
                   <button
-                    key={label}
+                    key={key}
                     onClick={() => setSortMode(mode)}
                     className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
                     style={{
@@ -65,7 +67,7 @@ export default function IssueTracker() {
                       background: isActive ? "var(--accent-cyan-dim)" : "transparent",
                     }}
                   >
-                    {label}
+                    {t(key)}
                   </button>
                 );
               })}
@@ -76,11 +78,11 @@ export default function IssueTracker() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>LOADING...</span>
+          <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
         </div>
       ) : issues.length === 0 ? (
         <div className="flex items-center justify-center py-8">
-          <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>NO DATA</span>
+          <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.noData")}</span>
         </div>
       ) : (
         <div className="grid grid-cols-4 gap-2 max-lg:grid-cols-2">

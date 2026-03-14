@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "./hooks/use-t";
 import TopBar from "./components/layout/TopBar";
 import AlertTicker from "./components/layout/AlertTicker";
 import MarketTickerBar from "./components/layout/MarketTickerBar";
@@ -12,6 +13,7 @@ import MarketSection from "./components/markets/MarketSection";
 import AiAnalysis from "./components/analysis/AiAnalysis";
 
 export default function DashboardPage() {
+  const t = useT();
   return (
     <main id="section-overview" className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <TopBar />
@@ -66,10 +68,10 @@ export default function DashboardPage() {
         style={{ borderColor: "var(--border)" }}
       >
         <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
-          SIGINT v0.1.0 — World Affairs Monitoring System
+          {t("footer.system")}
         </span>
         <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
-          DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI
+          {t("footer.sources")}
         </span>
       </footer>
     </main>

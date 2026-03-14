@@ -3,6 +3,7 @@
 import { useNews } from "../../hooks/use-news";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import { getTranslatedText } from "../../lib/display-mappers";
 
 interface AlertItem {
@@ -12,6 +13,7 @@ interface AlertItem {
 
 export default function AlertTicker() {
   const { lang } = useLanguage();
+  const t = useT();
   const { data: news } = useNews({ limit: 50 });
   const { data: events } = useGeoEvents({ limit: 50 });
 
@@ -20,7 +22,7 @@ export default function AlertTicker() {
   if (news) {
     for (const article of news) {
       if (article.severity === "critical") {
-        alerts.push({ level: "긴급", text: getTranslatedText(article.title, lang) });
+        alerts.push({ level: t("alert.urgent"), text: getTranslatedText(article.title, lang) });
       }
     }
   }
@@ -28,9 +30,9 @@ export default function AlertTicker() {
   if (events) {
     for (const event of events) {
       if (event.severity === "critical") {
-        alerts.push({ level: "속보", text: getTranslatedText(event.title, lang) });
+        alerts.push({ level: t("alert.breaking"), text: getTranslatedText(event.title, lang) });
       } else if (event.severity === "high") {
-        alerts.push({ level: "주의", text: getTranslatedText(event.title, lang) });
+        alerts.push({ level: t("alert.caution"), text: getTranslatedText(event.title, lang) });
       }
     }
   }
@@ -38,7 +40,7 @@ export default function AlertTicker() {
   const displayAlerts =
     alerts.length > 0
       ? alerts.slice(0, 10)
-      : [{ level: "INFO", text: "현재 긴급 알림이 없습니다" }];
+      : [{ level: "INFO", text: t("alert.noAlert") }];
 
   const doubled = [...displayAlerts, ...displayAlerts];
 

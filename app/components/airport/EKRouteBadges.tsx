@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "../../hooks/use-t";
 import type { EKRoute, RouteStatus } from "../../lib/airport-data";
 
 const STATUS_STYLES: Record<RouteStatus, { color: string; bg: string; label: string }> = {
@@ -11,10 +14,11 @@ interface EKRouteBadgesProps {
 }
 
 export default function EKRouteBadges({ routes }: EKRouteBadgesProps) {
+  const t = useT();
   return (
     <div>
       <div className="font-mono text-[0.58rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--accent-amber)" }}>
-        EK 노선 현황
+        {t("airport.ekRoutes")}
       </div>
       <div className="grid grid-cols-3 gap-1 max-lg:grid-cols-2">
         {routes.map((r) => {

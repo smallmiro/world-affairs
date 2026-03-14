@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "../../lib/language-context";
 import { useNews } from "../../hooks/use-news";
 import { useGeoEvents } from "../../hooks/use-geo-events";
+import { useT } from "../../hooks/use-t";
 import StatusLight from "../ui/StatusLight";
+
+const NAV_KEYS = ["overview", "map", "vessels", "markets", "analysis", "briefing"] as const;
 
 const NAV_TABS = ["OVERVIEW", "MAP", "VESSELS", "MARKETS", "ANALYSIS", "BRIEFING"] as const;
 
@@ -30,6 +33,7 @@ export default function TopBar() {
   const [time, setTime] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const { lang, cycleLang } = useLanguage();
+  const t = useT();
   const { data: news } = useNews({ limit: 50 });
   const { data: events } = useGeoEvents({ limit: 50 });
 
@@ -83,13 +87,13 @@ export default function TopBar() {
         </span>
         <span className="w-px h-5" style={{ background: "var(--border-active)" }} />
         <span className="text-[0.78rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-          국제 정세 모니터링 시스템
+          {t("topbar.subtitle")}
         </span>
       </div>
 
       {/* Nav */}
       <nav className="flex gap-0.5">
-        {NAV_TABS.map((tab) => (
+        {NAV_TABS.map((tab, idx) => (
           <button
             key={tab}
             onClick={() => {
@@ -106,7 +110,7 @@ export default function TopBar() {
               background: activeTab === tab ? "var(--bg-card)" : "transparent",
             }}
           >
-            {tab}
+            {t(`nav.${NAV_KEYS[idx]}`)}
           </button>
         ))}
       </nav>

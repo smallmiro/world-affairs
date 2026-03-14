@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "../../hooks/use-t";
 import type { Airline } from "../../lib/airport-data";
 import StatusLight from "../ui/StatusLight";
 
@@ -18,10 +21,11 @@ interface AirlineGridProps {
 }
 
 export default function AirlineGrid({ airlines }: AirlineGridProps) {
+  const t = useT();
   return (
     <div>
       <div className="font-mono text-[0.58rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
-        주요 항공사 (24H)
+        {t("airport.airlines")}
       </div>
       <div className="grid grid-cols-3 gap-1 max-lg:grid-cols-2">
         {airlines.map((a) => (
@@ -35,7 +39,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
               {a.name}
             </span>
             <span className="font-mono text-[0.65rem] font-semibold" style={{ color: "var(--text-primary)" }}>
-              {a.flights}편
+              {a.flights}{t("airport.flights")}
             </span>
             <span className="font-mono text-[0.48rem]" style={{ color: STATUS_COLORS[a.status] }}>
               {a.onTime}%

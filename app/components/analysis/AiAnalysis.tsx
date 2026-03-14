@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useBriefing } from "../../hooks/use-briefing";
 import { useLanguage } from "../../lib/language-context";
+import { useT } from "../../hooks/use-t";
 import { computeRegionSentiment } from "../../lib/geo-aggregation";
 import { getTranslatedText } from "../../lib/display-mappers";
 import { aggregateTrend } from "../../lib/trend-aggregation";
@@ -18,6 +19,7 @@ const SENTIMENT_COLORS = {
 
 export default function AiAnalysis() {
   const { lang } = useLanguage();
+  const t = useT();
   const { data: events } = useGeoEvents({ limit: 100 });
   const { data: briefing } = useBriefing();
 
@@ -51,7 +53,7 @@ export default function AiAnalysis() {
               clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
             }}
           />
-          감성 분석
+          {t("analysis.sentiment")}
         </h3>
         {sentimentRows.length === 0 ? (
           <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>NO DATA</div>
@@ -83,13 +85,13 @@ export default function AiAnalysis() {
         {/* Legend */}
         <div className="mt-3 pt-2 border-t flex flex-col gap-1" style={{ borderColor: "var(--border)" }}>
           <div className="font-mono text-[0.46rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
-            긴장도 지수 (0~100) — 지역 내 이벤트 유형 기반 산출
+            {t("analysis.tensionIndex")}
           </div>
           <div className="flex gap-3 font-mono text-[0.44rem]">
-            <span style={{ color: "var(--accent-red)" }}>■ 60+ 위험</span>
-            <span style={{ color: "var(--accent-amber)" }}>■ 40-59 경계</span>
-            <span style={{ color: "var(--accent-blue)" }}>■ 20-39 주의</span>
-            <span style={{ color: "var(--accent-green)" }}>■ 0-19 안정</span>
+            <span style={{ color: "var(--accent-red)" }}>■ {t("analysis.danger")}</span>
+            <span style={{ color: "var(--accent-amber)" }}>■ {t("analysis.caution")}</span>
+            <span style={{ color: "var(--accent-blue)" }}>■ {t("analysis.watch")}</span>
+            <span style={{ color: "var(--accent-green)" }}>■ {t("analysis.stable")}</span>
           </div>
           <div className="font-mono text-[0.42rem] leading-[1.4]" style={{ color: "var(--text-muted)" }}>
             분쟁=90 군사훈련=75 시위=65 제재=60 인도위기=70 무역분쟁=40 외교=20
@@ -107,7 +109,7 @@ export default function AiAnalysis() {
               clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
             }}
           />
-          이슈 트렌드 (7일)
+          {t("analysis.trend")}
         </h3>
         <TrendChart data={trendData} />
       </div>
@@ -122,7 +124,7 @@ export default function AiAnalysis() {
               clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
             }}
           />
-          AI 브리핑
+          {t("analysis.briefing")}
         </h3>
         {briefingText ? (
           <div
@@ -144,7 +146,7 @@ export default function AiAnalysis() {
           </div>
         ) : (
           <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>
-            브리핑 데이터가 없습니다
+            {t("analysis.noBriefing")}
           </div>
         )}
       </div>
