@@ -13,13 +13,14 @@ import AiAnalysis from "./components/analysis/AiAnalysis";
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
+    <main id="section-overview" className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <TopBar />
       <AlertTicker />
       <MarketTickerBar />
 
       {/* Dashboard grid */}
       <div
+        id="section-map"
         className="grid gap-px"
         style={{
           gridTemplateColumns: "1fr 360px",
@@ -51,12 +52,12 @@ export default function DashboardPage() {
       {/* Full-width sections */}
       <div className="flex flex-col gap-px" style={{ background: "var(--border)" }}>
         {/* Vessel + Airport tracking row */}
-        <div className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
+        <div id="section-vessels" className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
           <VesselTracking />
           <AirportMonitor />
         </div>
-        <MarketSection />
-        <AiAnalysis />
+        <div id="section-markets"><MarketSection /></div>
+        <div id="section-analysis"><AiAnalysis /></div>
       </div>
 
       {/* Footer */}

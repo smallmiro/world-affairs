@@ -8,6 +8,15 @@ import StatusLight from "../ui/StatusLight";
 
 const NAV_TABS = ["OVERVIEW", "MAP", "VESSELS", "MARKETS", "ANALYSIS", "BRIEFING"] as const;
 
+const TAB_SECTION_MAP: Record<string, string> = {
+  OVERVIEW: "section-overview",
+  MAP: "section-map",
+  VESSELS: "section-vessels",
+  MARKETS: "section-markets",
+  ANALYSIS: "section-analysis",
+  BRIEFING: "section-analysis",
+};
+
 const LANG_DISPLAY: Record<string, string> = {
   ko: "KR",
   en: "EN",
@@ -61,7 +70,13 @@ export default function TopBar() {
         {NAV_TABS.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              const sectionId = TAB_SECTION_MAP[tab];
+              if (sectionId) {
+                document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
             className="font-mono text-[0.72rem] tracking-[1px] uppercase px-3.5 py-1.5 border cursor-pointer transition-all duration-200"
             style={{
               color: activeTab === tab ? "var(--accent-cyan)" : "var(--text-muted)",
