@@ -6,8 +6,8 @@ import type { PrismaClient } from "../../generated/prisma/client";
 export class VesselRepository implements VesselRepositoryPort {
   constructor(private prisma: PrismaClient) {}
 
-  async upsertVessel(vessel: Vessel): Promise<void> {
-    await this.prisma.vessel.upsert({
+  async upsertVessel(vessel: Vessel): Promise<string> {
+    const result = await this.prisma.vessel.upsert({
       where: { mmsi: vessel.mmsi },
       create: {
         id: vessel.id,
@@ -24,6 +24,7 @@ export class VesselRepository implements VesselRepositoryPort {
         tonnage: vessel.tonnage,
       },
     });
+    return result.id;
   }
 
   async savePosition(position: VesselPosition): Promise<void> {

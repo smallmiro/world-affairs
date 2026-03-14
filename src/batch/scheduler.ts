@@ -16,15 +16,19 @@ import { MarketCollector } from "../adapters/collectors/market-collector";
 import { OpenSkyCollector } from "../adapters/collectors/opensky-collector";
 import { AviationStackCollector } from "../adapters/collectors/aviationstack-collector";
 import { GdeltAirportEventCollector } from "../adapters/collectors/airport-event-collector";
+import { AisStreamCollector } from "../adapters/collectors/ais-collector";
+import { processVesselMessage } from "../usecases/process-vessel";
 import { NewsRepository } from "../adapters/repositories/news-repository";
 import { MarketRepository } from "../adapters/repositories/market-repository";
 import { GeoRepository } from "../adapters/repositories/geo-repository";
 import { AirportRepository } from "../adapters/repositories/airport-repository";
+import { VesselRepository } from "../adapters/repositories/vessel-repository";
 
 const newsRepo = new NewsRepository(prisma);
 const marketRepo = new MarketRepository(prisma);
 const geoRepo = new GeoRepository(prisma);
 const airportRepo = new AirportRepository(prisma);
+const vesselRepo = new VesselRepository(prisma);
 
 async function runCollectNews() {
   const label = "collect-news";
@@ -209,18 +213,55 @@ cron.schedule("5 */4 * * *", runTranslateAirportEvents);
 
 // ─── Startup ───────────────────────────────────────────────────
 
+// ─── AIS Vessel Tracking (persistent WebSocket) ──────────────
+
+let aisMessageCount = 0;
+
+async function startAisStream() {
+  const label = "ais:stream";
+  if (!process.env.AISSTREAM_API_KEY) {
+    console.warn(`[${new Date().toISOString()}] ${label}: AISSTREAM_API_KEY not set. Skipping.`);
+    return;
+  }
+
+  console.log(`[${new Date().toISOString()}] ${label}: connecting...`);
+  try {
+    const collector = new AisStreamCollector();
+
+    collector.onMessage(async (raw) => {
+      try {
+        const result = await processVesselMessage(raw, vesselRepo);
+        if (result.vesselType) {
+          aisMessageCount++;
+          if (aisMessageCount % 100 === 0) {
+            console.log(`[${new Date().toISOString()}] ${label}: processed ${aisMessageCount} messages`);
+          }
+        }
+      } catch (error) {
+        console.error(`[${new Date().toISOString()}] ${label}: save error`, error instanceof Error ? error.message : error);
+      }
+    });
+
+    await collector.connect();
+    console.log(`[${new Date().toISOString()}] ${label}: connected. Receiving vessel positions.`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: connection failed`, error);
+  }
+}
+
 console.log(`[${new Date().toISOString()}] Batch scheduler started`);
 console.log("Schedules:");
 console.log("  */15 * * * *     News collection (GDELT + RSS)");
 console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
-console.log("  */2min 07-23h     Airport flights (OpenSky, 2min peak / 1h off-peak)");
+console.log("  */2min 07-23h    Airport flights (OpenSky, 2min peak / 1h off-peak)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
 console.log("  0 */4 * * *      Airport events (GDELT)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
 console.log("  5,20,35,50 * * * *  Translate news (ko/ja)");
 console.log("  5,35 * * * *     Translate geo events (ko/ja)");
 console.log("  5 */4 * * *      Translate airport events (ko/ja)");
+console.log("  [persistent]     AIS vessel tracking (WebSocket)");
 
 // Run initial collection on startup
 runCollectNews();
@@ -229,3 +270,4 @@ runCollectGeoEvents();
 runCollectAirportFlights();
 runCollectAirportOps();
 runCollectAirportEvents();
+startAisStream();

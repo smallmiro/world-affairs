@@ -39,9 +39,9 @@ export async function processVesselMessage(
   }
 
   const vessel = rawToVessel(raw, vesselType);
-  await repository.upsertVessel(vessel);
+  const vesselId = await repository.upsertVessel(vessel);
 
-  const position = rawToPosition(raw, vessel.id);
+  const position = rawToPosition(raw, vesselId);
   await repository.savePosition(position);
 
   return {

@@ -12,7 +12,7 @@ export interface VesselAnomalyDetectorPort {
 }
 
 export interface VesselRepositoryPort {
-  upsertVessel(vessel: Vessel): Promise<void>;
+  upsertVessel(vessel: Vessel): Promise<string>;
   savePosition(position: VesselPosition): Promise<void>;
   findByType(type: VesselType): Promise<Vessel[]>;
   findByZone(zone: MaritimeZone): Promise<(Vessel & { latestPosition: VesselPosition })[]>;
