@@ -185,11 +185,8 @@ export default function AirportMonitor() {
         </div>
       </div>
 
-      {/* Bottom row: Airlines + Routes */}
-      <div className="grid grid-cols-2 gap-3 max-lg:grid-cols-1">
-        <AirlineGrid airlines={airlines} />
-        <EKRouteBadges routes={routes} />
-      </div>
+      {/* Airlines */}
+      <AirlineGrid airlines={airlines} />
 
       {/* Flight Status Table */}
       <FlightStatusPanel />
