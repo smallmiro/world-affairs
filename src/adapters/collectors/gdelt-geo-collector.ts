@@ -100,6 +100,10 @@ export class GdeltGeoCollector implements GeoCollectorPort {
     const url = `${GDELT_GKG_URL}?${params.toString()}`;
 
     const response = await fetch(url);
+    if (response.status === 429) {
+      console.warn("[GDELT Geo] Rate limited (429). Returning empty result.");
+      return { data: [], collectedAt: new Date(), source: "gdelt-geo" };
+    }
     if (!response.ok) {
       throw new Error(`GDELT Geo API error: ${response.status} ${response.statusText}`);
     }

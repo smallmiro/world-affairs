@@ -105,6 +105,92 @@ export async function fetchGeoEvents(params?: GeoEventParams): Promise<GeoEvent[
   return res.data;
 }
 
+// ─── Airport ──────────────────────────────────────────────────
+
+export interface AirportStatusResponse {
+  id: string;
+  light: "green" | "amber" | "red";
+  totalFlights: number;
+  onTimePercent: number;
+  delayedFlights: number;
+  cancelledFlights: number;
+  collectedAt: string;
+}
+
+export interface FlightPositionResponse {
+  id: string;
+  icao24: string;
+  callsign: string;
+  lat: number;
+  lon: number;
+  altitude: number;
+  speed: number;
+  heading: number;
+  onGround: boolean;
+  airlineIata: string | null;
+  aircraftClass: "ek" | "other";
+  collectedAt: string;
+}
+
+export interface AirportEventResponse {
+  id: string;
+  sourceId: string;
+  source: string;
+  url: string;
+  title: { en: string; ko: string; ja: string };
+  description: { en: string; ko: string; ja: string } | null;
+  eventType: "conflict" | "ops" | "info" | "normal";
+  eventDate: string;
+  collectedAt: string;
+}
+
+export interface AirlineOpsResponse {
+  id: string;
+  airlineIata: string;
+  airlineName: string;
+  totalFlights: number;
+  onTimePercent: number;
+  status: "normal" | "delays" | "disrupted";
+  collectedAt: string;
+}
+
+export interface EmiratesRouteResponse {
+  id: string;
+  destination: string;
+  flightCode: string;
+  status: "open" | "diverted" | "suspended";
+  collectedAt: string;
+}
+
+export async function fetchAirportStatus(): Promise<AirportStatusResponse | null> {
+  const res = await fetchApi<ApiResponse<AirportStatusResponse | null>>("/api/airport", { section: "status" });
+  return res.data;
+}
+
+export async function fetchFlightPositions(limit?: number): Promise<FlightPositionResponse[]> {
+  const p: Record<string, string> = { section: "flights" };
+  if (limit) p.limit = String(limit);
+  const res = await fetchApi<ApiResponse<FlightPositionResponse[]>>("/api/airport", p);
+  return res.data;
+}
+
+export async function fetchAirportEvents(limit?: number): Promise<AirportEventResponse[]> {
+  const p: Record<string, string> = { section: "events" };
+  if (limit) p.limit = String(limit);
+  const res = await fetchApi<ApiResponse<AirportEventResponse[]>>("/api/airport", p);
+  return res.data;
+}
+
+export async function fetchAirlineOps(): Promise<AirlineOpsResponse[]> {
+  const res = await fetchApi<ApiResponse<AirlineOpsResponse[]>>("/api/airport", { section: "airlines" });
+  return res.data;
+}
+
+export async function fetchEmiratesRoutes(): Promise<EmiratesRouteResponse[]> {
+  const res = await fetchApi<ApiResponse<EmiratesRouteResponse[]>>("/api/airport", { section: "routes" });
+  return res.data;
+}
+
 export async function fetchBriefing(lang?: Language): Promise<AiAnalysis | null> {
   const p: Record<string, string> = {};
   if (lang) p.lang = lang;

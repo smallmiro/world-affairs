@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import {
   AIRPORT_STATUS,
@@ -7,7 +8,14 @@ import {
   AIRLINES,
   EK_ROUTES,
   AIRPORT_MAP_DATA,
+  type AirportStatus as StaticAirportStatus,
+  type Airline,
+  type EKRoute,
+  type AirportMapData,
+  type TimelineEvent,
 } from "../../lib/airport-data";
+import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes } from "../../hooks/use-airport";
+import type { AirportStatusResponse, FlightPositionResponse, AirportEventResponse, AirlineOpsResponse, EmiratesRouteResponse } from "../../lib/api-client";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
 import EKRouteBadges from "./EKRouteBadges";
@@ -20,7 +28,114 @@ const STATUS_LIGHT_COLORS: Record<string, string> = {
   red: "var(--accent-red)",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  green: "OPERATIONAL",
+  amber: "DELAYS",
+  red: "DISRUPTED",
+};
+
+function toStaticStatus(data: AirportStatusResponse): StaticAirportStatus {
+  return {
+    light: data.light,
+    label: STATUS_LABELS[data.light] ?? "UNKNOWN",
+    runways: `${data.totalFlights} FLIGHTS · ${data.onTimePercent}% ON TIME`,
+    weather: `${data.delayedFlights} DELAYED · ${data.cancelledFlights} CANCELLED`,
+  };
+}
+
+function toMapData(flights: FlightPositionResponse[]): AirportMapData {
+  return {
+    aircraft: flights
+      .filter((f) => !f.onGround)
+      .map((f) => ({
+        lat: f.lat,
+        lng: f.lon,
+        rotation: f.heading,
+        flightLabel: f.callsign.trim() || f.icao24,
+        altLabel: `FL${Math.round(f.altitude / 100)}`,
+        cls: f.aircraftClass as "ek" | "other",
+      })),
+    flightPaths: [],
+  };
+}
+
+function toTimelineEvents(events: AirportEventResponse[], lang: string): TimelineEvent[] {
+  const grouped = new Map<string, AirportEventResponse[]>();
+  for (const e of events) {
+    const date = new Date(e.eventDate);
+    const key = `${date.getMonth() + 1}/${date.getDate()}`;
+    const arr = grouped.get(key) ?? [];
+    arr.push(e);
+    grouped.set(key, arr);
+  }
+
+  const today = new Date();
+  const todayKey = `${today.getMonth() + 1}/${today.getDate()}`;
+  const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  return Array.from(grouped.entries()).map(([dateKey, evts]) => {
+    const isToday = dateKey === todayKey;
+    const firstDate = new Date(evts[0].eventDate);
+    const dotType = evts[0].eventType as TimelineEvent["dotType"];
+    return {
+      date: dateKey,
+      dayLabel: isToday ? "TODAY" : dayNames[firstDate.getDay()],
+      isToday,
+      dotType,
+      entries: evts.map((e) => ({
+        tags: [{ type: e.eventType as TimelineEvent["dotType"], label: e.eventType.toUpperCase() }],
+        text: lang === "en" ? e.title.en : (e.title.ko || e.title.en),
+      })),
+    };
+  });
+}
+
+function toAirlines(ops: AirlineOpsResponse[]): Airline[] {
+  return ops.map((o) => ({
+    code: o.airlineIata,
+    name: o.airlineName,
+    flights: o.totalFlights,
+    onTime: o.onTimePercent,
+    status: o.status,
+  }));
+}
+
+function toRoutes(routes: EmiratesRouteResponse[]): EKRoute[] {
+  return routes.map((r) => ({
+    dest: r.destination,
+    flightCode: r.flightCode,
+    status: r.status,
+  }));
+}
+
 export default function AirportMonitor() {
+  const { data: statusData } = useAirportStatus();
+  const { data: flightsData } = useFlightPositions();
+  const { data: eventsData } = useAirportEvents();
+  const { data: airlinesData } = useAirlineOps();
+  const { data: routesData } = useEmiratesRoutes();
+
+  const status = useMemo(
+    () => (statusData ? toStaticStatus(statusData) : AIRPORT_STATUS),
+    [statusData],
+  );
+  const mapData = useMemo(
+    () => (flightsData && flightsData.length > 0 ? toMapData(flightsData) : AIRPORT_MAP_DATA),
+    [flightsData],
+  );
+  const timelineEvents = useMemo(
+    () => (eventsData && eventsData.length > 0 ? toTimelineEvents(eventsData, "ko") : TIMELINE_EVENTS),
+    [eventsData],
+  );
+  const airlines = useMemo(
+    () => (airlinesData && airlinesData.length > 0 ? toAirlines(airlinesData) : AIRLINES),
+    [airlinesData],
+  );
+  const routes = useMemo(
+    () => (routesData && routesData.length > 0 ? toRoutes(routesData) : EK_ROUTES),
+    [routesData],
+  );
+
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
@@ -47,19 +162,19 @@ export default function AirportMonitor() {
         <div
           className="w-2 h-2 rounded-full"
           style={{
-            background: STATUS_LIGHT_COLORS[AIRPORT_STATUS.light],
-            boxShadow: `0 0 8px ${STATUS_LIGHT_COLORS[AIRPORT_STATUS.light]}`,
+            background: STATUS_LIGHT_COLORS[status.light],
+            boxShadow: `0 0 8px ${STATUS_LIGHT_COLORS[status.light]}`,
             animation: "pulse-dot 2s ease-in-out infinite",
           }}
         />
-        <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[AIRPORT_STATUS.light] }}>
-          {AIRPORT_STATUS.label}
+        <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[status.light] }}>
+          {status.label}
         </span>
         <span className="font-mono text-[0.58rem]" style={{ color: "var(--text-muted)" }}>
-          {AIRPORT_STATUS.runways}
+          {status.runways}
         </span>
         <span className="font-mono text-[0.6rem] ml-auto" style={{ color: "var(--text-muted)" }}>
-          {AIRPORT_STATUS.weather}
+          {status.weather}
         </span>
       </div>
 
@@ -68,7 +183,7 @@ export default function AirportMonitor() {
         {/* Map with radar */}
         <div className="relative" style={{ background: "var(--bg-primary)" }}>
           <div className="border overflow-hidden" style={{ borderColor: "var(--border)", height: 420 }}>
-            <AirportMapInner mapData={AIRPORT_MAP_DATA} />
+            <AirportMapInner mapData={mapData} />
           </div>
           {/* Radar sweep overlay */}
           <div
@@ -84,11 +199,11 @@ export default function AirportMonitor() {
             className="absolute top-2 left-2 z-[600] px-2 py-1 font-mono text-[0.6rem] border"
             style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
           >
-            <span style={{ color: "var(--accent-cyan)" }}>✈ {AIRPORT_MAP_DATA.aircraft.length}</span>
+            <span style={{ color: "var(--accent-cyan)" }}>✈ {mapData.aircraft.length}</span>
             <span className="mx-1" style={{ color: "var(--text-muted)" }}>TRACKED</span>
-            <span style={{ color: "var(--accent-amber)" }}>EK {AIRPORT_MAP_DATA.aircraft.filter((a) => a.cls === "ek").length}</span>
+            <span style={{ color: "var(--accent-amber)" }}>EK {mapData.aircraft.filter((a) => a.cls === "ek").length}</span>
             <span className="ml-1" style={{ color: "var(--text-muted)" }}>
-              OTHER {AIRPORT_MAP_DATA.aircraft.filter((a) => a.cls !== "ek").length}
+              OTHER {mapData.aircraft.filter((a) => a.cls !== "ek").length}
             </span>
           </div>
           {/* Legend */}
@@ -104,14 +219,14 @@ export default function AirportMonitor() {
 
         {/* Timeline */}
         <div className="pt-3 pr-2.5" style={{ background: "var(--bg-primary)" }}>
-          <AirportTimeline events={TIMELINE_EVENTS} />
+          <AirportTimeline events={timelineEvents} />
         </div>
       </div>
 
       {/* Bottom row: Airlines + Routes */}
       <div className="grid grid-cols-2 gap-3 max-lg:grid-cols-1">
-        <AirlineGrid airlines={AIRLINES} />
-        <EKRouteBadges routes={EK_ROUTES} />
+        <AirlineGrid airlines={airlines} />
+        <EKRouteBadges routes={routes} />
       </div>
     </div>
   );
