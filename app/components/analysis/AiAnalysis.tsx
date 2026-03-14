@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useBriefing } from "../../hooks/use-briefing";
 import { useLanguage } from "../../lib/language-context";
 import { goldsteinToSentiment, inferRegion, REGION_LABELS } from "../../lib/geo-aggregation";
 import { getTranslatedText } from "../../lib/display-mappers";
+import { aggregateTrend } from "../../lib/trend-aggregation";
+import TrendChart from "./TrendChart";
 
 const SENTIMENT_COLORS = {
   negative: { gradient: "linear-gradient(90deg,var(--accent-red),var(--accent-amber))", color: "var(--accent-red)" },
@@ -36,6 +39,11 @@ export default function AiAnalysis() {
     })
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
+
+  const trendData = useMemo(
+    () => aggregateTrend(events ?? []),
+    [events],
+  );
 
   const briefingText = briefing ? getTranslatedText(briefing.result, lang) : null;
 
@@ -100,11 +108,7 @@ export default function AiAnalysis() {
           />
           이슈 트렌드 (7일)
         </h3>
-        <div className="w-full h-[120px] flex items-center justify-center">
-          <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
-            TREND CHART — M3
-          </span>
-        </div>
+        <TrendChart data={trendData} />
       </div>
 
       {/* AI Briefing */}
