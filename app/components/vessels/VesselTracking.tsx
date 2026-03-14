@@ -251,7 +251,7 @@ export default function VesselTracking() {
           <h3 className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
             {t("vessels.maritimeAlerts")}
           </h3>
-          <div className="flex flex-col gap-1" style={{ maxHeight: 200, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+          <div className="flex flex-col gap-1 flex-1" style={{ maxHeight: 400, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
             {/* Vessel anomalies */}
             {anomalies.slice(0, 2).map((v) => {
               const isCritical = v.latestPosition?.status === "anomaly";
