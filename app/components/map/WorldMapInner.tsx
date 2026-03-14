@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Marker, Popup } from "react-leaf
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { GeoEvent } from "../../lib/types";
+import type { FlightPositionResponse } from "../../lib/api-client";
 import { useLanguage } from "../../lib/language-context";
 import { getTranslatedText, mapSeverity } from "../../lib/display-mappers";
 
@@ -18,11 +19,36 @@ function pulseIcon(severity: string): L.DivIcon {
   return L.divIcon({ className: cls, iconSize: [14, 14], iconAnchor: [7, 7] });
 }
 
-interface WorldMapInnerProps {
-  events: GeoEvent[];
+// Aircraft colors: Emirates=red, Etihad=amber, others=gray
+const AIRLINE_COLORS: Record<string, string> = {
+  UAE: "#ef4444", // Emirates — red
+  ETD: "#f59e0b", // Etihad — amber/yellow
+};
+
+const AIRLINE_NAMES: Record<string, string> = {
+  UAE: "Emirates", FDB: "flydubai", ETD: "Etihad", QTR: "Qatar Airways",
+  SVA: "Saudia", ABY: "Air Arabia", GFA: "Gulf Air", KAL: "Korean Air",
+  SIA: "Singapore Airlines", DLH: "Lufthansa", BAW: "British Airways",
+  THY: "Turkish Airlines", PIA: "PIA", OMA: "Oman Air",
+};
+
+function aircraftIcon(callsign: string, heading: number): L.DivIcon {
+  const prefix = callsign.trim().slice(0, 3).toUpperCase();
+  const color = AIRLINE_COLORS[prefix] ?? "#64748b";
+  return L.divIcon({
+    className: "",
+    html: `<div style="font-size:16px;color:${color};transform:rotate(${heading}deg);filter:drop-shadow(0 0 4px ${color}80);line-height:1">✈</div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
 }
 
-export default function WorldMapInner({ events }: WorldMapInnerProps) {
+interface WorldMapInnerProps {
+  events: GeoEvent[];
+  flights?: FlightPositionResponse[];
+}
+
+export default function WorldMapInner({ events, flights = [] }: WorldMapInnerProps) {
   const { lang } = useLanguage();
 
   return (
@@ -34,6 +60,8 @@ export default function WorldMapInner({ events }: WorldMapInnerProps) {
       attributionControl={false}
     >
       <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+
+      {/* GeoEvents */}
       {events
         .filter((e) => e.lat !== null && e.lon !== null)
         .map((event) => {
@@ -84,6 +112,36 @@ export default function WorldMapInner({ events }: WorldMapInnerProps) {
                 </div>
               </Popup>
             </CircleMarker>
+          );
+        })}
+
+      {/* Aircraft positions */}
+      {flights
+        .filter((f) => !f.onGround)
+        .map((f) => {
+          const prefix = f.callsign.trim().slice(0, 3).toUpperCase();
+          const airlineName = AIRLINE_NAMES[prefix] ?? prefix;
+          const color = AIRLINE_COLORS[prefix] ?? "#64748b";
+          return (
+            <Marker
+              key={f.icao24 + f.callsign}
+              position={[f.lat, f.lon]}
+              icon={aircraftIcon(f.callsign, f.heading)}
+            >
+              <Popup>
+                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: "#0f1420", padding: 6, minWidth: 120 }}>
+                  <div style={{ fontWeight: "bold", color, marginBottom: 3, fontSize: "0.8rem" }}>
+                    ✈ {f.callsign.trim()}
+                  </div>
+                  <div style={{ fontSize: "0.6rem", color: "#e2e8f0", marginBottom: 2 }}>
+                    {airlineName}
+                  </div>
+                  <div style={{ fontSize: "0.55rem", color: "#94a3b8" }}>
+                    FL{Math.round(f.altitude / 100)} · {Math.round(f.speed)}kt
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
           );
         })}
     </MapContainer>

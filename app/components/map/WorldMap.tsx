@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useGeoEvents } from "../../hooks/use-geo-events";
+import { useFlightPositions } from "../../hooks/use-airport";
 import SectionHeader from "../ui/SectionHeader";
 import type { GeoEvent, GeoEventType } from "../../lib/types";
 
@@ -34,6 +35,7 @@ function filterEvents(events: GeoEvent[], filter: MapFilter): GeoEvent[] {
 
 export default function WorldMap() {
   const { data: events, isLoading } = useGeoEvents({ limit: 50 });
+  const { data: flights } = useFlightPositions(100);
   const [activeFilter, setActiveFilter] = useState<MapFilter>("all");
 
   const filteredEvents = useMemo(
@@ -93,8 +95,17 @@ export default function WorldMap() {
             </span>
           </div>
         ) : (
-          <WorldMapInner events={filteredEvents} />
+          <WorldMapInner events={filteredEvents} flights={flights ?? []} />
         )}
+        {/* Legend */}
+        <div
+          className="absolute bottom-2 right-2 z-[600] px-2 py-1 font-mono text-[0.5rem] border flex gap-2"
+          style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
+        >
+          <span style={{ color: "#ef4444" }}>✈ Emirates</span>
+          <span style={{ color: "#f59e0b" }}>✈ Etihad</span>
+          <span style={{ color: "#64748b" }}>✈ Other</span>
+        </div>
       </div>
     </section>
   );
