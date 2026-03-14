@@ -7,11 +7,12 @@ const GDELT_GKG_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
 const GDELT_AIRPORT_PARAMS = {
   query:
-    "(airport OR aviation OR airspace OR NOTAM OR DXB) AND (dubai OR UAE OR gulf OR hormuz OR iran) sourcelang:eng",
+    "(airport OR aviation OR airspace OR NOTAM OR DXB OR \"flight delay\" OR reroute OR airspace closure) AND (dubai OR UAE OR gulf OR hormuz OR iran OR \"middle east\") sourcelang:eng",
   mode: "artlist",
   format: "json",
-  maxrecords: "30",
+  maxrecords: "50",
   sort: "datedesc",
+  timespan: "7d",
 };
 
 interface GdeltArticle {

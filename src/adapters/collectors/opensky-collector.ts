@@ -2,9 +2,9 @@ import type { OpenSkyCollectorPort } from "../../domain/airport/ports";
 import type { RawFlightPosition } from "../../domain/airport/entities";
 import type { CollectionResult, AircraftClass } from "../../shared/types";
 
-// Middle East wide area: covers UAE, Qatar, Bahrain, Kuwait, Oman, parts of Iran/Saudi
+// Middle East + Indian Ocean approach: covers Gulf, Red Sea, Iran, India approach, East Africa
 const OPENSKY_API_URL =
-  "https://opensky-network.org/api/states/all?lamin=20.0&lomin=45.0&lamax=30.0&lomax=60.0";
+  "https://opensky-network.org/api/states/all?lamin=10.0&lomin=30.0&lamax=40.0&lomax=70.0";
 
 const METERS_TO_FEET = 3.28084;
 const MPS_TO_KNOTS = 1.94384;
