@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useVessels } from "../../hooks/use-vessels";
+import { useSSEPositions } from "../../hooks/use-sse-positions";
 import SectionHeader from "../ui/SectionHeader";
 import type { VesselWithPosition } from "../../lib/types";
 
@@ -49,20 +50,49 @@ function getAnomalies(vessels: VesselWithPosition[]): VesselWithPosition[] {
   );
 }
 
+function mergeSSEPositions(
+  restVessels: VesselWithPosition[],
+  sseVessels: { mmsi: string; lat: number; lon: number; speed: number | null; course: number | null; timestamp: string }[],
+): VesselWithPosition[] {
+  if (sseVessels.length === 0) return restVessels;
+
+  const sseMap = new Map(sseVessels.map((v) => [v.mmsi, v]));
+  return restVessels.map((vessel) => {
+    const sse = sseMap.get(vessel.mmsi);
+    if (!sse || !vessel.latestPosition) return vessel;
+    return {
+      ...vessel,
+      latestPosition: {
+        ...vessel.latestPosition,
+        lat: sse.lat,
+        lon: sse.lon,
+        speed: sse.speed ?? vessel.latestPosition.speed,
+        course: sse.course ?? vessel.latestPosition.course,
+        collectedAt: new Date(sse.timestamp),
+      },
+    };
+  });
+}
+
 export default function VesselTracking() {
   const [activeFilter, setActiveFilter] = useState<VesselFilter>("all");
-  const { data: vessels, isLoading } = useVessels();
+  const { data: vessels, isLoading } = useVessels({ refetchInterval: 300_000 });
+  const { vessels: sseVessels, connected: sseConnected } = useSSEPositions();
+
+  const mergedVessels = useMemo(
+    () => mergeSSEPositions(vessels ?? [], sseVessels),
+    [vessels, sseVessels],
+  );
 
   const filteredVessels = useMemo(() => {
-    const all = vessels ?? [];
     if (activeFilter === "tanker") {
-      return all.filter((v) => v.type === "tanker_crude" || v.type === "tanker_product");
+      return mergedVessels.filter((v) => v.type === "tanker_crude" || v.type === "tanker_product");
     }
     if (activeFilter === "lpg_lng") {
-      return all.filter((v) => v.type === "lpg" || v.type === "lng");
+      return mergedVessels.filter((v) => v.type === "lpg" || v.type === "lng");
     }
-    return all;
-  }, [vessels, activeFilter]);
+    return mergedVessels;
+  }, [mergedVessels, activeFilter]);
 
   const allVessels = filteredVessels;
   const zoneStats = countByZone(allVessels);
@@ -71,7 +101,20 @@ export default function VesselTracking() {
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
-      <SectionHeader title="중동 해역 선박 추적" accentColor="var(--accent-cyan)" />
+      <SectionHeader
+        title="중동 해역 선박 추적"
+        accentColor="var(--accent-cyan)"
+        controls={
+          sseConnected ? (
+            <span
+              className="font-mono text-[0.5rem] tracking-[1.5px] px-1.5 py-0.5 border"
+              style={{ color: "var(--accent-green)", borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)" }}
+            >
+              LIVE
+            </span>
+          ) : undefined
+        }
+      />
 
       {/* Type filter */}
       <div className="flex gap-1">
