@@ -32,7 +32,7 @@ export default function IssueTracker() {
     >
       <div className="mb-4">
         <SectionHeader
-          title="ISSUE TRACKER — 주요 이슈"
+          title="이슈 트래커"
           accentColor="var(--accent-cyan)"
           controls={
             <div className="flex gap-1">

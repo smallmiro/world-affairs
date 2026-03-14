@@ -100,7 +100,7 @@ export default function MarketSection() {
       {/* Stock market */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
         <div className="mb-4">
-          <SectionHeader title="STOCK MARKET — 주요 지수" accentColor="var(--accent-amber)" />
+          <SectionHeader title="주식 시장" accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (
@@ -119,7 +119,7 @@ export default function MarketSection() {
       {/* Commodities table */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
         <div className="mb-4">
-          <SectionHeader title="COMMODITIES & FOREX" accentColor="var(--accent-amber)" />
+          <SectionHeader title="원자재 · 현물 · 환율" accentColor="var(--accent-amber)" />
         </div>
 
         {isLoading ? (

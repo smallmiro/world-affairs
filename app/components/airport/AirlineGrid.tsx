@@ -30,7 +30,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
             className="flex items-center gap-2 px-2.5 py-1.5 border"
             style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
           >
-            <StatusLight color={STATUS_TO_LIGHT[a.status] ?? "green"} size={5} pulse={false} />
+            <StatusLight color={STATUS_TO_LIGHT[a.status] ?? "green"} size={5} pulse={false} glow={false} />
             <span className="font-mono text-[0.58rem] flex-1" style={{ color: "var(--text-secondary)" }}>
               {a.name}
             </span>

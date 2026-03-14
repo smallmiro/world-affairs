@@ -36,7 +36,7 @@ export default function NewsFeed() {
       style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}
     >
       <div className="mb-4">
-        <SectionHeader title="SIGINT FEED — 국제 정세" accentColor="var(--accent-cyan)" />
+        <SectionHeader title="실시간 뉴스" accentColor="var(--accent-cyan)" />
       </div>
 
       <div className="flex gap-1 flex-wrap mb-3">

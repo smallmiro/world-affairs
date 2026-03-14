@@ -50,7 +50,7 @@ export default function VesselTracking() {
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
-      <SectionHeader title="VESSEL TRACKING — 중동 에너지 항로" accentColor="var(--accent-cyan)" />
+      <SectionHeader title="중동 해역 선박 추적" accentColor="var(--accent-cyan)" />
 
       {/* Map */}
       <div

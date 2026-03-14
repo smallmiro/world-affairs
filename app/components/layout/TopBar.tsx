@@ -77,7 +77,7 @@ export default function TopBar() {
       {/* Status */}
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-1.5 font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
-          <StatusLight color="green" size={6} pulse={true} />
+          <StatusLight color="green" size={6} pulse={true} glow={false} />
           LIVE
         </div>
         <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>

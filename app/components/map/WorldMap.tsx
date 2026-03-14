@@ -16,7 +16,7 @@ export default function WorldMap() {
     >
       <div className="mb-4">
         <SectionHeader
-          title="WORLD SIGINT MAP — 글로벌 감시"
+          title="Global Tension Map"
           accentColor="var(--accent-cyan)"
           controls={
             <div className="flex gap-1">
