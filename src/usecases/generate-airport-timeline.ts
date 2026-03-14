@@ -16,7 +16,9 @@ interface DailyFlightSummary {
 
 interface RawTimelineInput {
   flightSummaries: DailyFlightSummary[];
-  gdeltEvents: { date: string; title: string; type: string }[];
+  gdeltAirportEvents: { date: string; title: string; type: string }[];
+  newsArticles: { date: string; title: string; category: string }[];
+  geoEvents: { date: string; title: string; type: string }[];
   mediaArticles: { date: string; title: string; url: string }[];
 }
 
@@ -29,45 +31,65 @@ interface GeneratedTimelineEntry {
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
 
 const SYSTEM_PROMPT = `You are an aviation operations analyst for Dubai International Airport (DXB).
-Generate a concise 7-day timeline from the raw data provided.
-Each day should have 1-3 entries summarizing the most significant events.
+Generate a concise 7-day timeline combining ALL provided intelligence sources.
+Each day should have 1-3 entries summarizing the MOST SIGNIFICANT events affecting DXB.
 
-Rules:
-- eventType: "ops" for delays/cancellations/route changes, "conflict" for military/security, "normal" for normal operations, "info" for advisories
-- Title should be concise (under 60 chars), written in operational/SIGINT style
-- If a day has no notable events, create one "normal" entry like "DXB operations normal"
-- Focus on patterns: which airlines delayed, which routes affected, security events
+Data sources you will receive:
+1. DXB Flight Status — actual delays, cancellations from dubaiairports.ae
+2. GDELT Airport Events — aviation/airspace news (NOTAM, closures, reroutes)
+3. News Articles — Middle East geopolitical news (military, diplomacy, conflicts)
+4. Geo Events — geopolitical events with coordinates (conflicts, sanctions, tensions)
+5. Dubai Airports Media — official DXB operational announcements
+
+Analysis rules:
+- CROSS-REFERENCE sources: if news reports Iran strikes AND flights are delayed, connect them
+- eventType: "ops" for flight delays/route changes, "conflict" for military/security events affecting aviation, "normal" for routine ops, "info" for advisories/intel
+- Title must be concise (under 60 chars), written in operational/SIGINT style
+- Do NOT mark a day as "normal" if there are conflict events, airspace issues, or significant delays
+- If military activity or airspace restrictions are reported, classify as "conflict" even if DXB flights seem unaffected
+- Focus on: airspace closures, military operations near Gulf, flight disruptions, NOTAM changes, route diversions
 - Output ONLY a JSON array, no explanation
 
 Output format:
 [
-  { "date": "2026-03-14", "eventType": "ops", "title": { "en": "EK006 LHR delayed 48min, EK242 YYZ delayed 48min", "ko": "EK006 런던 48분 지연, EK242 토론토 48분 지연", "ja": "EK006 ロンドン48分遅延、EK242 トロント48分遅延" } },
-  { "date": "2026-03-14", "eventType": "normal", "title": { "en": "DXB departures on time — EK LHR, PVG, BKK, IST, GRU on schedule", "ko": "DXB 출발편 정상 — EK 런던, 상하이, 방콕, 이스탄불, 상파울루행 정시", "ja": "DXB出発便正常 — EK ロンドン、上海、バンコク、イスタンブール、サンパウロ行定時" } }
+  { "date": "2026-03-14", "eventType": "conflict", "title": { "en": "US strikes on Iran — Gulf airspace restrictions in effect", "ko": "미국 이란 공습 — 걸프 영공 제한 발효", "ja": "米国イラン空爆 — 湾岸空域制限発効" } },
+  { "date": "2026-03-14", "eventType": "ops", "title": { "en": "EK006 LHR delayed 48min; multiple EK reroutes via southern corridor", "ko": "EK006 런던 48분 지연; 다수 EK편 남측 회랑 우회", "ja": "EK006 ロンドン48分遅延; 複数EK便南部回廊迂回" } }
 ]`;
 
 function buildDataPrompt(input: RawTimelineInput): string {
   const sections: string[] = [];
 
   if (input.flightSummaries.length > 0) {
-    sections.push("## DXB Flight Status (dubaiairports.ae)\n" +
+    sections.push("## 1. DXB Flight Status (dubaiairports.ae)\n" +
       input.flightSummaries.map((s) =>
         `${s.date}: ${s.totalFlights} flights, ${s.delayed} delayed, ${s.cancelled} cancelled` +
         (s.notableDelays.length > 0 ? `\n  Notable: ${s.notableDelays.join("; ")}` : ""),
       ).join("\n"));
   }
 
-  if (input.gdeltEvents.length > 0) {
-    sections.push("## GDELT News Events\n" +
-      input.gdeltEvents.map((e) => `${e.date} [${e.type}]: ${e.title}`).join("\n"));
+  if (input.gdeltAirportEvents.length > 0) {
+    sections.push("## 2. GDELT Airport/Aviation Events\n" +
+      input.gdeltAirportEvents.map((e) => `${e.date} [${e.type}]: ${e.title}`).join("\n"));
+  }
+
+  if (input.newsArticles.length > 0) {
+    sections.push("## 3. Middle East News Articles\n" +
+      input.newsArticles.map((n) => `${n.date} [${n.category}]: ${n.title}`).join("\n"));
+  }
+
+  if (input.geoEvents.length > 0) {
+    sections.push("## 4. Geopolitical Events\n" +
+      input.geoEvents.map((g) => `${g.date} [${g.type}]: ${g.title}`).join("\n"));
   }
 
   if (input.mediaArticles.length > 0) {
-    sections.push("## Dubai Airports Media\n" +
-      input.mediaArticles.map((a) => `${a.date}: ${a.title}`).join("\n"));
+    sections.push("## 5. Dubai Airports Official Media\n" +
+      input.mediaArticles.map((a) => `${a.date}: ${a.title} (${a.url})`).join("\n"));
   }
 
-  return `Generate a 7-day DXB airport timeline from the following raw data.
+  return `Generate a 7-day DXB airport timeline from the following raw intelligence data.
 Today is ${new Date().toISOString().split("T")[0]}.
+Analyze and cross-reference ALL sources to produce accurate operational assessments.
 
 ${sections.join("\n\n")}`;
 }
@@ -82,7 +104,6 @@ async function gatherFlightSummaries(prisma: PrismaClient): Promise<DailyFlightS
     orderBy: { collectedAt: "desc" },
   });
 
-  // Group by date, deduplicate by taking latest batch per day
   const byDate = new Map<string, typeof flights>();
   for (const f of flights) {
     const dateKey = f.collectedAt.toISOString().split("T")[0];
@@ -92,14 +113,12 @@ async function gatherFlightSummaries(prisma: PrismaClient): Promise<DailyFlightS
 
   const summaries: DailyFlightSummary[] = [];
   for (const [date, dayFlights] of byDate) {
-    // Take latest batch only (dedup by collectedAt)
     const latestTime = Math.max(...dayFlights.map((f) => f.collectedAt.getTime()));
     const latestBatch = dayFlights.filter((f) => f.collectedAt.getTime() === latestTime);
 
     const delayed = latestBatch.filter((f) => f.status === "Delayed" || f.status === "New Time");
     const cancelled = latestBatch.filter((f) => f.status === "Cancelled");
 
-    // Notable: EK delays > 30min, or any cancellation
     const notableDelays: string[] = [];
     for (const f of delayed) {
       if (f.flightCode.startsWith("EK") && f.scheduled && f.actual) {
@@ -122,22 +141,76 @@ async function gatherFlightSummaries(prisma: PrismaClient): Promise<DailyFlightS
   return summaries.sort((a, b) => b.date.localeCompare(a.date));
 }
 
-async function gatherGdeltEvents(repo: AirportRepositoryPort): Promise<{ date: string; title: string; type: string }[]> {
+async function gatherGdeltAirportEvents(repo: AirportRepositoryPort): Promise<{ date: string; title: string; type: string }[]> {
   const events = await repo.findLatestEvents(50);
-  return events.map((e) => ({
-    date: e.eventDate.toISOString().split("T")[0],
-    title: e.title.en,
-    type: e.eventType,
-  }));
+  // Exclude gemini-timeline entries to avoid circular reference
+  return events
+    .filter((e) => e.source !== "gemini-timeline")
+    .map((e) => ({
+      date: e.eventDate.toISOString().split("T")[0],
+      title: e.title.en,
+      type: e.eventType,
+    }));
+}
+
+async function gatherNewsArticles(prisma: PrismaClient): Promise<{ date: string; title: string; category: string }[]> {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  // Get aviation/military/diplomacy related news
+  const articles = await prisma.article.findMany({
+    where: {
+      collectedAt: { gte: sevenDaysAgo },
+      category: { in: ["military", "diplomacy", "energy", "human_rights"] },
+    },
+    select: { titleEn: true, collectedAt: true, category: true },
+    orderBy: { collectedAt: "desc" },
+    take: 50,
+  });
+
+  return articles
+    .filter((a) => a.titleEn)
+    .map((a) => ({
+      date: a.collectedAt.toISOString().split("T")[0],
+      title: a.titleEn!,
+      category: a.category ?? "other",
+    }));
+}
+
+async function gatherGeoEvents(prisma: PrismaClient): Promise<{ date: string; title: string; type: string }[]> {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const events = await prisma.geoEvent.findMany({
+    where: {
+      collectedAt: { gte: sevenDaysAgo },
+      eventType: { in: ["conflict", "military", "sanctions", "protest"] },
+    },
+    select: { titleEn: true, eventDate: true, eventType: true },
+    orderBy: { eventDate: "desc" },
+    take: 50,
+  });
+
+  return events
+    .filter((e) => e.titleEn)
+    .map((e) => ({
+      date: e.eventDate.toISOString().split("T")[0],
+      title: e.titleEn!,
+      type: e.eventType ?? "other",
+    }));
 }
 
 async function gatherMediaArticles(): Promise<{ date: string; title: string; url: string }[]> {
-  const articles = await collectDxbMedia();
-  return articles.map((a) => ({
-    date: a.date.toISOString().split("T")[0],
-    title: a.title,
-    url: a.url,
-  }));
+  try {
+    const articles = await collectDxbMedia();
+    return articles.map((a) => ({
+      date: a.date.toISOString().split("T")[0],
+      title: a.title,
+      url: a.url,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 function parseTimelineResponse(responseText: string): GeneratedTimelineEntry[] {
@@ -163,14 +236,16 @@ export async function generateAirportTimeline(
   prisma: PrismaClient,
   repo: AirportRepositoryPort,
 ): Promise<{ generated: number }> {
-  // 1. Gather raw data from all sources
-  const [flightSummaries, gdeltEvents, mediaArticles] = await Promise.all([
+  // 1. Gather raw data from ALL sources
+  const [flightSummaries, gdeltAirportEvents, newsArticles, geoEvents, mediaArticles] = await Promise.all([
     gatherFlightSummaries(prisma),
-    gatherGdeltEvents(repo),
+    gatherGdeltAirportEvents(repo),
+    gatherNewsArticles(prisma),
+    gatherGeoEvents(prisma),
     gatherMediaArticles(),
   ]);
 
-  const input: RawTimelineInput = { flightSummaries, gdeltEvents, mediaArticles };
+  const input: RawTimelineInput = { flightSummaries, gdeltAirportEvents, newsArticles, geoEvents, mediaArticles };
   const dataPrompt = buildDataPrompt(input);
 
   // 2. Call Gemini
