@@ -37,14 +37,13 @@ export default function AiAnalysis() {
 
   return (
     <section
-      className="grid grid-cols-3 gap-px max-lg:grid-cols-1"
+      className="grid grid-cols-3 gap-4 max-lg:grid-cols-1"
       style={{
-        background: "var(--border)",
         animation: "fade-in-up 0.4s ease-out 0.3s both",
       }}
     >
       {/* Sentiment */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4">
         <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
@@ -100,7 +99,7 @@ export default function AiAnalysis() {
       </div>
 
       {/* Trend chart */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4">
         <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
@@ -115,7 +114,7 @@ export default function AiAnalysis() {
       </div>
 
       {/* AI Briefing */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4">
         <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"

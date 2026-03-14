@@ -47,7 +47,7 @@ export default function WorldMap() {
 
   return (
     <section
-      className="p-5"
+      className="p-4"
       style={{ animation: "fade-in-up 0.4s ease-out 0.05s both" }}
     >
       <div className="mb-4">

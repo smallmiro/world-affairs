@@ -20,40 +20,41 @@ export default function DashboardPage() {
       <AlertTicker />
       <MarketTickerBar />
 
-      {/* Dashboard grid */}
-      <div
-        id="section-map"
-        className="grid gap-px"
-        style={{ background: "var(--border)" }}
-      >
-        {/* Row 1: World Map */}
-        <div style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4 flex flex-col gap-4">
+        {/* Map card */}
+        <div className="card" id="section-map">
           <WorldMap />
         </div>
 
-        {/* Row 1-2: News Feed (spans 2 rows on desktop) */}
-        <div
-          className="section-map-news"
-          style={{ background: "var(--bg-primary)" }}
-        >
-          <NewsFeed />
+        {/* News + Issues row */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-4">
+          <div className="card">
+            <IssueTracker />
+          </div>
+          <div className="card">
+            <NewsFeed />
+          </div>
         </div>
 
-        {/* Row 2: Issue Tracker */}
-        <div style={{ background: "var(--bg-primary)" }}>
-          <IssueTracker />
+        {/* Vessel + Airport */}
+        <div id="section-vessels" className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="card">
+            <VesselTracking />
+          </div>
+          <div className="card">
+            <AirportMonitor />
+          </div>
         </div>
-      </div>
 
-      {/* Full-width sections */}
-      <div className="flex flex-col gap-px" style={{ background: "var(--border)" }}>
-        {/* Vessel + Airport tracking row */}
-        <div id="section-vessels" className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
-          <VesselTracking />
-          <AirportMonitor />
+        {/* Markets */}
+        <div className="card" id="section-markets">
+          <MarketSection />
         </div>
-        <div id="section-markets"><MarketSection /></div>
-        <div id="section-analysis"><AiAnalysis /></div>
+
+        {/* Analysis */}
+        <div className="card" id="section-analysis">
+          <AiAnalysis />
+        </div>
       </div>
 
       {/* Footer */}

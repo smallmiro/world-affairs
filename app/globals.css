@@ -55,7 +55,7 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 body {
@@ -177,10 +177,37 @@ body::after {
   }
 }
 
+/* Card system */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-body {
+  padding: 16px;
+}
+.item-box {
+  background: var(--bg-card-hover);
+  padding: 12px;
+  border-radius: 12px;
+}
+
 /* Card hover styles */
 .news-item-card {
   background: var(--bg-secondary);
   border-color: var(--border);
+  border-radius: 12px !important;
 }
 .news-item-card:hover {
   background: var(--bg-card-hover);
@@ -190,6 +217,7 @@ body::after {
 .issue-card-item {
   background: var(--bg-secondary);
   border-color: var(--border);
+  border-radius: 12px !important;
 }
 .issue-card-item:hover {
   border-color: var(--border-active);
@@ -292,7 +320,7 @@ body::after {
 .leaflet-popup-content-wrapper {
   background: rgba(31, 35, 53, 0.95) !important;
   border: 1px solid var(--border-active) !important;
-  border-radius: 0 !important;
+  border-radius: 12px !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
   color: var(--text-secondary) !important;
 }
@@ -316,32 +344,6 @@ body::after {
 .leaflet-control-zoom a:hover {
   background: var(--bg-card-hover) !important;
   color: var(--accent-cyan) !important;
-}
-
-/* Responsive: tablet grid layout */
-#section-map {
-  grid-template-columns: 1fr 360px;
-}
-#section-map > *:nth-child(1) {
-  grid-column: 1;
-}
-#section-map .section-map-news {
-  grid-column: 2;
-  grid-row: 1 / 3;
-}
-#section-map > *:nth-child(3) {
-  grid-column: 1;
-}
-@media (max-width: 768px) {
-  #section-map {
-    grid-template-columns: 1fr;
-  }
-  #section-map > *:nth-child(1),
-  #section-map .section-map-news,
-  #section-map > *:nth-child(3) {
-    grid-column: 1;
-    grid-row: auto;
-  }
 }
 
 /* Tablet font size boost */

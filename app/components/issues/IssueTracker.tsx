@@ -45,7 +45,7 @@ export default function IssueTracker() {
 
   return (
     <section
-      className="p-5"
+      className="p-4"
       style={{ animation: "fade-in-up 0.4s ease-out 0.15s both" }}
     >
       <div className="mb-4">

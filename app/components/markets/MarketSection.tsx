@@ -21,7 +21,7 @@ function StockCard({ item }: { item: MarketSnapshot }) {
 
   return (
     <div
-      className="p-3.5 border cursor-pointer transition-all duration-200 hover:border-[var(--border-active)]"
+      className="p-3.5 border rounded-xl cursor-pointer transition-all duration-200 hover:border-[var(--border-active)]"
       style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
     >
       <div className="flex justify-between items-start mb-2">
@@ -107,14 +107,13 @@ export default function MarketSection() {
 
   return (
     <section
-      className="grid grid-cols-2 gap-px max-lg:grid-cols-1"
+      className="grid grid-cols-2 gap-4 max-lg:grid-cols-1"
       style={{
-        background: "var(--border)",
         animation: "fade-in-up 0.4s ease-out 0.25s both",
       }}
     >
       {/* Stock market */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4">
         <div className="mb-4">
           <SectionHeader title={t("markets.stocks")} accentColor="var(--accent-amber)" />
         </div>
@@ -133,7 +132,7 @@ export default function MarketSection() {
       </div>
 
       {/* Commodities table */}
-      <div className="p-5" style={{ background: "var(--bg-primary)" }}>
+      <div className="p-4">
         <div className="mb-4">
           <SectionHeader title={t("markets.commodities")} accentColor="var(--accent-amber)" />
         </div>
