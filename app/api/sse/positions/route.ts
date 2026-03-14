@@ -1,108 +1,46 @@
-import { prisma } from "../../../../src/infrastructure/prisma";
+import { pubsub } from "../../../../src/infrastructure/pubsub";
+import { startPositionBroadcaster } from "../../../../src/infrastructure/position-broadcaster";
 
 export const dynamic = "force-dynamic";
 
-const POLL_INTERVAL_MS = 5000; // 5초마다 DB 폴링
-const HEARTBEAT_INTERVAL_MS = 30000; // 30초마다 heartbeat
+// Start broadcaster on first SSE connection (lazy init)
+let broadcasterStarted = false;
 
 export async function GET() {
+  if (!broadcasterStarted) {
+    startPositionBroadcaster();
+    broadcasterStarted = true;
+  }
+
   const encoder = new TextEncoder();
-  let closed = false;
 
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
       const send = (event: string, data: unknown) => {
-        if (closed) return;
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
       };
 
-      // Heartbeat to keep connection alive
+      // Subscribe to channels
+      const unsubVessels = pubsub.subscribe("vessels", (data) => send("vessels", data));
+      const unsubFlights = pubsub.subscribe("flights", (data) => send("flights", data));
+
+      // Heartbeat
       const heartbeat = setInterval(() => {
-        if (closed) return;
         controller.enqueue(encoder.encode(": heartbeat\n\n"));
-      }, HEARTBEAT_INTERVAL_MS);
+      }, 30000);
 
-      let lastVesselTimestamp = new Date(0);
-      let lastFlightTimestamp = new Date(0);
-
-      const poll = async () => {
-        if (closed) return;
-
-        try {
-          // Vessel positions (new since last check)
-          const newVesselPositions = await prisma.vesselPosition.findMany({
-            where: { timestamp: { gt: lastVesselTimestamp } },
-            include: { vessel: true },
-            orderBy: { timestamp: "desc" },
-            take: 50,
-          });
-
-          if (newVesselPositions.length > 0) {
-            lastVesselTimestamp = newVesselPositions[0].timestamp;
-            send("vessels", newVesselPositions.map((p) => ({
-              mmsi: p.vessel.mmsi,
-              name: p.vessel.name,
-              type: p.vessel.type,
-              flag: p.vessel.flag,
-              lat: p.lat,
-              lon: p.lon,
-              speed: p.speed,
-              course: p.course,
-              zone: p.zone,
-              status: p.status,
-              timestamp: p.timestamp,
-            })));
-          }
-
-          // Flight positions (latest batch)
-          const latestFlight = await prisma.flightPosition.findFirst({
-            orderBy: { collectedAt: "desc" },
-            select: { collectedAt: true },
-          });
-
-          if (latestFlight && latestFlight.collectedAt > lastFlightTimestamp) {
-            lastFlightTimestamp = latestFlight.collectedAt;
-            const flights = await prisma.flightPosition.findMany({
-              where: { collectedAt: latestFlight.collectedAt },
-            });
-            send("flights", flights.map((f) => ({
-              icao24: f.icao24,
-              callsign: f.callsign,
-              lat: f.lat,
-              lon: f.lon,
-              altitude: f.altitude,
-              speed: f.speed,
-              heading: f.heading,
-              onGround: f.onGround,
-              aircraftClass: f.aircraftClass,
-            })));
-          }
-        } catch (error) {
-          console.error("[SSE] Poll error:", error instanceof Error ? error.message : error);
-        }
-
-        if (!closed) {
-          setTimeout(poll, POLL_INTERVAL_MS);
-        }
-      };
-
-      // Initial data
-      await poll();
-
-      // Cleanup on close
-      const cleanup = () => {
-        closed = true;
-        clearInterval(heartbeat);
-      };
-
-      // AbortSignal not available in start(), handle via cancel()
       controller.enqueue(encoder.encode(": connected\n\n"));
 
-      // Store cleanup for cancel
-      (stream as unknown as { _cleanup: () => void })._cleanup = cleanup;
+      // Store cleanup refs for cancel
+      (controller as unknown as Record<string, unknown>).__cleanup = () => {
+        unsubVessels();
+        unsubFlights();
+        clearInterval(heartbeat);
+      };
     },
-    cancel() {
-      closed = true;
+    cancel(controller) {
+      const cleanup = (controller as unknown as Record<string, () => void>)?.__cleanup;
+      if (cleanup) cleanup();
     },
   });
 
