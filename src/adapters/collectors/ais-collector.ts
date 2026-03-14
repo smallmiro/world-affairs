@@ -1,3 +1,4 @@
+import WebSocketWs from "ws";
 import type { VesselCollectorPort } from "../../domain/vessel/ports";
 import type { RawAisMessage } from "../../domain/vessel/entities";
 
@@ -33,7 +34,7 @@ const RECONNECT_DELAY_MS = 5000;
 const WS_URL = "wss://stream.aisstream.io/v0/stream";
 
 export class AisStreamCollector implements VesselCollectorPort {
-  private ws: WebSocket | null = null;
+  private ws: WebSocketWs | null = null;
   private messageHandler: ((message: RawAisMessage) => void) | null = null;
   private apiKey: string;
   private shouldReconnect = true;
@@ -53,9 +54,9 @@ export class AisStreamCollector implements VesselCollectorPort {
 
   private doConnect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(WS_URL);
+      this.ws = new WebSocketWs(WS_URL);
 
-      this.ws.onopen = () => {
+      this.ws.on("open", () => {
         const subscribeMsg = {
           APIkey: this.apiKey,
           BoundingBoxes: [
@@ -69,16 +70,16 @@ export class AisStreamCollector implements VesselCollectorPort {
         this.ws!.send(JSON.stringify(subscribeMsg));
         console.log("[AIS] WebSocket connected. Subscribed to Middle East region.");
         resolve();
-      };
+      });
 
-      this.ws.onerror = (error) => {
+      this.ws.on("error", (error) => {
         console.error("[AIS] WebSocket error:", error);
-        if (!this.ws || this.ws.readyState === WebSocket.CONNECTING) {
+        if (!this.ws || this.ws.readyState === WebSocketWs.CONNECTING) {
           reject(new Error("AISStream WebSocket connection failed"));
         }
-      };
+      });
 
-      this.ws.onclose = () => {
+      this.ws.on("close", () => {
         console.warn("[AIS] WebSocket closed.");
         if (this.shouldReconnect) {
           console.log(`[AIS] Reconnecting in ${RECONNECT_DELAY_MS / 1000}s...`);
@@ -90,13 +91,13 @@ export class AisStreamCollector implements VesselCollectorPort {
             }
           }, RECONNECT_DELAY_MS);
         }
-      };
+      });
 
-      this.ws.onmessage = (event) => {
+      this.ws.on("message", (buf: Buffer) => {
         if (!this.messageHandler) return;
 
         try {
-          const data: AisStreamMessage = JSON.parse(String(event.data));
+          const data: AisStreamMessage = JSON.parse(buf.toString());
           const meta = data.MetaData;
           const posReport = data.Message.PositionReport;
           const staticData = data.Message.ShipStaticData;
@@ -105,7 +106,7 @@ export class AisStreamCollector implements VesselCollectorPort {
           const lon = posReport?.Longitude ?? meta.longitude;
           if (lat === 0 && lon === 0) return;
 
-          const raw: RawAisMessage = {
+          const msg: RawAisMessage = {
             mmsi: String(meta.MMSI),
             name: (staticData?.Name ?? meta.ShipName ?? "").trim(),
             shipType: staticData?.Type ?? 0,
@@ -118,11 +119,11 @@ export class AisStreamCollector implements VesselCollectorPort {
             timestamp: new Date(meta.time_utc),
           };
 
-          this.messageHandler(raw);
+          this.messageHandler(msg);
         } catch (error) {
           console.warn("[AIS] Message parse error:", error instanceof Error ? error.message : error);
         }
-      };
+      });
     });
   }
 
