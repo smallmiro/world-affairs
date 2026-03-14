@@ -57,7 +57,8 @@ export default function WorldMap() {
                 return (
                   <button
                     key={label}
-                    onClick={disabled ? undefined : () => setActiveFilter(filter!)}
+                    onClick={() => { if (!disabled && filter != null) setActiveFilter(filter); }}
+                    disabled={disabled}
                     className={`font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border transition-all duration-150 ${
                       disabled
                         ? "cursor-not-allowed opacity-50"
@@ -68,7 +69,6 @@ export default function WorldMap() {
                       borderColor: isActive ? "var(--accent-cyan)" : "var(--border)",
                       background: isActive ? "var(--accent-cyan-dim)" : "transparent",
                     }}
-                    aria-disabled={disabled}
                   >
                     {label}
                   </button>

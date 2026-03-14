@@ -82,10 +82,10 @@ export function aggregateByRegion(events: GeoEvent[], lang: Language): RegionIss
         ? allCountries.join(", ")
         : `${allCountries.slice(0, 2).join(", ")} +${allCountries.length - 2}`;
 
-    const latestDate = regionEvents.reduce((latest, e) =>
-      e.eventDate > latest ? e.eventDate : latest,
-      regionEvents[0].eventDate,
-    );
+    const latestDate = regionEvents.reduce((latest, e) => {
+      const d = new Date(e.eventDate);
+      return d > latest ? d : latest;
+    }, new Date(regionEvents[0].eventDate));
 
     issues.push({
       region,

@@ -42,23 +42,9 @@ export function toStaticStatus(data: AirportStatusResponse): StaticAirportStatus
 }
 
 function buildFlightPaths(flights: FlightPositionResponse[]): FlightPath[] {
-  const seen = new Set<string>();
-  const paths: FlightPath[] = [];
-
-  for (const f of flights) {
-    const callsign = f.callsign.trim();
-    if (f.aircraftClass !== "ek" || !callsign) continue;
-
-    for (const [code, dest] of Object.entries(DESTINATION_COORDS)) {
-      if (!seen.has(code)) {
-        seen.add(code);
-        paths.push({ dest, color: "#f59e0b" });
-      }
-    }
-    break; // only need one EK flight to trigger all destinations
-  }
-
-  return paths;
+  const hasEK = flights.some((f) => f.aircraftClass === "ek" && f.callsign.trim());
+  if (!hasEK) return [];
+  return Object.values(DESTINATION_COORDS).map((dest) => ({ dest, color: "#f59e0b" }));
 }
 
 export function toMapData(flights: FlightPositionResponse[]): AirportMapData {
