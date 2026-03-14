@@ -188,20 +188,11 @@ export default function AirportMonitor() {
 
       {/* Map + Timeline side by side */}
       <div className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
-        {/* Map with radar */}
+        {/* Map */}
         <div className="relative" style={{ background: "var(--bg-primary)" }}>
           <div className="border overflow-hidden" style={{ borderColor: "var(--border)", height: 420 }}>
             <AirportMapInner mapData={mapData} />
           </div>
-          {/* Radar sweep overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              zIndex: 500,
-              background: "conic-gradient(from 0deg at 60% 45%, rgba(6,182,212,0.08) 0deg, transparent 60deg, transparent 360deg)",
-              animation: "radar-rotate 4s linear infinite",
-            }}
-          />
           {/* Flight counter */}
           <div
             className="absolute top-2 left-2 z-[600] px-2 py-1 font-mono text-[0.8rem] border"
