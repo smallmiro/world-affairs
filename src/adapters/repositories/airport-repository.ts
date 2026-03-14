@@ -185,8 +185,12 @@ export class AirportRepository implements AirportRepositoryPort {
     if (ids.length === 0) return new Set();
 
     const sourceIds = ids.map((i) => i.sourceId);
+    const sources = [...new Set(ids.map((i) => i.source))];
     const existing = await this.prisma.airportEvent.findMany({
-      where: { sourceId: { in: sourceIds } },
+      where: {
+        sourceId: { in: sourceIds },
+        source: { in: sources },
+      },
       select: { sourceId: true },
     });
 

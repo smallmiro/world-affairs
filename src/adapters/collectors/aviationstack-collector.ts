@@ -173,7 +173,7 @@ export class AviationStackCollector implements AviationStackCollectorPort {
 
     if (!response.ok) {
       throw new Error(
-        `AviationStack API error: ${response.status} ${response.statusText}`,
+        `AviationStack API error: ${response.status}`,
       );
     }
 

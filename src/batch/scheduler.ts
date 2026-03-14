@@ -162,4 +162,5 @@ runCollectNews();
 runCollectMarket();
 runCollectGeoEvents();
 runCollectAirportFlights();
+runCollectAirportOps();
 runCollectAirportEvents();

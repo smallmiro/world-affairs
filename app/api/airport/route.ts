@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         );
     }
   } catch (error) {
+    console.error(`[airport API] GET section=${section} failed:`, error);
     return NextResponse.json(
       { error: "Failed to fetch airport data", code: 500 },
       { status: 500 },
