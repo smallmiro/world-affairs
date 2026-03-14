@@ -36,12 +36,46 @@ function resolveAircraftClass(callsign: string): AircraftClass {
   return callsign.toUpperCase().startsWith("UAE") ? "ek" : "other";
 }
 
-function buildHeaders(): HeadersInit {
-  const username = process.env.OPENSKY_USERNAME;
-  const password = process.env.OPENSKY_PASSWORD;
-  if (username && password) {
-    const encoded = Buffer.from(`${username}:${password}`).toString("base64");
-    return { Authorization: `Basic ${encoded}` };
+const OPENSKY_TOKEN_URL =
+  "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
+
+let cachedToken: string | null = null;
+let tokenExpiresAt = 0;
+
+async function fetchOAuth2Token(): Promise<string | null> {
+  const clientId = process.env.OPENSKY_USERNAME;
+  const clientSecret = process.env.OPENSKY_PASSWORD;
+  if (!clientId || !clientSecret) return null;
+
+  if (cachedToken && Date.now() < tokenExpiresAt) return cachedToken;
+
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
+  const res = await fetch(OPENSKY_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  if (!res.ok) {
+    console.warn(`[OpenSky] OAuth2 token request failed (${res.status}). Will use anonymous access.`);
+    return null;
+  }
+
+  const data = await res.json() as { access_token: string; expires_in: number };
+  cachedToken = data.access_token;
+  tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000; // refresh 1 min early
+  return cachedToken;
+}
+
+async function buildHeaders(): Promise<HeadersInit> {
+  const token = await fetchOAuth2Token();
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
   }
   return {};
 }
@@ -79,15 +113,8 @@ function parseState(state: OpenSkyState): RawFlightPosition | null {
 
 export class OpenSkyCollector implements OpenSkyCollectorPort {
   async collectFlights(): Promise<CollectionResult<RawFlightPosition[]>> {
-    let response = await fetch(OPENSKY_API_URL, {
-      headers: buildHeaders(),
-    });
-
-    // If auth fails, retry without credentials
-    if (response.status === 401 || response.status === 403) {
-      console.warn(`[OpenSky] Auth failed (${response.status}). Retrying without credentials.`);
-      response = await fetch(OPENSKY_API_URL);
-    }
+    const headers = await buildHeaders();
+    const response = await fetch(OPENSKY_API_URL, { headers });
 
     if (response.status === 429) {
       console.warn("[OpenSky] Rate limited (429). Returning empty result.");
