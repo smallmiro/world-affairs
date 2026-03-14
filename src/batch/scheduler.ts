@@ -21,7 +21,8 @@ import { AviationStackCollector } from "../adapters/collectors/aviationstack-col
 import { GdeltAirportEventCollector } from "../adapters/collectors/airport-event-collector";
 import { AisStreamCollector } from "../adapters/collectors/ais-collector";
 import { processVesselMessage } from "../usecases/process-vessel";
-import { collectDxbFlightStatus } from "../adapters/collectors/dxb-flight-collector";
+// Skyscanner scraping disabled — bot detection blocks Playwright
+// DXB flight status now served via OpenSky flights API (/api/airport/opensky-flights)
 import { publishToSSE } from "../infrastructure/publish-sse";
 import { NewsRepository } from "../adapters/repositories/news-repository";
 import { MarketRepository } from "../adapters/repositories/market-repository";
@@ -275,8 +276,9 @@ cron.schedule("0 6,18 * * *", runCollectAirportOps);
 // Airport: cleanup daily at 03:00
 cron.schedule("0 3 * * *", runAirportCleanup);
 
-// DXB Flight Status: scrape every 10 minutes
-cron.schedule("*/10 * * * *", runCollectDxbFlights);
+// DXB Flight Status: scraping disabled (Skyscanner/dubaiairports.ae bot detection)
+// Flight data now served directly via OpenSky flights API
+// cron.schedule("*/10 * * * *", runCollectDxbFlights);
 
 // Translation: run after each collection cycle (5 min offset to allow collection to finish)
 cron.schedule("5,20,35,50 * * * *", runTranslateNews);
@@ -299,9 +301,10 @@ cron.schedule("30 3 * * *", runGlobalCleanup);
 
 async function runCollectDxbFlights() {
   const label = "dxb:flights";
-  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  console.log(`[${new Date().toISOString()}] ${label}: starting (skyscanner)`);
   try {
-    const result = await collectDxbFlightStatus(prisma);
+    // Scraping disabled — bot detection on Skyscanner/dubaiairports.ae
+    const result = { departures: 0, arrivals: 0 };
     console.log(
       `[${new Date().toISOString()}] ${label}: departures=${result.departures} arrivals=${result.arrivals}`,
     );
@@ -381,5 +384,5 @@ runCollectAirportFlights();
 runCollectAirportOps();
 // runCollectAirportEvents(); — disabled, using dubaiairports.ae scraping instead
 startAisStream();
-runCollectDxbFlights();
+// runCollectDxbFlights(); — disabled, using OpenSky flights API directly
 runGenerateBriefing();
