@@ -145,14 +145,12 @@ export class AirportRepository implements AirportRepositoryPort {
   }
 
   async findLatestFlights(limit: number): Promise<FlightPosition[]> {
-    const latestCollectedAt = await this.prisma.flightPosition.findFirst({
-      orderBy: { collectedAt: "desc" },
-      select: { collectedAt: true },
-    });
-    if (!latestCollectedAt) return [];
-
+    // Get unique airborne flights from the last 30 minutes
+    const cutoff = new Date(Date.now() - 30 * 60 * 1000);
     const rows = await this.prisma.flightPosition.findMany({
-      where: { collectedAt: latestCollectedAt.collectedAt },
+      where: { collectedAt: { gt: cutoff }, onGround: false },
+      distinct: ["callsign"],
+      orderBy: { collectedAt: "desc" },
       take: limit,
     });
     return rows.map((r) => toFlightPosition(r as unknown as Record<string, unknown>));

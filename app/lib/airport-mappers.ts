@@ -101,7 +101,7 @@ export function toTimelineEvents(events: AirportEventResponse[], lang: string): 
       dotType,
       entries: evts.map((e) => ({
         tags: [{ type: e.eventType as TimelineEvent["dotType"], label: e.eventType.toUpperCase() }],
-        text: lang === "en" ? e.title.en : (e.title.ko || e.title.en),
+        text: lang === "en" ? e.title.en : lang === "ja" ? (e.title.ja || e.title.en) : (e.title.ko || e.title.en),
       })),
     };
   });
