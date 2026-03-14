@@ -1,11 +1,20 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useVessels } from "../../hooks/use-vessels";
 import SectionHeader from "../ui/SectionHeader";
 import type { VesselWithPosition } from "../../lib/types";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
+
+type VesselFilter = "all" | "tanker" | "lpg_lng";
+
+const FILTER_BUTTONS: { key: VesselFilter; label: string }[] = [
+  { key: "all", label: "전체" },
+  { key: "tanker", label: "유조선" },
+  { key: "lpg_lng", label: "LPG|LNG" },
+];
 
 const ZONE_LABELS: Record<string, { ko: string; en: string }> = {
   hormuz: { ko: "호르무즈 해협", en: "Strait of Hormuz" },
@@ -41,9 +50,21 @@ function getAnomalies(vessels: VesselWithPosition[]): VesselWithPosition[] {
 }
 
 export default function VesselTracking() {
+  const [activeFilter, setActiveFilter] = useState<VesselFilter>("all");
   const { data: vessels, isLoading } = useVessels();
 
-  const allVessels = vessels ?? [];
+  const filteredVessels = useMemo(() => {
+    const all = vessels ?? [];
+    if (activeFilter === "tanker") {
+      return all.filter((v) => v.type === "tanker_crude" || v.type === "tanker_product");
+    }
+    if (activeFilter === "lpg_lng") {
+      return all.filter((v) => v.type === "lpg" || v.type === "lng");
+    }
+    return all;
+  }, [vessels, activeFilter]);
+
+  const allVessels = filteredVessels;
   const zoneStats = countByZone(allVessels);
   const anomalies = getAnomalies(allVessels);
 
@@ -51,6 +72,24 @@ export default function VesselTracking() {
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
       <SectionHeader title="중동 해역 선박 추적" accentColor="var(--accent-cyan)" />
+
+      {/* Type filter */}
+      <div className="flex gap-1">
+        {FILTER_BUTTONS.map((btn) => (
+          <button
+            key={btn.key}
+            onClick={() => setActiveFilter(btn.key)}
+            className="font-mono text-[0.65rem] tracking-[1px] px-3 py-1 border cursor-pointer transition-all duration-200"
+            style={{
+              color: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--text-muted)",
+              borderColor: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--border)",
+              background: activeFilter === btn.key ? "rgba(0,255,255,0.05)" : "transparent",
+            }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
 
       {/* Map */}
       <div
