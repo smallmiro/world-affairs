@@ -10,11 +10,14 @@ import {
   getDirectionArrow,
 } from "../../lib/format-utils";
 import type { MarketSnapshot } from "../../lib/types";
+import IntraDayChart from "../ui/IntraDayChart";
 
 function TickerItem({ item }: { item: MarketSnapshot }) {
   const dir = getDirection(item.change);
   const color = getChangeColor(dir);
   const arrow = getDirectionArrow(dir);
+
+  const hasOhlc = item.open != null && item.high != null && item.low != null;
 
   return (
     <div
@@ -32,6 +35,26 @@ function TickerItem({ item }: { item: MarketSnapshot }) {
           {arrow} {formatChange(item.change)} ({formatChangePct(item.changePct)})
         </span>
       </div>
+      {hasOhlc && (
+        <div
+          className="ticker-chart-expand"
+          style={{
+            maxHeight: 0,
+            overflow: "hidden",
+            opacity: 0,
+            transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, margin-top 0.4s cubic-bezier(0.4,0,0.2,1)",
+            marginTop: 0,
+          }}
+        >
+          <IntraDayChart
+            open={item.open!}
+            high={item.high!}
+            low={item.low!}
+            price={item.price}
+            direction={dir}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -61,17 +84,26 @@ export default function MarketTickerBar() {
   }
 
   return (
-    <div
-      className="flex items-stretch overflow-x-auto overflow-y-hidden border-b relative z-50"
-      style={{
-        background: "var(--bg-secondary)",
-        borderColor: "var(--border)",
-        scrollbarWidth: "none",
-      }}
-    >
-      {allItems.map((item) => (
-        <TickerItem key={item.id ?? item.symbol} item={item} />
-      ))}
-    </div>
+    <>
+      <style>{`
+        .market-ticker-bar:hover .ticker-chart-expand {
+          max-height: 80px !important;
+          opacity: 1 !important;
+          margin-top: 6px !important;
+        }
+      `}</style>
+      <div
+        className="market-ticker-bar flex items-stretch overflow-x-auto overflow-y-hidden border-b relative z-50"
+        style={{
+          background: "var(--bg-secondary)",
+          borderColor: "var(--border)",
+          scrollbarWidth: "none",
+        }}
+      >
+        {allItems.map((item) => (
+          <TickerItem key={item.id ?? item.symbol} item={item} />
+        ))}
+      </div>
+    </>
   );
 }

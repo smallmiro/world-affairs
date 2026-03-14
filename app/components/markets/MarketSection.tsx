@@ -11,6 +11,7 @@ import {
   getDirectionArrow,
 } from "../../lib/format-utils";
 import type { MarketSnapshot } from "../../lib/types";
+import IntraDayChart from "../ui/IntraDayChart";
 
 function StockCard({ item }: { item: MarketSnapshot }) {
   const dir = getDirection(item.change);
@@ -39,6 +40,19 @@ function StockCard({ item }: { item: MarketSnapshot }) {
           {formatChangePct(item.changePct)}
         </span>
       </div>
+      {item.open != null && item.high != null && item.low != null && (
+        <div className="mt-2">
+          <IntraDayChart
+            open={item.open}
+            high={item.high}
+            low={item.low}
+            price={item.price}
+            direction={dir}
+            width={120}
+            height={36}
+          />
+        </div>
+      )}
     </div>
   );
 }
