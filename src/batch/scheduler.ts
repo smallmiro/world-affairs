@@ -373,13 +373,22 @@ console.log("  5,20,35,50 * * * *  Translate news (ko/ja)");
 console.log("  5,35 * * * *     Translate geo events (ko/ja)");
 console.log("  [persistent]     AIS vessel tracking (WebSocket)");
 
-// Run initial collection on startup
-runCollectNews();
-runCollectMarket();
-runCollectGeoEvents();
-runCollectAirportFlights();
-runCollectAirportOps();
-// runCollectAirportEvents(); — disabled, using dubaiairports.ae scraping instead
-startAisStream();
-runCollectDxbFlights();
-runGenerateBriefing();
+// Run initial collection on startup — staggered to prevent SQLite lock contention
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+(async () => {
+  runCollectNews();
+  await delay(3000);
+  runCollectMarket();
+  await delay(3000);
+  runCollectGeoEvents();
+  await delay(3000);
+  runCollectAirportFlights();
+  await delay(3000);
+  runCollectAirportOps();
+  await delay(3000);
+  runCollectDxbFlights();
+  await delay(5000);
+  startAisStream();
+  await delay(5000);
+  runGenerateBriefing();
+})();
