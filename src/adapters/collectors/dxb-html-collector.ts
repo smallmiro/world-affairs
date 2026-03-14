@@ -77,6 +77,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
 
   let depCount = 0;
   let arrCount = 0;
+  const batchTime = new Date(); // Same timestamp for entire batch
 
   try {
     // Fetch departures
@@ -99,6 +100,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
                 gate: f.gate,
                 status: f.status,
                 direction: "departure",
+                collectedAt: batchTime,
               },
             }),
           ),
@@ -127,6 +129,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
                 gate: f.gate,
                 status: f.status,
                 direction: "arrival",
+                collectedAt: batchTime,
               },
             }),
           ),
