@@ -50,7 +50,8 @@ export async function GET() {
       if (!routeMap.has(dest)) {
         let routeStatus = "open";
         if (f.status === "Cancelled") routeStatus = "suspended";
-        else if (f.status === "Delayed" || f.status === "New Time") routeStatus = "diverted";
+        else if (f.status === "Delayed") routeStatus = "diverted";
+        // "New Time", "Scheduled", "Gate Closed", "Boarding", "Departed" → open
         routeMap.set(dest, { dest, flightCode: f.flightCode, status: routeStatus });
       }
     }
