@@ -8,6 +8,9 @@ import { collectAirportFlights, collectAirportOps, collectAirportEvents } from "
 import { translateUntranslatedArticles } from "../usecases/translate-articles";
 import { translateUntranslatedGeoEvents } from "../usecases/translate-geo-events";
 import { translateUntranslatedAirportEvents } from "../usecases/translate-airport-events";
+import { analyzeRecentNews, generateDailyBriefing } from "../usecases/analyze-news";
+import { GeminiAnalyzer } from "../adapters/ai/gemini-analyzer";
+import { AnalysisRepository } from "../adapters/repositories/analysis-repository";
 import { GeminiTranslator } from "../adapters/ai/gemini-translator";
 import { GdeltCollector } from "../adapters/collectors/gdelt-collector";
 import { RssCollector } from "../adapters/collectors/rss-collector";
@@ -31,6 +34,9 @@ const marketRepo = new MarketRepository(prisma);
 const geoRepo = new GeoRepository(prisma);
 const airportRepo = new AirportRepository(prisma);
 const vesselRepo = new VesselRepository(prisma);
+const analysisRepo = new AnalysisRepository(prisma);
+let analyzer: GeminiAnalyzer | null = null;
+try { analyzer = new GeminiAnalyzer(); } catch { console.warn("[analyze] GEMINI_API_KEY not set."); }
 
 async function runCollectNews() {
   const label = "collect-news";
@@ -185,6 +191,59 @@ async function runAirportCleanup() {
   }
 }
 
+// ─── AI Analysis Jobs ────────────────────────────────────────
+
+async function runAnalyzeNews() {
+  const label = "analyze:news";
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  try {
+    if (!analyzer) return;
+    const result = await analyzeRecentNews(newsRepo, analyzer, analysisRepo);
+    console.log(`[${new Date().toISOString()}] ${label}: summarized=${result.summarized} sentiment=${result.sentimentAnalyzed}`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error);
+  }
+}
+
+async function runGenerateBriefing() {
+  const label = "analyze:briefing";
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  try {
+    if (!analyzer) return;
+    const briefing = await generateDailyBriefing(newsRepo, analyzer, analysisRepo);
+    console.log(`[${new Date().toISOString()}] ${label}: generated (model=${briefing.model})`);
+    // Translate briefing
+    if (translator) {
+      const translated = await translator.translate(briefing.result.en, "en", ["en", "ko", "ja"]);
+      await prisma.aiAnalysis.update({ where: { id: briefing.id }, data: { resultKo: translated.ko, resultJa: translated.ja } });
+    }
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error);
+  }
+}
+
+// ─── Global Cleanup ─────────────────────────────────────────
+
+async function runGlobalCleanup() {
+  const label = "cleanup:global";
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  try {
+    const cutoff30d = new Date();
+    cutoff30d.setDate(cutoff30d.getDate() - 30);
+    const results = await prisma.$transaction([
+      prisma.article.deleteMany({ where: { collectedAt: { lt: cutoff30d } } }),
+      prisma.marketSnapshot.deleteMany({ where: { timestamp: { lt: cutoff30d } } }),
+      prisma.geoEvent.deleteMany({ where: { collectedAt: { lt: cutoff30d } } }),
+      prisma.vesselPosition.deleteMany({ where: { timestamp: { lt: cutoff30d } } }),
+      prisma.aiAnalysis.deleteMany({ where: { createdAt: { lt: cutoff30d } } }),
+    ]);
+    const total = results.reduce((sum, r) => sum + r.count, 0);
+    console.log(`[${new Date().toISOString()}] ${label}: deleted=${total} (30-day retention)`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error);
+  }
+}
+
 // ─── Schedule ──────────────────────────────────────────────────
 
 // News: GDELT + RSS every 15 minutes
@@ -222,7 +281,17 @@ cron.schedule("*/10 * * * *", runCollectDxbFlights);
 // Translation: run after each collection cycle (5 min offset to allow collection to finish)
 cron.schedule("5,20,35,50 * * * *", runTranslateNews);
 cron.schedule("5,35 * * * *", runTranslateGeoEvents);
-cron.schedule("5 */4 * * *", runTranslateAirportEvents);
+// Airport event translation disabled — GDELT airport events collection is disabled
+// cron.schedule("5 */4 * * *", runTranslateAirportEvents);
+
+// AI analysis: every 4 hours at :10
+cron.schedule("10 */4 * * *", runAnalyzeNews);
+
+// AI briefing: daily at 06:00
+cron.schedule("0 6 * * *", runGenerateBriefing);
+
+// Global cleanup: daily at 03:30 (after airport cleanup at 03:00)
+cron.schedule("30 3 * * *", runGlobalCleanup);
 
 // ─── Startup ───────────────────────────────────────────────────
 
@@ -295,11 +364,13 @@ console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
 console.log("  */2min 07-23h    Airport flights (OpenSky, 2min peak / 1h off-peak)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
-console.log("  0 */4 * * *      Airport events (GDELT)");
+console.log("  */10 * * * *     DXB flight status (scraping)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
+console.log("  10 */4 * * *     AI news analysis (summarize + sentiment)");
+console.log("  0 6 * * *        AI daily briefing (generate + translate)");
+console.log("  30 3 * * *       Global cleanup (30-day retention)");
 console.log("  5,20,35,50 * * * *  Translate news (ko/ja)");
 console.log("  5,35 * * * *     Translate geo events (ko/ja)");
-console.log("  5 */4 * * *      Translate airport events (ko/ja)");
 console.log("  [persistent]     AIS vessel tracking (WebSocket)");
 
 // Run initial collection on startup
@@ -311,3 +382,4 @@ runCollectAirportOps();
 // runCollectAirportEvents(); — disabled, using dubaiairports.ae scraping instead
 startAisStream();
 runCollectDxbFlights();
+runGenerateBriefing();

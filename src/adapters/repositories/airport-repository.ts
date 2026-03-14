@@ -295,6 +295,7 @@ export class AirportRepository implements AirportRepositoryPort {
       this.prisma.airportEvent.deleteMany({ where: { collectedAt: { lt: cutoff } } }),
       this.prisma.airlineOps.deleteMany({ where: { collectedAt: { lt: cutoff } } }),
       this.prisma.emiratesRoute.deleteMany({ where: { collectedAt: { lt: cutoff } } }),
+      this.prisma.dxbFlightStatus.deleteMany({ where: { collectedAt: { lt: cutoff } } }),
     ]);
 
     return results.reduce((sum, r) => sum + r.count, 0);
