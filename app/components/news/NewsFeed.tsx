@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useNews } from "../../hooks/use-news";
 import { useLanguage } from "../../lib/language-context";
+import SectionHeader from "../ui/SectionHeader";
 import {
   mapSeverity,
   getCategoryLabel,
@@ -34,16 +35,8 @@ export default function NewsFeed() {
       className="p-5 flex flex-col max-h-[700px]"
       style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2 h-2"
-            style={{ background: "var(--accent-cyan)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
-          />
-          <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-            실시간 뉴스
-          </h2>
-        </div>
+      <div className="mb-4">
+        <SectionHeader title="SIGINT FEED — 국제 정세" accentColor="var(--accent-cyan)" />
       </div>
 
       <div className="flex gap-1 flex-wrap mb-3">

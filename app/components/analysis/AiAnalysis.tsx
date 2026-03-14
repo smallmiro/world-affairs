@@ -2,6 +2,7 @@
 
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useBriefing } from "../../hooks/use-briefing";
+import SectionHeader from "../ui/SectionHeader";
 import { useLanguage } from "../../lib/language-context";
 import { goldsteinToSentiment, inferRegion, REGION_LABELS } from "../../lib/geo-aggregation";
 import { getTranslatedText } from "../../lib/display-mappers";
@@ -49,16 +50,9 @@ export default function AiAnalysis() {
     >
       {/* Sentiment */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
-          <span
-            className="w-1.5 h-1.5"
-            style={{
-              background: "var(--accent-purple)",
-              clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
-            }}
-          />
-          감성 분석
-        </h3>
+        <div className="mb-3.5">
+          <SectionHeader title="지역 감성 분석" accentColor="var(--accent-purple)" />
+        </div>
         {sentimentRows.length === 0 ? (
           <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>NO DATA</div>
         ) : (
@@ -90,16 +84,9 @@ export default function AiAnalysis() {
 
       {/* Trend chart - SVG placeholder (M3) */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
-          <span
-            className="w-1.5 h-1.5"
-            style={{
-              background: "var(--accent-purple)",
-              clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
-            }}
-          />
-          이슈 트렌드 (7일)
-        </h3>
+        <div className="mb-3.5">
+          <SectionHeader title="이슈 트렌드 (7일)" accentColor="var(--accent-purple)" />
+        </div>
         <div className="w-full h-[120px] flex items-center justify-center">
           <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
             TREND CHART — M3
@@ -109,16 +96,9 @@ export default function AiAnalysis() {
 
       {/* AI Briefing */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
-          <span
-            className="w-1.5 h-1.5"
-            style={{
-              background: "var(--accent-purple)",
-              clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
-            }}
-          />
-          AI 브리핑
-        </h3>
+        <div className="mb-3.5">
+          <SectionHeader title="AI DAILY BRIEFING" accentColor="var(--accent-purple)" />
+        </div>
         {briefingText ? (
           <div
             className="px-3 py-2.5 border-l-2"

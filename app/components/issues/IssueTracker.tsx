@@ -2,6 +2,7 @@
 
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useLanguage } from "../../lib/language-context";
+import SectionHeader from "../ui/SectionHeader";
 import { aggregateByRegion, type RegionIssue } from "../../lib/geo-aggregation";
 import type { Severity } from "../../lib/types";
 
@@ -29,31 +30,28 @@ export default function IssueTracker() {
       className="p-5"
       style={{ animation: "fade-in-up 0.4s ease-out 0.15s both" }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2 h-2"
-            style={{ background: "var(--accent-cyan)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
-          />
-          <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-            이슈 트래커
-          </h2>
-        </div>
-        <div className="flex gap-1">
-          {["심각도순", "최신순"].map((label, i) => (
-            <button
-              key={label}
-              className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
-              style={{
-                color: i === 0 ? "var(--accent-cyan)" : "var(--text-muted)",
-                borderColor: i === 0 ? "var(--accent-cyan)" : "var(--border)",
-                background: i === 0 ? "var(--accent-cyan-dim)" : "transparent",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="mb-4">
+        <SectionHeader
+          title="ISSUE TRACKER — 주요 이슈"
+          accentColor="var(--accent-cyan)"
+          controls={
+            <div className="flex gap-1">
+              {["심각도순", "최신순"].map((label, i) => (
+                <button
+                  key={label}
+                  className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+                  style={{
+                    color: i === 0 ? "var(--accent-cyan)" : "var(--text-muted)",
+                    borderColor: i === 0 ? "var(--accent-cyan)" : "var(--border)",
+                    background: i === 0 ? "var(--accent-cyan-dim)" : "transparent",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          }
+        />
       </div>
 
       {isLoading ? (
