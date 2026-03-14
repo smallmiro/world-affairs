@@ -10,7 +10,10 @@ import {
   AIRPORT_MAP_DATA,
 } from "../../lib/airport-data";
 import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes } from "../../hooks/use-airport";
+import { useSSEPositions } from "../../hooks/use-sse-positions";
+import type { SSEFlightPosition } from "../../hooks/use-sse-positions";
 import { toStaticStatus, toMapData, toTimelineEvents, toAirlines, toRoutes } from "../../lib/airport-mappers";
+import type { FlightPositionResponse } from "../../lib/api-client";
 import { useLanguage } from "../../lib/language-context";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
@@ -26,21 +29,44 @@ const STATUS_LIGHT_COLORS: Record<string, string> = {
   red: "var(--accent-red)",
 };
 
+function sseToFlightPositions(sseFlights: SSEFlightPosition[]): FlightPositionResponse[] {
+  return sseFlights.map((f) => ({
+    id: f.icao24,
+    icao24: f.icao24,
+    callsign: f.callsign,
+    lat: f.lat,
+    lon: f.lon,
+    altitude: f.altitude,
+    speed: f.speed,
+    heading: f.heading,
+    onGround: f.onGround,
+    airlineIata: null,
+    aircraftClass: f.aircraftClass as "ek" | "other",
+    collectedAt: new Date().toISOString(),
+  }));
+}
+
 export default function AirportMonitor() {
   const { data: statusData } = useAirportStatus();
   const { data: flightsData } = useFlightPositions();
   const { data: eventsData } = useAirportEvents();
   const { data: airlinesData } = useAirlineOps();
   const { data: routesData } = useEmiratesRoutes();
+  const { flights: sseFlights, connected: sseConnected } = useSSEPositions();
   const { lang } = useLanguage();
+
+  const effectiveFlights = useMemo(() => {
+    if (sseFlights.length > 0) return sseToFlightPositions(sseFlights);
+    return flightsData ?? [];
+  }, [sseFlights, flightsData]);
 
   const status = useMemo(
     () => (statusData ? toStaticStatus(statusData) : AIRPORT_STATUS),
     [statusData],
   );
   const mapData = useMemo(
-    () => (flightsData && flightsData.length > 0 ? toMapData(flightsData) : AIRPORT_MAP_DATA),
-    [flightsData],
+    () => (effectiveFlights.length > 0 ? toMapData(effectiveFlights) : AIRPORT_MAP_DATA),
+    [effectiveFlights],
   );
   const timelineEvents = useMemo(
     () => (eventsData && eventsData.length > 0 ? toTimelineEvents(eventsData, lang) : TIMELINE_EVENTS),
@@ -62,8 +88,18 @@ export default function AirportMonitor() {
         title="DUBAI INTL (DXB) — 항공 모니터"
         accentColor="var(--accent-amber)"
         controls={
-          <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-            1H CYCLE · LAST 7D
+          <span className="flex items-center gap-2">
+            {sseConnected && (
+              <span
+                className="font-mono text-[0.5rem] tracking-[1.5px] px-1.5 py-0.5 border"
+                style={{ color: "var(--accent-green)", borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)" }}
+              >
+                LIVE
+              </span>
+            )}
+            <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+              1H CYCLE · LAST 7D
+            </span>
           </span>
         }
       />

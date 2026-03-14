@@ -22,8 +22,8 @@ export function useFlightPositions(limit?: number) {
   return useQuery({
     queryKey: ["airport", "flights", limit],
     queryFn: () => fetchFlightPositions(limit),
-    refetchInterval: 60 * 1000,
-    staleTime: 15 * 1000,
+    refetchInterval: 300 * 1000,
+    staleTime: 120 * 1000,
   });
 }
 
