@@ -105,14 +105,9 @@ export default function WorldMap() {
           style={{ background: "rgba(26,27,38,0.9)", borderColor: "var(--border)" }}
         >
           <div className="flex gap-2">
-            <span style={{ color: "#ef4444" }}>◉ {t("map.conflictZone")}</span>
-            <span style={{ color: "#f59e0b" }}>◉ {t("map.cautionZone")}</span>
-            <span style={{ color: "#22c55e" }}>◉ {t("map.safeZone")}</span>
-          </div>
-          <div className="flex gap-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 3 }}>
-            <span style={{ color: "#ef4444" }}>✈ Emirates</span>
-            <span style={{ color: "#f59e0b" }}>✈ Etihad</span>
-            <span style={{ color: "#64748b" }}>✈ Other</span>
+            <span style={{ color: "#f7768e" }}>◉ {t("map.conflictZone")}</span>
+            <span style={{ color: "#ff9e64" }}>◉ {t("map.cautionZone")}</span>
+            <span style={{ color: "#9ece6a" }}>◉ {t("map.safeZone")}</span>
           </div>
         </div>
       </div>
