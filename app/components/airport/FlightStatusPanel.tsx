@@ -3,37 +3,48 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-interface OpenSkyFlight {
+interface DxbFlight {
+  id: string;
   flightCode: string;
-  origin: string;
-  originName: string;
-  depAirport: string | null;
-  arrAirport: string | null;
-  depTime: string;
-  arrTime: string;
+  airline: string;
+  destination: string;
+  scheduled: string;
+  actual: string;
+  terminal: string;
+  gate: string;
   status: string;
+  direction: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "In Flight": "var(--accent-cyan)",
-  "Landed": "var(--accent-green)",
+  "On Time": "var(--accent-green)",
+  "Scheduled": "var(--accent-cyan)",
+  "Gate Closed": "var(--accent-cyan)",
+  "Final Call": "var(--accent-amber)",
+  "Boarding": "var(--accent-green)",
+  "Departed": "var(--text-muted)",
+  "Landed": "var(--text-muted)",
+  "Delayed": "var(--accent-red)",
+  "New Time": "var(--accent-amber)",
+  "Cancelled": "var(--accent-red)",
 };
 
 type Tab = "arrivals" | "departures";
 
-async function fetchOpenSkyFlights(direction: string): Promise<OpenSkyFlight[]> {
-  const res = await fetch(`/api/airport/opensky-flights?direction=${direction}`);
+async function fetchDxbFlights(direction: string): Promise<DxbFlight[]> {
+  const res = await fetch(`/api/airport/flights?direction=${direction}&limit=100`);
   if (!res.ok) return [];
   const data = await res.json();
   return data.data;
 }
 
 export default function FlightStatusPanel() {
-  const [activeTab, setActiveTab] = useState<Tab>("arrivals");
+  const [activeTab, setActiveTab] = useState<Tab>("departures");
+  const direction = activeTab === "departures" ? "departure" : "arrival";
 
   const { data: flights } = useQuery({
-    queryKey: ["opensky-flights", activeTab],
-    queryFn: () => fetchOpenSkyFlights(activeTab === "arrivals" ? "arrival" : "departure"),
+    queryKey: ["dxb-flight-status", direction],
+    queryFn: () => fetchDxbFlights(direction),
     refetchInterval: 120_000,
   });
 
@@ -50,13 +61,13 @@ export default function FlightStatusPanel() {
           </span>
         </div>
         <span className="font-mono text-[0.46rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-          OpenSky · 12H
+          dubaiairports.ae · 10min
         </span>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-2">
-        {(["arrivals", "departures"] as Tab[]).map((tab) => (
+        {(["departures", "arrivals"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -67,50 +78,49 @@ export default function FlightStatusPanel() {
               background: activeTab === tab ? "var(--accent-amber-dim)" : "transparent",
             }}
           >
-            {tab === "arrivals" ? "도착 ARRIVALS" : "출발 DEPARTURES"} ({activeTab === tab ? list.length : "..."})
+            {tab === "departures" ? "출발 DEPARTURES" : "도착 ARRIVALS"} ({activeTab === tab ? list.length : "..."})
           </button>
         ))}
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto" style={{ maxHeight: 240, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+      <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
         <table className="w-full border-collapse font-mono text-[0.58rem]">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>
               <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>편명</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{activeTab === "arrivals" ? "출발지" : "목적지"}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>출발</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>도착</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>항공사</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{activeTab === "departures" ? "목적지" : "출발지"}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>예정</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>실제</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>터미널</th>
               <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>상태</th>
             </tr>
           </thead>
           <tbody>
             {list.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-4" style={{ color: "var(--text-muted)" }}>
-                  데이터 로딩 중...
-                </td>
-              </tr>
+              <tr><td colSpan={7} className="text-center py-4" style={{ color: "var(--text-muted)" }}>데이터 로딩 중...</td></tr>
             )}
             {list.map((f, i) => {
-              const isEK = f.flightCode.startsWith("UAE") || f.flightCode.startsWith("EK");
+              const isEK = f.flightCode.startsWith("EK ");
+              const isFZ = f.flightCode.startsWith("FZ ");
               const statusColor = STATUS_COLORS[f.status] ?? "var(--text-muted)";
+              const isDelayed = f.status === "Delayed" || f.status === "Cancelled";
               return (
                 <tr
-                  key={f.flightCode + i}
+                  key={f.id ?? f.flightCode + i}
                   style={{ borderBottom: "1px solid var(--border)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td className="py-1 px-2 font-semibold" style={{ color: isEK ? "var(--accent-amber)" : "var(--text-primary)" }}>
+                  <td className="py-1 px-2 font-semibold" style={{ color: isEK ? "var(--accent-amber)" : isFZ ? "var(--accent-cyan)" : "var(--text-primary)" }}>
                     {f.flightCode}
                   </td>
-                  <td className="py-1 px-2" style={{ color: "var(--text-secondary)" }}>
-                    <span style={{ color: "var(--text-primary)" }}>{f.origin}</span>
-                    <span className="ml-1" style={{ color: "var(--text-muted)", fontSize: "0.48rem" }}>{f.originName}</span>
-                  </td>
-                  <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.depTime}</td>
-                  <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.arrTime}</td>
+                  <td className="py-1 px-2" style={{ color: "var(--text-muted)", fontSize: "0.5rem" }}>{f.airline}</td>
+                  <td className="py-1 px-2" style={{ color: "var(--text-secondary)" }}>{f.destination}</td>
+                  <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.scheduled}</td>
+                  <td className="py-1 px-2" style={{ color: isDelayed ? "var(--accent-red)" : "var(--text-muted)" }}>{f.actual}</td>
+                  <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.terminal}</td>
                   <td className="py-1 px-2">
                     <span className="font-mono text-[0.46rem] font-bold tracking-[0.5px] px-1 py-px" style={{ color: statusColor, background: `${statusColor}15` }}>
                       {f.status}
