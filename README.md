@@ -84,7 +84,7 @@ pm2 startup         # 시스템 부팅 시 자동 시작 등록
 | `collect-news` | `*/15 * * * *` | 15분마다 | GDELT + RSS | O |
 | `collect-market` | `*/15 * * * *` | 15분마다 | Yahoo Finance | O |
 | `collect-geo` | `*/30 * * * *` | 30분마다 | GDELT Events | O |
-| `airport:flights` | `0 * * * *` | 매시 정각 | OpenSky | O |
+| `airport:flights` | `setInterval 2min` | 07-23시 2분, 그 외 1시간 | OpenSky | O |
 | `airport:ops` | `0 6,18 * * *` | 하루 2회 (06:00, 18:00) | AviationStack | X (Free tier 절약) |
 | `airport:events` | `0 */4 * * *` | 4시간마다 | GDELT Airport | O |
 | `airport:cleanup` | `0 3 * * *` | 매일 03:00 | - (7일 보존) | X |

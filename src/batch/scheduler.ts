@@ -182,8 +182,16 @@ cron.schedule("*/15 * * * *", runCollectMarket);
 // Geopolitics: GDELT events every 30 minutes
 cron.schedule("*/30 * * * *", runCollectGeoEvents);
 
-// Airport: flights every hour
-cron.schedule("0 * * * *", runCollectAirportFlights);
+// Airport: flights — 07:00~23:00 every 2 min, otherwise every hour
+const FLIGHT_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+setInterval(() => {
+  const hour = new Date().getHours();
+  if (hour >= 7 && hour < 23) {
+    runCollectAirportFlights();
+  }
+}, FLIGHT_INTERVAL_MS);
+// Off-peak: every hour (runs at :00, skipped during 07-22 by the function itself is not needed — cron handles off-peak)
+cron.schedule("0 0,1,2,3,4,5,6,23 * * *", runCollectAirportFlights);
 
 // Airport: ops twice daily (06:00, 18:00)
 cron.schedule("0 6,18 * * *", runCollectAirportOps);
@@ -206,7 +214,7 @@ console.log("Schedules:");
 console.log("  */15 * * * *     News collection (GDELT + RSS)");
 console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
-console.log("  0 * * * *        Airport flights (OpenSky)");
+console.log("  */2min 07-23h     Airport flights (OpenSky, 2min peak / 1h off-peak)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
 console.log("  0 */4 * * *      Airport events (GDELT)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
