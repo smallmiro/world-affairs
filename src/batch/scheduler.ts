@@ -18,6 +18,7 @@ import { AviationStackCollector } from "../adapters/collectors/aviationstack-col
 import { GdeltAirportEventCollector } from "../adapters/collectors/airport-event-collector";
 import { AisStreamCollector } from "../adapters/collectors/ais-collector";
 import { processVesselMessage } from "../usecases/process-vessel";
+import { collectDxbFlightStatus } from "../adapters/collectors/dxb-flight-collector";
 import { publishToSSE } from "../infrastructure/publish-sse";
 import { NewsRepository } from "../adapters/repositories/news-repository";
 import { MarketRepository } from "../adapters/repositories/market-repository";
@@ -215,12 +216,30 @@ cron.schedule("0 */4 * * *", runCollectAirportEvents);
 // Airport: cleanup daily at 03:00
 cron.schedule("0 3 * * *", runAirportCleanup);
 
+// DXB Flight Status: scrape every 30 minutes
+cron.schedule("*/30 * * * *", runCollectDxbFlights);
+
 // Translation: run after each collection cycle (5 min offset to allow collection to finish)
 cron.schedule("5,20,35,50 * * * *", runTranslateNews);
 cron.schedule("5,35 * * * *", runTranslateGeoEvents);
 cron.schedule("5 */4 * * *", runTranslateAirportEvents);
 
 // ─── Startup ───────────────────────────────────────────────────
+
+// ─── DXB Flight Status Scraping ───────────────────────────────
+
+async function runCollectDxbFlights() {
+  const label = "dxb:flights";
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  try {
+    const result = await collectDxbFlightStatus(prisma);
+    console.log(
+      `[${new Date().toISOString()}] ${label}: departures=${result.departures} arrivals=${result.arrivals}`,
+    );
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error instanceof Error ? error.message : error);
+  }
+}
 
 // ─── AIS Vessel Tracking (persistent WebSocket) ──────────────
 
@@ -291,3 +310,4 @@ runCollectAirportFlights();
 runCollectAirportOps();
 runCollectAirportEvents();
 startAisStream();
+runCollectDxbFlights();

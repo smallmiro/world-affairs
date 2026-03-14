@@ -182,6 +182,23 @@ model EmiratesRoute {
   @@index([destination, collectedAt])
 }
 
+model DxbFlightStatus {
+  id          String   @id @default(uuid())
+  flightCode  String
+  airline     String
+  destination String
+  scheduled   String
+  actual      String
+  terminal    String
+  gate        String
+  status      String
+  direction   String   // "departure" | "arrival"
+  collectedAt DateTime @default(now())
+
+  @@index([direction, collectedAt])
+  @@index([flightCode, collectedAt])
+}
+
 // ─── Analysis Context ───────────────────────────────────────────
 
 model AiAnalysis {
