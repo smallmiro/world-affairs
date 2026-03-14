@@ -9,7 +9,9 @@ import { useLanguage } from "../../lib/language-context";
 import { useT } from "../../hooks/use-t";
 import { getTranslatedText, formatTime } from "../../lib/display-mappers";
 import SectionHeader from "../ui/SectionHeader";
+import MaritimeEventModal from "./MaritimeEventModal";
 import type { VesselWithPosition, GeoEvent } from "../../lib/types";
+import type { GeoEvent as DomainGeoEvent } from "../../../src/domain/geopolitics/entities";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
 
@@ -117,6 +119,7 @@ function mergeSSEPositions(
 
 export default function VesselTracking() {
   const [activeFilter, setActiveFilter] = useState<VesselFilter>("all");
+  const [selectedEvent, setSelectedEvent] = useState<GeoEvent | null>(null);
   const { data: vessels, isLoading } = useVessels({ refetchInterval: 300_000 });
   const { vessels: sseVessels, connected: sseConnected } = useSSEPositions();
   const { data: geoEvents } = useGeoEvents({ limit: 100 });
@@ -286,8 +289,9 @@ export default function VesselTracking() {
               return (
                 <div
                   key={event.id}
-                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
+                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem] cursor-pointer transition-colors duration-150 hover:border-[var(--accent-cyan)]"
                   style={{ background: "var(--bg-secondary)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
+                  onClick={() => setSelectedEvent(event)}
                 >
                   <span
                     className="font-mono text-[0.7rem] font-bold tracking-[0.5px] shrink-0 mt-0.5 px-1 py-px"
@@ -315,6 +319,13 @@ export default function VesselTracking() {
           </div>
         </div>
       </div>
+      {selectedEvent && (
+        <MaritimeEventModal
+          event={selectedEvent as unknown as DomainGeoEvent}
+          lang={lang}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   );
 }
