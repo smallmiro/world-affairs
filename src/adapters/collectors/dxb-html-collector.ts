@@ -15,11 +15,11 @@ interface ParsedFlight {
 function parseFlightsFromHtml(html: string): ParsedFlight[] {
   const flights: ParsedFlight[] = [];
 
-  // Match flight blocks — each flight is in a grid row with role="row"
-  const rowPattern = /role="row"[\s\S]*?(?=role="row"|$)/g;
-  const rows = html.match(rowPattern) || [];
+  // Split by role="row" to get individual flight blocks
+  const blocks = html.split('role="row"');
 
-  for (const row of rows) {
+  for (let i = 1; i < blocks.length; i++) {
+    const row = blocks[i];
     // Extract flight code: pattern like "EK 328" or "FZ 1449"
     const flightMatch = row.match(/([A-Z0-9]{2}\s\d{2,4})\s*<\/span>/);
     if (!flightMatch) continue;
