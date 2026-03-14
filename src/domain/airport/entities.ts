@@ -28,6 +28,11 @@ export interface RawFlightPosition {
   onGround: boolean;
   airlineIata: string | null;
   aircraftClass: AircraftClass;
+  depAirport: string | null;
+  arrAirport: string | null;
+  depTime: string | null;
+  arrTime: string | null;
+  flightStatus: string | null;
 }
 
 export interface RawAirportEvent {
@@ -78,6 +83,11 @@ export interface FlightPosition {
   onGround: boolean;
   airlineIata: string | null;
   aircraftClass: AircraftClass;
+  depAirport: string | null;
+  arrAirport: string | null;
+  depTime: string | null;
+  arrTime: string | null;
+  flightStatus: string | null;
   collectedAt: Date;
 }
 

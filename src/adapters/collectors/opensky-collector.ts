@@ -107,6 +107,11 @@ function parseState(state: OpenSkyState): RawFlightPosition | null {
     onGround: state[8] as boolean,
     airlineIata: resolveAirlineIata(callsign),
     aircraftClass: resolveAircraftClass(callsign),
+    depAirport: null,
+    arrAirport: null,
+    depTime: null,
+    arrTime: null,
+    flightStatus: null,
   };
 }
 

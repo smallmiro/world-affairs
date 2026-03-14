@@ -18,6 +18,7 @@ import { useLanguage } from "../../lib/language-context";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
 import EKRouteBadges from "./EKRouteBadges";
+import FlightStatusPanel from "./FlightStatusPanel";
 import SectionHeader from "../ui/SectionHeader";
 import StatusLight from "../ui/StatusLight";
 
@@ -42,6 +43,11 @@ function sseToFlightPositions(sseFlights: SSEFlightPosition[]): FlightPositionRe
     onGround: f.onGround,
     airlineIata: null,
     aircraftClass: f.aircraftClass as "ek" | "other",
+    depAirport: null,
+    arrAirport: null,
+    depTime: null,
+    arrTime: null,
+    flightStatus: null,
     collectedAt: new Date().toISOString(),
   }));
 }
@@ -171,6 +177,9 @@ export default function AirportMonitor() {
         <AirlineGrid airlines={airlines} />
         <EKRouteBadges routes={routes} />
       </div>
+
+      {/* Flight Status Table */}
+      <FlightStatusPanel />
     </div>
   );
 }

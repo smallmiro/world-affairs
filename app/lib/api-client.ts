@@ -129,6 +129,11 @@ export interface FlightPositionResponse {
   onGround: boolean;
   airlineIata: string | null;
   aircraftClass: "ek" | "other";
+  depAirport: string | null;
+  arrAirport: string | null;
+  depTime: string | null;
+  arrTime: string | null;
+  flightStatus: string | null;
   collectedAt: string;
 }
 

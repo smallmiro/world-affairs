@@ -136,8 +136,15 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
                   <div style={{ fontSize: "0.6rem", color: "#e2e8f0", marginBottom: 2 }}>
                     {airlineName}
                   </div>
+                  {(f.depAirport || f.arrAirport) && (
+                    <div style={{ fontSize: "0.6rem", color: "#06b6d4", marginBottom: 2 }}>
+                      {f.depAirport ?? "?"} → {f.arrAirport ?? "?"}
+                      {f.flightStatus && <span style={{ marginLeft: 4, color: f.flightStatus === "delayed" ? "#ef4444" : "#22c55e" }}>{f.flightStatus}</span>}
+                    </div>
+                  )}
                   <div style={{ fontSize: "0.55rem", color: "#94a3b8" }}>
                     FL{Math.round(f.altitude / 100)} · {Math.round(f.speed)}kt
+                    {f.depTime && <span> · DEP {f.depTime}</span>}
                   </div>
                 </div>
               </Popup>

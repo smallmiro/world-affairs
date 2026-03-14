@@ -82,7 +82,7 @@ async function runCollectAirportFlights() {
   console.log(`[${new Date().toISOString()}] ${label}: starting`);
   try {
     const collector = new OpenSkyCollector();
-    const result = await collectAirportFlights(collector, airportRepo);
+    const result = await collectAirportFlights(collector, airportRepo, prisma);
     console.log(
       `[${new Date().toISOString()}] ${label}: total=${result.total} saved=${result.saved}`,
     );

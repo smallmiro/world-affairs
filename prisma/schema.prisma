@@ -132,6 +132,11 @@ model FlightPosition {
   onGround      Boolean
   airlineIata   String?
   aircraftClass String
+  depAirport    String?  // departure airport IATA (e.g. "DXB")
+  arrAirport    String?  // arrival airport IATA (e.g. "LHR")
+  depTime       String?  // scheduled departure time
+  arrTime       String?  // scheduled arrival time
+  flightStatus  String?  // "on_time", "delayed", "cancelled", etc.
   collectedAt   DateTime @default(now())
 
   @@index([collectedAt])

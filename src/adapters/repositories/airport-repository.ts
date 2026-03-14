@@ -33,6 +33,11 @@ function toFlightPosition(row: Record<string, unknown>): FlightPosition {
     onGround: row.onGround as boolean,
     airlineIata: (row.airlineIata as string) ?? null,
     aircraftClass: row.aircraftClass as FlightPosition["aircraftClass"],
+    depAirport: (row.depAirport as string) ?? null,
+    arrAirport: (row.arrAirport as string) ?? null,
+    depTime: (row.depTime as string) ?? null,
+    arrTime: (row.arrTime as string) ?? null,
+    flightStatus: (row.flightStatus as string) ?? null,
     collectedAt: new Date(row.collectedAt as string | Date),
   };
 }
@@ -128,6 +133,11 @@ export class AirportRepository implements AirportRepositoryPort {
             onGround: f.onGround,
             airlineIata: f.airlineIata,
             aircraftClass: f.aircraftClass,
+            depAirport: f.depAirport,
+            arrAirport: f.arrAirport,
+            depTime: f.depTime,
+            arrTime: f.arrTime,
+            flightStatus: f.flightStatus,
           },
         }),
       ),
