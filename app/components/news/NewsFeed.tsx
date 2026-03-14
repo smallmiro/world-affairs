@@ -50,7 +50,7 @@ export default function NewsFeed() {
 
   return (
     <section
-      className="p-4 flex flex-col flex-1 min-h-0 max-h-[700px] overflow-hidden"
+      className="p-4 flex flex-col"
       style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}
     >
       <div className="mb-4">
@@ -91,7 +91,7 @@ export default function NewsFeed() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col gap-0.5">
+      <div className="overflow-y-auto flex flex-col gap-0.5 max-h-[500px]" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <span className="font-mono text-[0.72rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
