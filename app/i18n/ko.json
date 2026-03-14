@@ -1,49 +1,133 @@
 {
-  "nav": { "overview": "개요", "map": "지도", "vessels": "선박", "markets": "시장", "analysis": "분석", "briefing": "브리핑" },
-  "common": { "loading": "로딩 중...", "noData": "데이터 없음", "all": "전체", "live": "LIVE", "loadingMap": "지도 로딩 중..." },
-  "topbar": { "subtitle": "국제 정세 모니터링 시스템" },
-  "alert": { "urgent": "긴급", "breaking": "속보", "caution": "주의", "noAlert": "현재 긴급 알림이 없습니다" },
+  "nav": {
+    "overview": "개요",
+    "map": "지도",
+    "vessels": "선박",
+    "markets": "시장",
+    "analysis": "분석",
+    "briefing": "브리핑"
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "noData": "데이터 없음",
+    "all": "전체",
+    "live": "LIVE",
+    "loadingMap": "지도 로딩 중..."
+  },
+  "topbar": {
+    "subtitle": "국제 정세 모니터링 시스템"
+  },
+  "alert": {
+    "urgent": "긴급",
+    "breaking": "속보",
+    "caution": "주의",
+    "noAlert": "현재 긴급 알림이 없습니다"
+  },
   "news": {
     "title": "실시간 뉴스",
-    "diplomacy": "외교", "military": "군사", "economy": "경제", "environment": "환경", "human_rights": "인권",
-    "eastAsia": "동아시아", "middleEast": "중동", "europe": "유럽", "northAmerica": "북미",
-    "summary": "요약", "multilingual": "다국어", "viewOriginal": "원문 보기 →",
+    "diplomacy": "외교",
+    "military": "군사",
+    "economy": "경제",
+    "environment": "환경",
+    "human_rights": "인권",
+    "eastAsia": "동아시아",
+    "middleEast": "중동",
+    "europe": "유럽",
+    "northAmerica": "북미",
+    "summary": "요약",
+    "multilingual": "다국어",
+    "viewOriginal": "원문 보기 →",
     "loadError": "데이터를 불러올 수 없습니다"
   },
   "map": {
     "title": "Global Tension Map",
-    "tension": "긴장도", "alliance": "동맹", "trade": "무역", "conflict": "분쟁",
-    "conflictZone": "분쟁구역", "cautionZone": "경계구역", "safeZone": "안전"
+    "tension": "긴장도",
+    "alliance": "동맹",
+    "trade": "무역",
+    "conflict": "분쟁",
+    "conflictZone": "분쟁구역",
+    "cautionZone": "경계구역",
+    "safeZone": "안전"
   },
-  "issues": { "title": "이슈 트래커", "bySeverity": "심각도순", "byLatest": "최신순" },
+  "issues": {
+    "title": "이슈 트래커",
+    "bySeverity": "심각도순",
+    "byLatest": "최신순"
+  },
   "vessels": {
     "title": "중동 해역 선박 추적",
-    "tanker": "유조선", "lpgLng": "LPG|LNG", "cargo": "화물선", "passenger": "여객선",
-    "passageStats": "해협별 통과 현황 (24H)", "ships": "척",
-    "maritimeAlerts": "해상 상황 알림", "noAnomalies": "이상 감지 없음",
-    "hormuz": "호르무즈 해협", "babElMandeb": "바브엘만데브", "suez": "수에즈 운하",
-    "persianGulf": "페르시아만", "redSea": "홍해", "gulfOfAden": "아덴만"
+    "tanker": "유조선",
+    "lpgLng": "LPG|LNG",
+    "cargo": "화물선",
+    "passenger": "여객선",
+    "passageStats": "해협별 통과 현황 (24H)",
+    "ships": "척",
+    "maritimeAlerts": "해상 상황 알림",
+    "noAnomalies": "이상 감지 없음",
+    "hormuz": "호르무즈 해협",
+    "babElMandeb": "바브엘만데브",
+    "suez": "수에즈 운하",
+    "persianGulf": "페르시아만",
+    "redSea": "홍해",
+    "gulfOfAden": "아덴만"
   },
   "airport": {
-    "title": "DUBAI INTL (DXB) — 항공 모니터", "cycle": "1H CYCLE · LAST 7D",
+    "title": "DUBAI INTL (DXB) — 항공 모니터",
+    "cycle": "1H CYCLE · LAST 7D",
     "timeline": "7일 타임라인",
-    "airlines": "주요 항공사 (24H)", "flights": "편",
+    "airlines": "주요 항공사 (24H)",
+    "flights": "편",
     "ekRoutes": "EK 노선 현황",
-    "flightStatus": "DXB FLIGHT STATUS", "departures": "출발 DEPARTURES", "arrivals": "도착 ARRIVALS",
-    "flightCode": "편명", "airline": "항공사", "destination": "목적지", "origin": "출발지",
-    "scheduled": "예정", "actual": "실제", "terminal": "터미널", "status": "상태",
+    "flightStatus": "DXB FLIGHT STATUS",
+    "departures": "출발 DEPARTURES",
+    "arrivals": "도착 ARRIVALS",
+    "flightCode": "편명",
+    "airline": "항공사",
+    "destination": "목적지",
+    "origin": "출발지",
+    "scheduled": "예정",
+    "actual": "실제",
+    "terminal": "터미널",
+    "status": "상태",
     "dataLoading": "데이터 로딩 중..."
   },
   "markets": {
-    "stocks": "주식 시장", "commodities": "원자재 · 현물 · 환율",
-    "symbol": "종목", "price": "가격", "change": "변동", "changePct": "등락률"
+    "stocks": "주식 시장",
+    "commodities": "원자재 · 현물 · 환율",
+    "symbol": "종목",
+    "price": "가격",
+    "change": "변동",
+    "changePct": "등락률"
   },
   "analysis": {
-    "sentiment": "감성 분석", "trend": "이슈 트렌드 (7일)", "briefing": "AI 브리핑",
+    "sentiment": "감성 분석",
+    "trend": "이슈 트렌드 (7일)",
+    "briefing": "AI 브리핑",
     "tensionIndex": "긴장도 지수 (0~100) — 지역 내 이벤트 유형 기반 산출",
-    "danger": "60+ 위험", "caution": "40-59 경계", "watch": "20-39 주의", "stable": "0-19 안정",
+    "danger": "60+ 위험",
+    "caution": "40-59 경계",
+    "watch": "20-39 주의",
+    "stable": "0-19 안정",
     "noBriefing": "브리핑 데이터가 없습니다"
   },
-  "footer": { "system": "SIGINT v0.1.0 — World Affairs Monitoring System", "sources": "DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI" },
-  "regions": { "east-asia": "동아시아", "southeast-asia": "동남아시아", "south-asia": "남아시아", "central-asia": "중앙아시아", "middle-east": "중동", "europe": "유럽", "north-america": "북미", "south-america": "남미", "africa": "아프리카", "oceania": "오세아니아" }
+  "footer": {
+    "system": "SIGINT v0.1.0 — World Affairs Monitoring System",
+    "sources": "DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI"
+  },
+  "regions": {
+    "east-asia": "동아시아",
+    "southeast-asia": "동남아시아",
+    "south-asia": "남아시아",
+    "central-asia": "중앙아시아",
+    "middle-east": "중동",
+    "europe": "유럽",
+    "north-america": "북미",
+    "south-america": "남미",
+    "africa": "아프리카",
+    "oceania": "오세아니아"
+  },
+  "maritime": {
+    "location": "위치",
+    "description": "상세"
+  }
 }

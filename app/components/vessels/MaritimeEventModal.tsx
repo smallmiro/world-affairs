@@ -101,7 +101,7 @@ export default function MaritimeEventModal({ event, lang, onClose }: MaritimeEve
           {event.description && (
             <div className="mb-4">
               <div className="font-mono text-[0.8rem] tracking-[1px] uppercase mb-2" style={{ color: "var(--text-muted)" }}>
-                {lang === "en" ? "Description" : lang === "ja" ? "説明" : "상세"}
+                {t("maritime.description")}
               </div>
               <div className="text-[0.95rem] leading-[1.6] p-3 rounded-xl" style={{ color: "var(--text-secondary)", background: "var(--bg-secondary)" }}>
                 {getTranslatedText(event.description, lang)}
@@ -113,7 +113,7 @@ export default function MaritimeEventModal({ event, lang, onClose }: MaritimeEve
           {event.lat && event.lon && (
             <div className="mb-4">
               <div className="font-mono text-[0.8rem] tracking-[1px] uppercase mb-2" style={{ color: "var(--text-muted)" }}>
-                {lang === "en" ? "Location" : lang === "ja" ? "位置" : "위치"}
+                {t("maritime.location")}
               </div>
               <div className="font-mono text-[0.9rem]" style={{ color: "var(--text-secondary)" }}>
                 {event.lat.toFixed(2)}°N, {event.lon.toFixed(2)}°E
@@ -124,7 +124,7 @@ export default function MaritimeEventModal({ event, lang, onClose }: MaritimeEve
           {/* Multilingual */}
           <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
             <div className="font-mono text-[0.8rem] tracking-[1px] uppercase mb-2" style={{ color: "var(--text-muted)" }}>
-              {lang === "en" ? "Multilingual" : lang === "ja" ? "多言語" : "다국어"}
+              {t("news.multilingual")}
             </div>
             <div className="flex flex-col gap-1.5">
               {event.title.en && (
@@ -146,6 +146,19 @@ export default function MaritimeEventModal({ event, lang, onClose }: MaritimeEve
                 </div>
               )}
             </div>
+          </div>
+
+          {/* View original */}
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(event.title.en)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[0.9rem] tracking-[0.5px] px-4 py-2 border rounded-xl inline-block transition-all duration-150 hover:brightness-110"
+              style={{ color: "var(--accent-cyan)", borderColor: "var(--accent-cyan)", background: "var(--accent-cyan-dim)" }}
+            >
+              {t("news.viewOriginal")}
+            </a>
           </div>
         </div>
       </div>
