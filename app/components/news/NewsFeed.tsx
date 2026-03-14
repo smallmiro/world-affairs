@@ -57,38 +57,37 @@ export default function NewsFeed() {
         <SectionHeader title={t("news.title")} accentColor="var(--accent-cyan)" />
       </div>
 
-      <div className="flex gap-1 flex-wrap mb-3">
-        {FILTERS.map((f, i) => (
-          <button
-            key={f.key}
-            onClick={() => setActiveFilter(i)}
-            className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
-            style={{
-              color: activeFilter === i ? "var(--accent-cyan)" : "var(--text-muted)",
-              borderColor: activeFilter === i ? "var(--accent-cyan)" : "var(--border)",
-              background: activeFilter === i ? "var(--accent-cyan-dim)" : "transparent",
-            }}
-          >
-            {t(f.key)}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex gap-1 flex-wrap mb-3">
-        {REGION_FILTERS.map((f, i) => (
-          <button
-            key={f.key}
-            onClick={() => setActiveRegion(i)}
-            className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
-            style={{
-              color: activeRegion === i ? "var(--accent-cyan)" : "var(--text-muted)",
-              borderColor: activeRegion === i ? "var(--accent-cyan)" : "var(--border)",
-              background: activeRegion === i ? "var(--accent-cyan-dim)" : "transparent",
-            }}
-          >
-            {t(f.key)}
-          </button>
-        ))}
+      <div className="flex gap-2 mb-3">
+        <select
+          value={activeFilter}
+          onChange={(e) => setActiveFilter(Number(e.target.value))}
+          className="font-mono text-[0.85rem] px-3 py-2 border rounded-lg cursor-pointer flex-1"
+          style={{
+            color: "var(--accent-cyan)",
+            borderColor: "var(--border)",
+            background: "var(--bg-card)",
+            outline: "none",
+          }}
+        >
+          {FILTERS.map((f, i) => (
+            <option key={f.key} value={i}>{t(f.key)}</option>
+          ))}
+        </select>
+        <select
+          value={activeRegion}
+          onChange={(e) => setActiveRegion(Number(e.target.value))}
+          className="font-mono text-[0.85rem] px-3 py-2 border rounded-lg cursor-pointer flex-1"
+          style={{
+            color: "var(--accent-cyan)",
+            borderColor: "var(--border)",
+            background: "var(--bg-card)",
+            outline: "none",
+          }}
+        >
+          {REGION_FILTERS.map((f, i) => (
+            <option key={f.key} value={i}>{t(f.key)}</option>
+          ))}
+        </select>
       </div>
 
       <div className="overflow-y-auto flex flex-col gap-0.5 max-h-[593px]" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
