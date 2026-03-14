@@ -72,7 +72,6 @@ async function fetchAssessment(): Promise<AirportAssessment | null> {
 
 export default function AirportMonitor() {
   const { data: statusData } = useAirportStatus();
-  const { data: assessment } = useQuery({ queryKey: ["airport-assessment"], queryFn: fetchAssessment, staleTime: 30 * 60 * 1000, refetchInterval: 30 * 60 * 1000 });
   const { data: flightsData } = useFlightPositions();
   const { data: eventsData } = useAirportEvents();
   const { data: airlinesData } = useAirlineOps();
@@ -139,52 +138,16 @@ export default function AirportMonitor() {
         }
       />
 
-      {/* AI Status Assessment */}
-      {assessment ? (
-        <div className="border" style={{ borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-3 px-3 py-2" style={{ background: "var(--bg-secondary)" }}>
-            <StatusLight color={assessment.light} size={8} pulse={true} />
-            <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[assessment.light] }}>
-              {assessment.status}
-            </span>
-            <span className="font-mono text-[0.75rem] px-1.5 py-px" style={{
-              color: STATUS_LIGHT_COLORS[assessment.light],
-              background: `${STATUS_LIGHT_COLORS[assessment.light]}15`,
-            }}>
-              RISK {assessment.riskScore}/100
-            </span>
-            <span className="font-mono text-[0.75rem] ml-auto" style={{ color: "var(--text-muted)" }}>
-              AI ASSESSMENT
-            </span>
-          </div>
-          <div className="px-3 py-2 text-[0.65rem] leading-[1.5] border-t" style={{ color: "var(--text-secondary)", borderColor: "var(--border)", background: "var(--bg-primary)" }}>
-            {lang === "ja" ? assessment.summary.ja : lang === "en" ? assessment.summary.en : assessment.summary.ko}
-          </div>
-          <div className="px-3 py-1.5 flex flex-wrap gap-1 border-t" style={{ borderColor: "var(--border)", background: "var(--bg-primary)" }}>
-            {assessment.factors.map((f, i) => {
-              const color = f.impact === "negative" ? "var(--accent-red)" : f.impact === "positive" ? "var(--accent-green)" : "var(--text-muted)";
-              return (
-                <span key={i} className="font-mono text-[0.72rem] px-1.5 py-px border" style={{ color, borderColor: `${color}30`, background: `${color}08` }}>
-                  {f.impact === "negative" ? "▼" : f.impact === "positive" ? "▲" : "―"} {lang === "ko" ? f.text.ko : f.text.en}
-                </span>
-              );
-            })}
-          </div>
-          <div className="px-3 py-1.5 font-mono text-[0.75rem] border-t" style={{ color: "var(--accent-amber)", borderColor: "var(--border)", background: "rgba(245,158,11,0.03)" }}>
-            ⚠ {lang === "ja" ? assessment.recommendation.ja : lang === "en" ? assessment.recommendation.en : assessment.recommendation.ko}
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-3 px-3 py-2 border" style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}>
-          <StatusLight color={status.light} size={8} pulse={true} />
-          <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[status.light] }}>
-            {status.label}
-          </span>
-          <span className="font-mono text-[0.8rem]" style={{ color: "var(--text-muted)" }}>
-            {status.runways}
-          </span>
-        </div>
-      )}
+      {/* Status bar */}
+      <div className="flex items-center gap-3 px-3 py-2 border rounded-xl" style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}>
+        <StatusLight color={status.light} size={8} pulse={true} />
+        <span className="font-mono text-[0.85rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[status.light] }}>
+          {status.label}
+        </span>
+        <span className="font-mono text-[0.8rem]" style={{ color: "var(--text-muted)" }}>
+          {status.runways}
+        </span>
+      </div>
 
       {/* Map + Timeline side by side */}
       <div className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
