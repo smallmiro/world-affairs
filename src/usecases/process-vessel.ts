@@ -33,6 +33,11 @@ export async function processVesselMessage(
   raw: RawAisMessage,
   repository: VesselRepositoryPort,
 ): Promise<{ vesselType: VesselType | null; zoneDetected: boolean }> {
+  // Filter: only Middle East region (lat 5-35, lon 25-65)
+  if (raw.lat < 5 || raw.lat > 35 || raw.lon < 25 || raw.lon > 65) {
+    return { vesselType: null, zoneDetected: false };
+  }
+
   const vesselType = classifyShipType(raw.shipType);
   if (!vesselType) {
     return { vesselType: null, zoneDetected: false };

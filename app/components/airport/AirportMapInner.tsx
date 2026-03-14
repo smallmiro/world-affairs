@@ -17,9 +17,9 @@ function aircraftIcon(cls: string, rotation: number) {
   const color = cls === "ek" ? "#f59e0b" : cls === "conflict-zone" ? "#ef4444" : "#94a3b8";
   return L.divIcon({
     className: "",
-    html: `<div style="font-size:12px;color:${color};transform:rotate(${rotation}deg);filter:drop-shadow(0 0 4px ${color}80);line-height:1">✈</div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: `<div style="font-size:20px;color:${color};transform:rotate(${rotation}deg);filter:drop-shadow(0 0 6px ${color}80);line-height:1">✈</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 }
 
@@ -46,8 +46,8 @@ export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
 
   return (
     <MapContainer
-      center={[25.25, 55.36]}
-      zoom={6}
+      center={[25.25, 50.0]}
+      zoom={5}
       style={{ height: "100%", width: "100%", background: "#0a0e17" }}
       zoomControl={false}
       attributionControl={false}

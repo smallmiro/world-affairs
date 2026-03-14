@@ -61,8 +61,8 @@ export class AisStreamCollector implements VesselCollectorPort {
           APIkey: this.apiKey,
           BoundingBoxes: [
             // Middle East maritime region: Suez → Strait of Hormuz
-            // Format: [[lon_min, lat_min], [lon_max, lat_max]]
-            [[32.0, 10.0], [57.0, 31.5]],
+            // Format: [[lat_min, lon_min], [lat_max, lon_max]]
+            [[10.0, 32.0], [31.5, 65.0]],
           ],
           FiltersShipMMSI: [],
           FilterMessageTypes: ["PositionReport", "ShipStaticData"],
