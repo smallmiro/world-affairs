@@ -1,15 +1,9 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { VesselWithPosition } from "../../lib/types";
-
-const TYPE_COLORS: Record<string, string> = {
-  tanker_crude: "#f59e0b",
-  tanker_product: "#f59e0b",
-  lpg: "#06b6d4",
-  lng: "#06b6d4",
-};
 
 const TYPE_LABELS: Record<string, string> = {
   tanker_crude: "원유 유조선",
@@ -17,6 +11,23 @@ const TYPE_LABELS: Record<string, string> = {
   lpg: "LPG선",
   lng: "LNG선",
 };
+
+function vesselMarkerClass(type: string, isAnomaly: boolean): string {
+  if (isAnomaly) return "vessel-marker reroute";
+  if (type === "lpg" || type === "lng") return "vessel-marker lpg";
+  return "vessel-marker";
+}
+
+function vesselIcon(type: string, isAnomaly: boolean, course: number | null): L.DivIcon {
+  const cls = vesselMarkerClass(type, isAnomaly);
+  const rotation = course ?? 0;
+  return L.divIcon({
+    className: "",
+    html: `<div class="${cls}" style="transform: rotate(${rotation}deg);"></div>`,
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+  });
+}
 
 interface VesselMapInnerProps {
   vessels: VesselWithPosition[];
@@ -36,18 +47,13 @@ export default function VesselMapInner({ vessels }: VesselMapInnerProps) {
         .filter((v) => v.latestPosition)
         .map((v) => {
           const pos = v.latestPosition!;
-          const color = pos.status !== "normal" ? "#ef4444" : (TYPE_COLORS[v.type] ?? "#f59e0b");
+          const isAnomaly = pos.status !== "normal";
+          const color = isAnomaly ? "#ef4444" : (v.type === "lpg" || v.type === "lng") ? "#06b6d4" : "#f59e0b";
           return (
-            <CircleMarker
+            <Marker
               key={v.id}
-              center={[pos.lat, pos.lon]}
-              radius={pos.status !== "normal" ? 6 : 4}
-              pathOptions={{
-                color,
-                fillColor: color,
-                fillOpacity: 0.8,
-                weight: 1,
-              }}
+              position={[pos.lat, pos.lon]}
+              icon={vesselIcon(v.type, isAnomaly, pos.course)}
             >
               <Popup>
                 <div style={{ fontFamily: "monospace", fontSize: "0.75rem" }}>
@@ -60,14 +66,14 @@ export default function VesselMapInner({ vessels }: VesselMapInnerProps) {
                   <div style={{ fontSize: "0.65rem", color: "#94a3b8" }}>
                     {pos.speed ?? 0} kn · {pos.zone ?? "—"}
                   </div>
-                  {pos.status !== "normal" && (
+                  {isAnomaly && (
                     <div style={{ fontSize: "0.65rem", color: "#ef4444", marginTop: 2 }}>
                       STATUS: {pos.status.toUpperCase()}
                     </div>
                   )}
                 </div>
               </Popup>
-            </CircleMarker>
+            </Marker>
           );
         })}
     </MapContainer>

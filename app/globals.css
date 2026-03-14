@@ -169,6 +169,49 @@ body::after {
   border-color: var(--border-active);
 }
 
+/* Pulse marker for critical events */
+.pulse-marker {
+  width: 14px;
+  height: 14px;
+  position: relative;
+}
+.pulse-marker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent-red);
+  animation: hpulse 2s ease-out infinite;
+}
+.pulse-marker::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  z-index: 1;
+}
+.pulse-marker.amber::before { background: var(--accent-amber); }
+.pulse-marker.amber::after { background: var(--accent-amber); }
+
+/* Vessel directional marker */
+.vessel-marker {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid var(--accent-amber);
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
+}
+.vessel-marker.lpg {
+  border-bottom-color: var(--accent-cyan);
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.5));
+}
+.vessel-marker.reroute {
+  border-bottom-color: var(--accent-red);
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+}
+
 /* Leaflet dark theme overrides */
 .leaflet-container {
   background: #0a0e17 !important;
