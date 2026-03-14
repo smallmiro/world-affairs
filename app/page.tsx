@@ -22,7 +22,7 @@ export default function DashboardPage() {
 
       <div className="p-4 flex flex-col gap-4">
         {/* Map + Issues (left) | News (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-stretch">
           <div className="flex flex-col gap-4">
             <div className="card" id="section-map">
               <WorldMap />
@@ -31,7 +31,7 @@ export default function DashboardPage() {
               <IssueTracker />
             </div>
           </div>
-          <div className="card lg:sticky lg:top-[60px]">
+          <div className="card flex flex-col overflow-hidden">
             <NewsFeed />
           </div>
         </div>
