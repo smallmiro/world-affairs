@@ -1,6 +1,6 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Circle, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { GeoEvent } from "../../lib/types";
@@ -18,6 +18,24 @@ function pulseIcon(severity: string): L.DivIcon {
   const cls = severity === "warning" ? "pulse-marker amber" : "pulse-marker";
   return L.divIcon({ className: cls, iconSize: [14, 14], iconAnchor: [7, 7] });
 }
+
+// Tension zones overlay
+const TENSION_ZONES: { center: [number, number]; radius: number; color: string; label: string; labelPos: [number, number] }[] = [
+  // Conflict zones (red)
+  { center: [15.5, 44.0], radius: 300000, color: "#ef4444", label: "Yemen/Houthi", labelPos: [13.5, 44.0] },
+  { center: [33.5, 44.0], radius: 250000, color: "#ef4444", label: "Iraq/Syria", labelPos: [35.5, 44.0] },
+  { center: [50.4, 30.5], radius: 300000, color: "#ef4444", label: "Ukraine", labelPos: [52.0, 30.5] },
+  { center: [31.5, 34.5], radius: 150000, color: "#ef4444", label: "Gaza", labelPos: [30.0, 34.5] },
+  // Caution zones (amber)
+  { center: [32.0, 53.0], radius: 400000, color: "#f59e0b", label: "Iran", labelPos: [34.5, 53.0] },
+  { center: [26.5, 56.3], radius: 80000, color: "#f59e0b", label: "Hormuz", labelPos: [25.5, 57.5] },
+  { center: [12.5, 43.5], radius: 100000, color: "#f59e0b", label: "Bab el-Mandeb", labelPos: [11.5, 45.0] },
+  { center: [38.5, 127.0], radius: 200000, color: "#f59e0b", label: "Korean Peninsula", labelPos: [40.0, 129.0] },
+  { center: [23.5, 121.0], radius: 200000, color: "#f59e0b", label: "Taiwan Strait", labelPos: [21.5, 122.0] },
+  // Safe/stable zones (green)
+  { center: [25.25, 55.36], radius: 150000, color: "#22c55e", label: "UAE/DXB", labelPos: [23.5, 55.5] },
+  { center: [25.3, 51.5], radius: 100000, color: "#22c55e", label: "Qatar/DOH", labelPos: [24.0, 52.5] },
+];
 
 // Aircraft colors: Emirates=red, Etihad=amber, others=gray
 const AIRLINE_COLORS: Record<string, string> = {
@@ -60,6 +78,35 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
       attributionControl={false}
     >
       <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+
+      {/* Conflict / Caution / Safe zones */}
+      {TENSION_ZONES.map((zone) => (
+        <Circle
+          key={zone.label}
+          center={zone.center}
+          radius={zone.radius}
+          pathOptions={{
+            color: zone.color,
+            fillColor: zone.color,
+            fillOpacity: 0.08,
+            weight: 1,
+            dashArray: "4 4",
+          }}
+        />
+      ))}
+      {TENSION_ZONES.map((zone) => (
+        <Marker
+          key={`label-${zone.label}`}
+          position={zone.labelPos}
+          icon={L.divIcon({
+            className: "",
+            html: `<div style="font-family:monospace;font-size:8px;color:${zone.color};text-shadow:0 0 4px ${zone.color}80;white-space:nowrap">${zone.label}</div>`,
+            iconSize: [80, 12],
+            iconAnchor: [40, 6],
+          })}
+          interactive={false}
+        />
+      ))}
 
       {/* GeoEvents */}
       {events
