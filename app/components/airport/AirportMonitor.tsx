@@ -8,17 +8,14 @@ import {
   AIRLINES,
   EK_ROUTES,
   AIRPORT_MAP_DATA,
-  type AirportStatus as StaticAirportStatus,
-  type Airline,
-  type EKRoute,
-  type AirportMapData,
-  type TimelineEvent,
 } from "../../lib/airport-data";
 import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes } from "../../hooks/use-airport";
-import type { AirportStatusResponse, FlightPositionResponse, AirportEventResponse, AirlineOpsResponse, EmiratesRouteResponse } from "../../lib/api-client";
+import { toStaticStatus, toMapData, toTimelineEvents, toAirlines, toRoutes } from "../../lib/airport-mappers";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
 import EKRouteBadges from "./EKRouteBadges";
+import SectionHeader from "../ui/SectionHeader";
+import StatusLight from "../ui/StatusLight";
 
 const AirportMapInner = dynamic(() => import("./AirportMapInner"), { ssr: false });
 
@@ -27,86 +24,6 @@ const STATUS_LIGHT_COLORS: Record<string, string> = {
   amber: "var(--accent-amber)",
   red: "var(--accent-red)",
 };
-
-const STATUS_LABELS: Record<string, string> = {
-  green: "OPERATIONAL",
-  amber: "DELAYS",
-  red: "DISRUPTED",
-};
-
-function toStaticStatus(data: AirportStatusResponse): StaticAirportStatus {
-  return {
-    light: data.light,
-    label: STATUS_LABELS[data.light] ?? "UNKNOWN",
-    runways: `${data.totalFlights} FLIGHTS · ${data.onTimePercent}% ON TIME`,
-    weather: `${data.delayedFlights} DELAYED · ${data.cancelledFlights} CANCELLED`,
-  };
-}
-
-function toMapData(flights: FlightPositionResponse[]): AirportMapData {
-  return {
-    aircraft: flights
-      .filter((f) => !f.onGround)
-      .map((f) => ({
-        lat: f.lat,
-        lng: f.lon,
-        rotation: f.heading,
-        flightLabel: f.callsign.trim() || f.icao24,
-        altLabel: `FL${Math.round(f.altitude / 100)}`,
-        cls: f.aircraftClass as "ek" | "other",
-      })),
-    flightPaths: [],
-  };
-}
-
-function toTimelineEvents(events: AirportEventResponse[], lang: string): TimelineEvent[] {
-  const grouped = new Map<string, AirportEventResponse[]>();
-  for (const e of events) {
-    const date = new Date(e.eventDate);
-    const key = `${date.getMonth() + 1}/${date.getDate()}`;
-    const arr = grouped.get(key) ?? [];
-    arr.push(e);
-    grouped.set(key, arr);
-  }
-
-  const today = new Date();
-  const todayKey = `${today.getMonth() + 1}/${today.getDate()}`;
-  const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-  return Array.from(grouped.entries()).map(([dateKey, evts]) => {
-    const isToday = dateKey === todayKey;
-    const firstDate = new Date(evts[0].eventDate);
-    const dotType = evts[0].eventType as TimelineEvent["dotType"];
-    return {
-      date: dateKey,
-      dayLabel: isToday ? "TODAY" : dayNames[firstDate.getDay()],
-      isToday,
-      dotType,
-      entries: evts.map((e) => ({
-        tags: [{ type: e.eventType as TimelineEvent["dotType"], label: e.eventType.toUpperCase() }],
-        text: lang === "en" ? e.title.en : (e.title.ko || e.title.en),
-      })),
-    };
-  });
-}
-
-function toAirlines(ops: AirlineOpsResponse[]): Airline[] {
-  return ops.map((o) => ({
-    code: o.airlineIata,
-    name: o.airlineName,
-    flights: o.totalFlights,
-    onTime: o.onTimePercent,
-    status: o.status,
-  }));
-}
-
-function toRoutes(routes: EmiratesRouteResponse[]): EKRoute[] {
-  return routes.map((r) => ({
-    dest: r.destination,
-    flightCode: r.flightCode,
-    status: r.status,
-  }));
-}
 
 export default function AirportMonitor() {
   const { data: statusData } = useAirportStatus();
@@ -139,34 +56,22 @@ export default function AirportMonitor() {
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2 h-2"
-            style={{ background: "var(--accent-amber)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }}
-          />
-          <h2 className="font-mono text-[0.72rem] font-semibold tracking-[2px] uppercase" style={{ color: "var(--text-secondary)" }}>
-            DUBAI INTL (DXB) — 항공 모니터
-          </h2>
-        </div>
-        <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
-          1H CYCLE · LAST 7D
-        </span>
-      </div>
+      <SectionHeader
+        title="DUBAI INTL (DXB) — 항공 모니터"
+        accentColor="var(--accent-amber)"
+        controls={
+          <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+            1H CYCLE · LAST 7D
+          </span>
+        }
+      />
 
       {/* Status bar */}
       <div
         className="flex items-center gap-3 px-3 py-2 border"
         style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
       >
-        <div
-          className="w-2 h-2 rounded-full"
-          style={{
-            background: STATUS_LIGHT_COLORS[status.light],
-            boxShadow: `0 0 8px ${STATUS_LIGHT_COLORS[status.light]}`,
-            animation: "pulse-dot 2s ease-in-out infinite",
-          }}
-        />
+        <StatusLight color={status.light} size={8} pulse={true} />
         <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[status.light] }}>
           {status.label}
         </span>

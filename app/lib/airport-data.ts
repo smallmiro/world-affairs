@@ -20,14 +20,17 @@ export interface TimelineEvent {
   entries: { tags: TimelineTag[]; text: string }[];
 }
 
-export type AirlineStatusType = "normal" | "delays" | "disrupted";
+import type { AirlineOpsStatus } from "../../src/shared/types";
+
+/** @deprecated Use AirlineOpsStatus from src/shared/types instead */
+export type AirlineStatusType = AirlineOpsStatus;
 
 export interface Airline {
   code: string;
   name: string;
   flights: number;
   onTime: number;
-  status: AirlineStatusType;
+  status: AirlineOpsStatus;
 }
 
 export type RouteStatus = "open" | "diverted" | "suspended";
