@@ -27,10 +27,36 @@ export async function translateUntranslatedAirportEvents(
       TARGET_LANGUAGES,
     );
 
+    const descNeedsTranslation = batch.map(
+      (e) =>
+        e.description !== null &&
+        (e.description.ko === "" || e.description.ja === "" ||
+         e.description.ko === e.description.en || e.description.ja === e.description.en),
+    );
+    const descsToTranslate = batch
+      .filter((_, idx) => descNeedsTranslation[idx])
+      .map((e) => e.description!.en);
+
+    let translatedDescs: { en: string; ko: string; ja: string }[] = [];
+    if (descsToTranslate.length > 0) {
+      translatedDescs = await translator.translateBatch(
+        descsToTranslate,
+        "en",
+        TARGET_LANGUAGES,
+      );
+    }
+
+    let descIdx = 0;
     for (let j = 0; j < batch.length; j++) {
+      const needsDesc = descNeedsTranslation[j];
+      const translatedDesc = needsDesc
+        ? translatedDescs[descIdx++]
+        : batch[j].description;
+
       const updated = {
         ...batch[j],
         title: translatedTitles[j],
+        description: translatedDesc,
       };
       await repository.updateEvent(updated);
     }

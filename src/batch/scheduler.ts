@@ -115,20 +115,17 @@ async function runCollectAirportEvents() {
 
 // ─── Translation Jobs ─────────────────────────────────────────
 
-function createTranslator(): GeminiTranslator | null {
-  try {
-    return new GeminiTranslator();
-  } catch {
-    console.warn("[translate] GEMINI_API_KEY not set. Skipping translation.");
-    return null;
-  }
+let translator: GeminiTranslator | null = null;
+try {
+  translator = new GeminiTranslator();
+} catch {
+  console.warn("[translate] GEMINI_API_KEY not set. Translation jobs will be skipped.");
 }
 
 async function runTranslateNews() {
   const label = "translate:news";
   console.log(`[${new Date().toISOString()}] ${label}: starting`);
   try {
-    const translator = createTranslator();
     if (!translator) return;
     const count = await translateUntranslatedArticles(newsRepo, translator);
     console.log(`[${new Date().toISOString()}] ${label}: translated=${count}`);
@@ -141,7 +138,6 @@ async function runTranslateGeoEvents() {
   const label = "translate:geo";
   console.log(`[${new Date().toISOString()}] ${label}: starting`);
   try {
-    const translator = createTranslator();
     if (!translator) return;
     const count = await translateUntranslatedGeoEvents(geoRepo, translator);
     console.log(`[${new Date().toISOString()}] ${label}: translated=${count}`);
@@ -154,7 +150,6 @@ async function runTranslateAirportEvents() {
   const label = "translate:airport";
   console.log(`[${new Date().toISOString()}] ${label}: starting`);
   try {
-    const translator = createTranslator();
     if (!translator) return;
     const count = await translateUntranslatedAirportEvents(airportRepo, translator);
     console.log(`[${new Date().toISOString()}] ${label}: translated=${count}`);

@@ -114,7 +114,14 @@ function parseState(state: OpenSkyState): RawFlightPosition | null {
 export class OpenSkyCollector implements OpenSkyCollectorPort {
   async collectFlights(): Promise<CollectionResult<RawFlightPosition[]>> {
     const headers = await buildHeaders();
-    const response = await fetch(OPENSKY_API_URL, { headers });
+    let response = await fetch(OPENSKY_API_URL, { headers });
+
+    if (response.status === 401 || response.status === 403) {
+      console.warn(`[OpenSky] Auth failed (${response.status}). Clearing token and retrying anonymously.`);
+      cachedToken = null;
+      tokenExpiresAt = 0;
+      response = await fetch(OPENSKY_API_URL);
+    }
 
     if (response.status === 429) {
       console.warn("[OpenSky] Rate limited (429). Returning empty result.");
