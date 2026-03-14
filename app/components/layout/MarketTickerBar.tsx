@@ -26,7 +26,7 @@ function TickerItem({ item }: { item: MarketSnapshot }) {
     >
       <div className="flex items-center gap-2 h-5">
         <span className="font-mono text-[0.85rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
-          {item.symbol}
+          {item.name || item.symbol}
         </span>
         <span className="font-mono text-[0.78rem] font-semibold" style={{ color: "var(--text-primary)" }}>
           {formatPrice(item.price, item.currency)}
@@ -93,16 +93,23 @@ export default function MarketTickerBar() {
         }
       `}</style>
       <div
-        className="market-ticker-bar flex items-stretch overflow-x-auto overflow-y-hidden border-b relative z-50"
+        className="market-ticker-bar overflow-hidden border-b relative z-50"
         style={{
           background: "var(--bg-secondary)",
           borderColor: "var(--border)",
-          scrollbarWidth: "none",
         }}
       >
-        {allItems.map((item) => (
-          <TickerItem key={item.id ?? item.symbol} item={item} />
-        ))}
+        <div
+          className="flex items-stretch"
+          style={{ animation: "scroll-market 60s linear infinite", width: "max-content" }}
+        >
+          {allItems.map((item) => (
+            <TickerItem key={"a-" + (item.id ?? item.symbol)} item={item} />
+          ))}
+          {allItems.map((item) => (
+            <TickerItem key={"b-" + (item.id ?? item.symbol)} item={item} />
+          ))}
+        </div>
       </div>
     </>
   );

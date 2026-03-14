@@ -138,6 +138,11 @@ body::after {
   }
 }
 
+@keyframes scroll-market {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 @keyframes scroll-ticker {
   0% {
     transform: translateX(0);
