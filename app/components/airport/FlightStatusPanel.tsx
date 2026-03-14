@@ -23,6 +23,14 @@ interface EkRoute {
   status: string;
 }
 
+interface DxbAirline {
+  code: string;
+  name: string;
+  flights: number;
+  onTime: number;
+  status: string;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   "On Time": "var(--accent-green)",
   "Scheduled": "var(--accent-cyan)",
@@ -48,7 +56,13 @@ const ROUTE_STATUS_LABELS: Record<string, string> = {
   suspended: "SUSP",
 };
 
-type Tab = "departures" | "arrivals" | "ek-routes";
+const AIRLINE_STATUS_COLORS: Record<string, string> = {
+  normal: "var(--accent-green)",
+  delays: "var(--accent-amber)",
+  disrupted: "var(--accent-red)",
+};
+
+type Tab = "departures" | "arrivals" | "airlines" | "ek-routes";
 
 async function fetchDxbFlights(direction: string): Promise<DxbFlight[]> {
   const res = await fetch(`/api/airport/flights?direction=${direction}&limit=100`);
@@ -57,11 +71,11 @@ async function fetchDxbFlights(direction: string): Promise<DxbFlight[]> {
   return data.data;
 }
 
-async function fetchEkRoutes(): Promise<EkRoute[]> {
+async function fetchDxbStats(): Promise<{ ekRoutes: EkRoute[]; airlines: DxbAirline[] }> {
   const res = await fetch("/api/airport/dxb-stats");
-  if (!res.ok) return [];
+  if (!res.ok) return { ekRoutes: [], airlines: [] };
   const data = await res.json();
-  return data.ekRoutes ?? [];
+  return { ekRoutes: data.ekRoutes ?? [], airlines: data.airlines ?? [] };
 }
 
 export default function FlightStatusPanel() {
@@ -70,14 +84,16 @@ export default function FlightStatusPanel() {
 
   const { data: depFlights } = useQuery({ queryKey: ["dxb-dep"], queryFn: () => fetchDxbFlights("departure"), refetchInterval: 120_000 });
   const { data: arrFlights } = useQuery({ queryKey: ["dxb-arr"], queryFn: () => fetchDxbFlights("arrival"), refetchInterval: 120_000 });
-  const { data: ekRoutes } = useQuery({ queryKey: ["ek-routes"], queryFn: fetchEkRoutes, refetchInterval: 120_000 });
+  const { data: dxbStats } = useQuery({ queryKey: ["dxb-stats"], queryFn: fetchDxbStats, refetchInterval: 120_000 });
 
   const flightList = activeTab === "departures" ? (depFlights ?? []) : activeTab === "arrivals" ? (arrFlights ?? []) : [];
-  const routeList = ekRoutes ?? [];
+  const routeList = dxbStats?.ekRoutes ?? [];
+  const airlineList = dxbStats?.airlines ?? [];
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "departures", label: t("airport.departures"), count: depFlights?.length ?? 0 },
     { key: "arrivals", label: t("airport.arrivals"), count: arrFlights?.length ?? 0 },
+    { key: "airlines", label: t("airport.airlines"), count: airlineList.length },
     { key: "ek-routes", label: t("airport.ekRoutes"), count: routeList.length },
   ];
 
@@ -115,7 +131,7 @@ export default function FlightStatusPanel() {
       </div>
 
       {/* Flight Table (departures/arrivals) */}
-      {activeTab !== "ek-routes" && (
+      {(activeTab === "departures" || activeTab === "arrivals") && (
         <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
           <table className="w-full border-collapse font-mono text-[0.8rem]">
             <thead>
@@ -188,6 +204,47 @@ export default function FlightStatusPanel() {
                     <td className="py-1.5 px-2">
                       <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color, background: `${color}15` }}>
                         {label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Airlines Table */}
+      {activeTab === "airlines" && (
+        <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+          <table className="w-full border-collapse font-mono text-[0.8rem]">
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.airline")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flights")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>ON TIME</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {airlineList.length === 0 && (
+                <tr><td colSpan={4} className="text-center py-4" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</td></tr>
+              )}
+              {airlineList.map((a, i) => {
+                const statusColor = AIRLINE_STATUS_COLORS[a.status] ?? "var(--text-muted)";
+                return (
+                  <tr
+                    key={a.code + i}
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td className="py-1.5 px-2 font-semibold" style={{ color: "var(--text-primary)" }}>{a.name}</td>
+                    <td className="py-1.5 px-2" style={{ color: "var(--text-secondary)" }}>{a.flights}{t("airport.flights")}</td>
+                    <td className="py-1.5 px-2" style={{ color: statusColor }}>{a.onTime}%</td>
+                    <td className="py-1.5 px-2">
+                      <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>
+                        {a.status.toUpperCase()}
                       </span>
                     </td>
                   </tr>

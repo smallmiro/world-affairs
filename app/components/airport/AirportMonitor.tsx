@@ -185,10 +185,7 @@ export default function AirportMonitor() {
         </div>
       </div>
 
-      {/* Airlines */}
-      <AirlineGrid airlines={airlines} />
-
-      {/* Flight Status Table */}
+      {/* Flight Status + Airlines + EK Routes */}
       <FlightStatusPanel />
     </div>
   );
