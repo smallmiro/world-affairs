@@ -61,20 +61,20 @@ export default function AiAnalysis() {
             const style = SENTIMENT_COLORS[s.type];
             const valueColor = s.value >= 60 ? "var(--accent-red)" : s.value >= 40 ? "var(--accent-amber)" : s.value >= 20 ? "var(--accent-blue)" : "var(--accent-green)";
             return (
-              <div key={s.region} className="flex items-center gap-2.5 mb-2.5">
-                <span className="font-mono text-[0.85rem] w-[70px]" style={{ color: "var(--text-secondary)" }}>
+              <div key={s.region} className="flex items-center gap-3 mb-4">
+                <span className="font-mono text-[0.9rem] w-[80px]" style={{ color: "var(--text-secondary)" }}>
                   {s.label}
                 </span>
-                <div className="flex-1 h-1 relative" style={{ background: "var(--border)" }}>
+                <div className="flex-1 h-3 relative rounded-full" style={{ background: "var(--border)" }}>
                   <div
-                    className="absolute left-0 top-0 h-full"
+                    className="absolute left-0 top-0 h-full rounded-full"
                     style={{
                       width: `${s.value}%`,
                       background: style.gradient,
                     }}
                   />
                 </div>
-                <span className="font-mono text-[0.85rem] w-[35px] text-right" style={{ color: valueColor }}>
+                <span className="font-mono text-[0.95rem] font-bold w-[40px] text-right" style={{ color: valueColor }}>
                   {s.type === "positive" ? "+" : "-"}{s.value}
                 </span>
               </div>
