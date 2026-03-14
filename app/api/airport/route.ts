@@ -22,6 +22,26 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ data: flights, count: flights.length });
       }
       case "events": {
+        // Prefer Gemini-generated timeline; fallback to all events
+        const timelineEvents = await prisma.airportEvent.findMany({
+          where: { source: "gemini-timeline" },
+          orderBy: { eventDate: "desc" },
+          take: limit,
+        });
+        if (timelineEvents.length > 0) {
+          const mapped = timelineEvents.map((r) => ({
+            id: r.id,
+            sourceId: r.sourceId,
+            source: r.source,
+            url: r.url,
+            title: { en: r.titleEn, ko: r.titleKo, ja: r.titleJa },
+            description: null,
+            eventType: r.eventType,
+            eventDate: r.eventDate,
+            collectedAt: r.collectedAt,
+          }));
+          return NextResponse.json({ data: mapped, count: mapped.length });
+        }
         const events = await repo.findLatestEvents(limit);
         return NextResponse.json({ data: events, count: events.length });
       }
