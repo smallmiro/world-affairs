@@ -89,7 +89,9 @@
     "actual": "実際",
     "terminal": "ターミナル",
     "status": "状態",
-    "dataLoading": "データ読み込み中..."
+    "dataLoading": "データ読み込み中...",
+    "limitExceeded": "日次制限超過",
+    "viewFallback": "タブで確認"
   },
   "markets": {
     "stocks": "株式市場",

@@ -89,7 +89,9 @@
     "actual": "실제",
     "terminal": "터미널",
     "status": "상태",
-    "dataLoading": "데이터 로딩 중..."
+    "dataLoading": "데이터 로딩 중...",
+    "limitExceeded": "일일 한도 초과",
+    "viewFallback": "탭에서 확인"
   },
   "markets": {
     "stocks": "주식 시장",

@@ -89,7 +89,9 @@
     "actual": "Actual",
     "terminal": "Term.",
     "status": "Status",
-    "dataLoading": "Loading data..."
+    "dataLoading": "Loading data...",
+    "limitExceeded": "daily limit exceeded",
+    "viewFallback": "tab available"
   },
   "markets": {
     "stocks": "Stock Market",

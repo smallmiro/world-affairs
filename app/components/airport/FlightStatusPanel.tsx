@@ -62,7 +62,7 @@ const AIRLINE_STATUS_COLORS: Record<string, string> = {
   disrupted: "var(--accent-red)",
 };
 
-type Tab = "departures" | "arrivals" | "airlines" | "ek-routes";
+type Tab = "departures" | "arrivals" | "dxb-all" | "airlines" | "ek-routes";
 
 async function fetchDxbFlights(direction: string): Promise<DxbFlight[]> {
   const res = await fetch(`/api/airport/flights?direction=${direction}&limit=100`);
@@ -98,20 +98,23 @@ export default function FlightStatusPanel() {
   const [activeTab, setActiveTab] = useState<Tab>("departures");
   const t = useT();
 
-  // OpenSky for arrivals/departures (accurate direction), DXB scrape as enrichment
-  const { data: depFlightsOS } = useQuery({ queryKey: ["opensky-dep"], queryFn: () => fetchOpenSkyFlights("departure"), refetchInterval: 120_000 });
-  const { data: arrFlightsOS } = useQuery({ queryKey: ["opensky-arr"], queryFn: () => fetchOpenSkyFlights("arrival"), refetchInterval: 120_000 });
-  const { data: dxbFlights } = useQuery({ queryKey: ["dxb-all"], queryFn: () => fetchDxbFlights("departure"), refetchInterval: 120_000 });
+  // OpenSky for arrivals/departures (accurate direction), DXB scrape as fallback
+  const { data: depFlightsOS, isFetched: depFetched } = useQuery({ queryKey: ["opensky-dep"], queryFn: () => fetchOpenSkyFlights("departure"), refetchInterval: 120_000 });
+  const { data: arrFlightsOS, isFetched: arrFetched } = useQuery({ queryKey: ["opensky-arr"], queryFn: () => fetchOpenSkyFlights("arrival"), refetchInterval: 120_000 });
+  const { data: dxbDepFlights } = useQuery({ queryKey: ["dxb-dep"], queryFn: () => fetchDxbFlights("departure"), refetchInterval: 120_000 });
   const { data: dxbStats } = useQuery({ queryKey: ["dxb-stats"], queryFn: fetchDxbStats, refetchInterval: 120_000 });
 
-  const depList = depFlightsOS ?? [];
-  const arrList = arrFlightsOS ?? [];
+  // Use OpenSky if available, fallback to DXB scrape
+  const depList = (depFlightsOS && depFlightsOS.length > 0) ? depFlightsOS : [];
+  const arrList = (arrFlightsOS && arrFlightsOS.length > 0) ? arrFlightsOS : [];
+  const dxbList = dxbDepFlights ?? [];
   const routeList = dxbStats?.ekRoutes ?? [];
   const airlineList = dxbStats?.airlines ?? [];
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "departures", label: t("airport.departures"), count: depList.length },
     { key: "arrivals", label: t("airport.arrivals"), count: arrList.length },
+    { key: "dxb-all", label: "DXB ALL", count: dxbList.length },
     { key: "airlines", label: t("airport.airlines"), count: airlineList.length },
     { key: "ek-routes", label: t("airport.ekRoutes"), count: routeList.length },
   ];
@@ -152,6 +155,7 @@ export default function FlightStatusPanel() {
       {/* Flight Table (departures/arrivals) — OpenSky data */}
       {(activeTab === "departures" || activeTab === "arrivals") && (() => {
         const list = activeTab === "departures" ? depList : arrList;
+        const fetched = activeTab === "departures" ? depFetched : arrFetched;
         return (
           <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
             <table className="w-full border-collapse font-mono text-[0.8rem]">
@@ -166,7 +170,16 @@ export default function FlightStatusPanel() {
               </thead>
               <tbody>
                 {list.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-4" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</td></tr>
+                  <tr><td colSpan={5} className="text-center py-4" style={{ color: "var(--text-muted)" }}>
+                    {fetched ? (
+                      <span>
+                        OpenSky API {t("airport.limitExceeded")} —{" "}
+                        <button className="underline cursor-pointer" style={{ color: "var(--accent-amber)" }} onClick={() => setActiveTab("dxb-all")}>
+                          DXB ALL {t("airport.viewFallback")}
+                        </button>
+                      </span>
+                    ) : t("common.loading")}
+                  </td></tr>
                 )}
                 {list.map((f, i) => {
                   const isEK = f.flightCode.startsWith("UAE") || f.flightCode.startsWith("EK");
@@ -198,6 +211,46 @@ export default function FlightStatusPanel() {
           </div>
         );
       })()}
+
+      {/* DXB ALL Table (dubaiairports.ae fallback) */}
+      {activeTab === "dxb-all" && (
+        <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+          <table className="w-full border-collapse font-mono text-[0.8rem]">
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.airline")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.destination")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.scheduled")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dxbList.length === 0 && (
+                <tr><td colSpan={5} className="text-center py-4" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</td></tr>
+              )}
+              {dxbList.map((f: DxbFlight, i: number) => {
+                const isEK = f.flightCode.startsWith("EK ");
+                const statusColor = STATUS_COLORS[f.status] ?? "var(--text-muted)";
+                return (
+                  <tr key={f.flightCode + i} style={{ borderBottom: "1px solid var(--border)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td className="py-1.5 px-2 font-semibold" style={{ color: isEK ? "var(--accent-amber)" : "var(--text-primary)" }}>{f.flightCode}</td>
+                    <td className="py-1.5 px-2" style={{ color: "var(--text-muted)" }}>{f.airline}</td>
+                    <td className="py-1.5 px-2" style={{ color: "var(--text-secondary)" }}>{f.destination}</td>
+                    <td className="py-1.5 px-2" style={{ color: "var(--text-muted)" }}>{f.scheduled}</td>
+                    <td className="py-1.5 px-2">
+                      <span className="font-mono text-[0.7rem] font-bold px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>{f.status}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* EK Routes Table */}
       {activeTab === "ek-routes" && (
