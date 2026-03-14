@@ -268,7 +268,8 @@ cron.schedule("*/15 * * * *", runCollectMarket);
 // Geopolitics: GDELT events every 30 minutes
 cron.schedule("*/30 * * * *", runCollectGeoEvents);
 
-// Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every minute
+// Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every 5 minutes
+// OpenSky free tier ~400-500 req/day → 5min interval ≈ 192 req/day
 let flightTick = 0;
 setInterval(() => {
   const hour = new Date().getHours();
@@ -280,9 +281,9 @@ setInterval(() => {
     }
     flightTick++;
   }
-}, 60 * 1000); // every 1 minute
-// Off-peak: every hour
-cron.schedule("0 0,1,2,3,4,5,6,23 * * *", runCollectAirportFlights);
+}, 5 * 60 * 1000); // every 5 minutes
+// Off-peak: every 2 hours
+cron.schedule("0 0,2,4,6 * * *", runCollectAirportFlights);
 
 // Airport: ops twice daily (06:00, 18:00)
 cron.schedule("0 6,18 * * *", runCollectAirportOps);
@@ -380,7 +381,7 @@ console.log("Schedules:");
 console.log("  */15 * * * *     News collection (GDELT + RSS)");
 console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
-console.log("  */1min 07-23h    Airport flights (bbox + icao24 refresh alternating)");
+console.log("  */5min 07-23h    Airport flights (bbox + icao24 refresh alternating)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
 console.log("  */10 * * * *     DXB flight status (scraping)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
