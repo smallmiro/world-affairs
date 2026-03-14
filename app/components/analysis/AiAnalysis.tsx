@@ -80,9 +80,24 @@ export default function AiAnalysis() {
             );
           })
         )}
+        {/* Legend */}
+        <div className="mt-3 pt-2 border-t flex flex-col gap-1" style={{ borderColor: "var(--border)" }}>
+          <div className="font-mono text-[0.46rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+            긴장도 지수 (0~100) — 지역 내 이벤트 유형 기반 산출
+          </div>
+          <div className="flex gap-3 font-mono text-[0.44rem]">
+            <span style={{ color: "var(--accent-red)" }}>■ 60+ 위험</span>
+            <span style={{ color: "var(--accent-amber)" }}>■ 40-59 경계</span>
+            <span style={{ color: "var(--accent-blue)" }}>■ 20-39 주의</span>
+            <span style={{ color: "var(--accent-green)" }}>■ 0-19 안정</span>
+          </div>
+          <div className="font-mono text-[0.42rem] leading-[1.4]" style={{ color: "var(--text-muted)" }}>
+            분쟁=90 군사훈련=75 시위=65 제재=60 인도위기=70 무역분쟁=40 외교=20
+          </div>
+        </div>
       </div>
 
-      {/* Trend chart - SVG placeholder (M3) */}
+      {/* Trend chart */}
       <div className="p-5" style={{ background: "var(--bg-primary)" }}>
         <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
