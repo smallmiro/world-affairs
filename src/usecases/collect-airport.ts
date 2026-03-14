@@ -12,24 +12,55 @@ import type {
   AirlineOps,
   EmiratesRoute,
 } from "../domain/airport/entities";
-import type { PrismaClient } from "../generated/prisma/client";
 import { randomUUID } from "crypto";
 
-// ICAO→IATA mapping for callsign matching with DxbFlightStatus
-const ICAO_TO_IATA_PREFIX: Record<string, string> = {
-  UAE: "EK", FDB: "FZ", ETD: "EY", QTR: "QR", SVA: "SV",
-  ABY: "G9", GFA: "GF", KAC: "KU", OMA: "WY",
-  BAW: "BA", DLH: "LH", KAL: "KE", SIA: "SQ", THY: "TK",
-};
+const OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
+const DXB_ICAO = "OMDB";
 
-function icaoToIataFlightCode(callsign: string): string | null {
-  const trimmed = callsign.trim();
-  if (!trimmed) return null;
-  const prefix = trimmed.slice(0, 3).toUpperCase();
-  const number = trimmed.slice(3).replace(/\s/g, "");
-  const iataPrefix = ICAO_TO_IATA_PREFIX[prefix];
-  if (!iataPrefix) return null;
-  return `${iataPrefix} ${number}`;
+async function fetchDxbRoutes(): Promise<Map<string, { dep: string | null; arr: string | null }>> {
+  const clientId = process.env.OPENSKY_USERNAME;
+  const clientSecret = process.env.OPENSKY_PASSWORD;
+  if (!clientId || !clientSecret) return new Map();
+
+  // Get OAuth2 token
+  const tokenRes = await fetch(OPENSKY_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "client_credentials", client_id: clientId, client_secret: clientSecret }).toString(),
+  });
+  if (!tokenRes.ok) return new Map();
+  const { access_token } = await tokenRes.json() as { access_token: string };
+
+  const now = Math.floor(Date.now() / 1000);
+  const begin = now - 43200; // 12 hours
+
+  const [arrRes, depRes] = await Promise.all([
+    fetch(`https://opensky-network.org/api/flights/arrival?airport=${DXB_ICAO}&begin=${begin}&end=${now}`, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    }),
+    fetch(`https://opensky-network.org/api/flights/departure?airport=${DXB_ICAO}&begin=${begin}&end=${now}`, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    }),
+  ]);
+
+  const map = new Map<string, { dep: string | null; arr: string | null }>();
+
+  if (arrRes.ok) {
+    const arrivals = await arrRes.json() as { icao24: string; estDepartureAirport: string | null; estArrivalAirport: string | null }[];
+    for (const f of arrivals) {
+      map.set(f.icao24, { dep: f.estDepartureAirport, arr: f.estArrivalAirport });
+    }
+  }
+  if (depRes.ok) {
+    const departures = await depRes.json() as { icao24: string; estDepartureAirport: string | null; estArrivalAirport: string | null }[];
+    for (const f of departures) {
+      if (!map.has(f.icao24)) {
+        map.set(f.icao24, { dep: f.estDepartureAirport, arr: f.estArrivalAirport });
+      }
+    }
+  }
+
+  return map;
 }
 
 export interface CollectResult {
@@ -43,33 +74,23 @@ export interface CollectResult {
 export async function collectAirportFlights(
   collector: OpenSkyCollectorPort,
   repo: AirportRepositoryPort,
-  prisma?: PrismaClient,
 ): Promise<CollectResult> {
   const result = await collector.collectFlights();
 
-  // Try to enrich with DxbFlightStatus data
-  let dxbFlights: Map<string, { destination: string; scheduled: string; actual: string; status: string; direction: string }> | null = null;
-  if (prisma) {
-    try {
-      const latest = await prisma.dxbFlightStatus.findFirst({ orderBy: { collectedAt: "desc" }, select: { collectedAt: true } });
-      if (latest) {
-        const statuses = await prisma.dxbFlightStatus.findMany({ where: { collectedAt: latest.collectedAt } });
-        dxbFlights = new Map();
-        for (const s of statuses) {
-          dxbFlights.set(s.flightCode.replace(/\s/g, "").toUpperCase(), {
-            destination: s.destination,
-            scheduled: s.scheduled,
-            actual: s.actual,
-            status: s.status,
-            direction: s.direction,
-          });
-        }
-      }
-    } catch { /* DxbFlightStatus table may not exist yet */ }
-  }
+  // Enrich with OpenSky flights API (arrivals/departures by airport)
+  let routeMap: Map<string, { dep: string | null; arr: string | null }> | null = null;
+  try {
+    routeMap = await fetchDxbRoutes();
+  } catch { /* OpenSky flights API may fail */ }
 
   const flights: FlightPosition[] = result.data.map((raw) => {
-    const enriched = enrichWithDxb(raw, dxbFlights);
+    // Match by icao24 against OpenSky flights data
+    const route = routeMap?.get(raw.icao24);
+    const enriched = route ? {
+      ...raw,
+      depAirport: route.dep,
+      arrAirport: route.arr,
+    } : raw;
     return {
       id: randomUUID(),
       ...enriched,
@@ -82,29 +103,6 @@ export async function collectAirportFlights(
   }
 
   return { total: flights.length, saved: flights.length, skipped: 0 };
-}
-
-function enrichWithDxb(
-  raw: RawFlightPosition,
-  dxbFlights: Map<string, { destination: string; scheduled: string; actual: string; status: string; direction: string }> | null,
-): RawFlightPosition {
-  if (!dxbFlights) return raw;
-
-  const iataCode = icaoToIataFlightCode(raw.callsign);
-  if (!iataCode) return raw;
-
-  const normalized = iataCode.replace(/\s/g, "").toUpperCase();
-  const match = dxbFlights.get(normalized);
-  if (!match) return raw;
-
-  return {
-    ...raw,
-    depAirport: match.direction === "departure" ? "DXB" : match.destination.split(" ")[0],
-    arrAirport: match.direction === "departure" ? match.destination.split(" ")[0] : "DXB",
-    depTime: match.scheduled,
-    arrTime: match.actual,
-    flightStatus: match.status.toLowerCase().replace(/\s/g, "_"),
-  };
 }
 
 // ─── Ops (status + airlines + routes) ─────────────────────────

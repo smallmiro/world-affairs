@@ -60,9 +60,8 @@ export class AisStreamCollector implements VesselCollectorPort {
         const subscribeMsg = {
           APIkey: this.apiKey,
           BoundingBoxes: [
-            // Middle East maritime region: Suez → Strait of Hormuz
-            // Format: [[lat_min, lon_min], [lat_max, lon_max]]
-            [[10.0, 32.0], [31.5, 65.0]],
+            // Worldwide — Middle East filtering done in process-vessel.ts
+            [[-90, -180], [90, 180]],
           ],
           FiltersShipMMSI: [],
           FilterMessageTypes: ["PositionReport", "ShipStaticData"],
