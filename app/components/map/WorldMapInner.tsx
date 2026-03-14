@@ -82,8 +82,8 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
 
   return (
     <MapContainer
-      center={[30, 55]}
-      zoom={3}
+      center={[32, 52]}
+      zoom={4}
       style={{ height: 420, width: "100%", background: "#0a0e17" }}
       zoomControl={false}
       attributionControl={false}
