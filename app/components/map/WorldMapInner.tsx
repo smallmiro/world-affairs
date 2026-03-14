@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import type { GeoEvent } from "../../lib/types";
 import type { FlightPositionResponse } from "../../lib/api-client";
 import { useLanguage } from "../../lib/language-context";
+import { useMapTheme } from "../../hooks/use-map-theme";
 import { getTranslatedText, mapSeverity } from "../../lib/display-mappers";
 
 const SEVERITY_MARKER_COLORS: Record<string, string> = {
@@ -79,16 +80,17 @@ interface WorldMapInnerProps {
 
 export default function WorldMapInner({ events, flights = [] }: WorldMapInnerProps) {
   const { lang } = useLanguage();
+  const { tileUrl, mapBg, popupBg, popupText } = useMapTheme();
 
   return (
     <MapContainer
       center={[32, 52]}
       zoom={4}
-      style={{ height: 500, width: "100%", background: "#1a1b26" }}
+      style={{ height: 500, width: "100%", background: mapBg }}
       zoomControl={false}
       attributionControl={false}
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+      <TileLayer url={tileUrl} />
 
       {/* Conflict / Caution / Safe zones */}
       {TENSION_ZONES.map((zone) => (
@@ -105,7 +107,7 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
           }}
         >
           <Popup>
-            <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 200, background: "#16161e", padding: 8, borderRadius: 2 }}>
+            <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 200, background: popupBg, padding: 8, borderRadius: 2 }}>
               <div style={{ fontWeight: "bold", color: zone.color, marginBottom: 4, fontSize: "0.8rem" }}>
                 {zone.label}
               </div>
@@ -116,7 +118,7 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
               }}>
                 {zone.type}
               </div>
-              <div style={{ fontSize: "0.65rem", color: "#e2e8f0", lineHeight: 1.5 }}>
+              <div style={{ fontSize: "0.65rem", color: popupText, lineHeight: 1.5 }}>
                 {zone.desc}
               </div>
             </div>
@@ -205,11 +207,11 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
               icon={aircraftIcon(f.callsign, f.heading)}
             >
               <Popup>
-                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: "#16161e", padding: 6, minWidth: 120 }}>
+                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: popupBg, padding: 6, minWidth: 120 }}>
                   <div style={{ fontWeight: "bold", color, marginBottom: 3, fontSize: "0.8rem" }}>
                     ✈ {f.callsign.trim()}
                   </div>
-                  <div style={{ fontSize: "0.8rem", color: "#e2e8f0", marginBottom: 2 }}>
+                  <div style={{ fontSize: "0.8rem", color: popupText, marginBottom: 2 }}>
                     {airlineName}
                   </div>
                   {(f.depAirport || f.arrAirport) && (

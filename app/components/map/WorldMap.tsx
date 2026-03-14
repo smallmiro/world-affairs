@@ -90,7 +90,7 @@ export default function WorldMap() {
         {isLoading ? (
           <div
             className="flex items-center justify-center h-full"
-            style={{ background: "#1a1b26" }}
+            style={{ background: "var(--map-bg, #1a1b26)" }}
           >
             <span className="font-mono text-[0.8rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
               {t("common.loadingMap")}

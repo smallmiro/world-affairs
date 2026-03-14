@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="300">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DXB Mobile Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg-base: #0f1115;
+    --bg-card: #181b21;
+    --text-main: #f1f5f9;
+    --text-sub: #94a3b8;
+    --border: #272c36;
+    --accent: #38bdf8;
+    --red: #ef4444;
+    --green: #22c55e;
+    --amber: #f59e0b;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background-color: var(--bg-base); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
+  
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(24, 27, 33, 0.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-title { font-weight: 700; font-size: 1.1rem; color: var(--accent); }
+  
+  .refresh-btn {
+    background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--accent); font-size: 0.85rem; padding: 4px 10px;
+    border-radius: 20px; display: flex; align-items: center; gap: 4px;
+    cursor: pointer; transition: all 0.2s; font-weight: 600;
+  }
+  .refresh-btn:active { background: rgba(56, 189, 248, 0.2); transform: scale(0.95); }
+
+  .live-badge { 
+    display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; color: var(--green);
+    background: rgba(34, 197, 94, 0.1); padding: 4px 8px; border-radius: 12px;
+  }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Alert Ticker */
+  .alert-bar {
+    background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 8px 16px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; overflow: hidden;
+  }
+  .alert-label { font-weight: 700; color: var(--red); white-space: nowrap; }
+  .ticker { display: flex; white-space: nowrap; animation: scroll 15s linear infinite; gap: 30px; }
+  .ticker span { color: #fca5a5; }
+  @keyframes scroll { 100% { transform: translateX(-50%); } }
+
+  /* Container */
+  .container { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Card Base */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+  .card-header { padding: 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+  .card-icon { color: var(--accent); }
+  .card-body { padding: 16px; }
+
+  /* Map Container */
+  #map-container { height: 45vh; min-height: 300px; width: 100%; z-index: 1; }
+  
+  /* Status Row */
+  .status-row { display: flex; justify-content: space-between; background: #1e2229; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; }
+  .status-item { display: flex; flex-direction: column; gap: 4px; }
+  .status-label { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
+  .status-val { font-size: 0.95rem; font-weight: 700; }
+  .val-green { color: var(--green); }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 16px; }
+  .tl-row { display: flex; gap: 12px; position: relative; }
+  .tl-line { position: absolute; left: 5px; top: 20px; bottom: -16px; width: 2px; background: var(--border); }
+  .tl-row:last-child .tl-line { display: none; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); z-index: 2; margin-top: 4px; border: 2px solid var(--bg-card); }
+  .tl-dot.red { background: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+  .tl-dot.amber { background: var(--amber); }
+  .tl-dot.green { background: var(--green); }
+  .tl-content { flex: 1; }
+  .tl-date { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 2px; font-weight: 600;}
+  .tl-desc { font-size: 0.9rem; background: #1e2229; padding: 10px; border-radius: 8px; margin-top: 4px; }
+
+  /* Grid Lists */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  /* Airline Item */
+  .item-box { background: #1e2229; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .item-title { font-size: 0.85rem; color: var(--text-sub); }
+  .item-data { display: flex; justify-content: space-between; align-items: center; }
+  .item-val { font-weight: 700; font-size: 1.1rem; }
+  .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 600; }
+  .badge.ok { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge.warn { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .badge.err { background: rgba(239,68,68,0.15); color: var(--red); }
+
+  /* Briefing Text */
+  .briefing-text { font-size: 0.9rem; color: #cbd5e1; background: rgba(56, 189, 248, 0.05); border-left: 3px solid var(--accent); padding: 12px; border-radius: 0 8px 8px 0; }
+
+  /* Leaflet Dark Tweaks */
+  .leaflet-container { background: #0f1115 !important; }
+  .leaflet-popup-content-wrapper { background: #1e2229; color: #fff; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  .leaflet-popup-tip { background: #1e2229; }
+  .leaflet-popup-content { margin: 12px; font-family: 'Pretendard', sans-serif; font-size: 0.85rem; }
+  
+  .map-marker { font-size: 16px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); transition: transform 0.3s; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-title">✈️ DXB Monitor</div>
+    <button class="refresh-btn" onclick="location.reload();" title="새로고침">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l5.67-5.67"/></svg>
+      Reload
+    </button>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+</header>
+
+<div class="alert-bar" style="background: rgba(34, 197, 94, 0.15); border-bottom: 1px solid rgba(34, 197, 94, 0.3);">
+  <div class="ticker" style="animation: scroll 15s linear infinite;">
+    <span style="font-weight:700; color:var(--green); font-size: 0.9rem;">
+      &nbsp;&nbsp;&nbsp;인천(ICN) → 두바이(DXB) → 밀라노(MXP) 노선 전 구간 정상 운항 중&nbsp;&nbsp;&nbsp;
+    </span>
+    <span style="font-weight:700; color:var(--green); font-size: 0.9rem;">
+      &nbsp;&nbsp;&nbsp;인천(ICN) → 두바이(DXB) → 밀라노(MXP) 노선 전 구간 정상 운항 중&nbsp;&nbsp;&nbsp;
+    </span>
+  </div>
+</div>
+
+<div class="alert-bar" style="background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+  <div class="ticker" style="animation: scroll 20s linear infinite;">
+    <span>
+      <strong style="color:var(--accent); font-weight:700;">[ICN→DXB→MXP] 전 구간 정상 운항 (지연 0분)</strong> &nbsp; | &nbsp; 
+      <strong style="color:var(--amber); font-weight:700;">[MXP→DXB→ICN] 귀국편 정상 운항 대기 (지연 없음)</strong> &nbsp; | &nbsp; 
+      [주시] 이란 영공 훈련으로 인해 일부 유럽 노선 남쪽으로 우회 발생 (지연 10-15분) • 두바이 공항 이착륙 정상
+    </span>
+    <span>
+      <strong style="color:var(--accent); font-weight:700;">[ICN→DXB→MXP] 전 구간 정상 운항 (지연 0분)</strong> &nbsp; | &nbsp; 
+      <strong style="color:var(--amber); font-weight:700;">[MXP→DXB→ICN] 귀국편 정상 운항 대기 (지연 없음)</strong> &nbsp; | &nbsp; 
+      [주시] 이란 영공 훈련으로 인해 일부 유럽 노선 남쪽으로 우회 발생 (지연 10-15분) • 두바이 공항 이착륙 정상
+    </span>
+  </div>
+</div>
+
+<div class="container">
+  
+  <!-- Map Card -->
+  <div class="card">
+    <div id="map-container"></div>
+    <div class="card-body" style="padding-top: 12px;">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-label">공항 상태</span>
+          <span class="status-val val-green">정상 운영 (OPEN)</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">추적 중인 항공편</span>
+          <span class="status-val">14대 <span style="font-size:0.7rem;font-weight:normal;color:var(--text-sub)">(EK 6대)</span></span>
+        </div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-sub); text-align: center;">💡 지도를 스와이프하여 주변 공역을 확인하세요.</p>
+    </div>
+  </div>
+
+  <!-- Timeline Card -->
+  <div class="card">
+    <div class="card-header"><span class="card-icon">⏱️</span> 7일 주요 타임라인</div>
+    <div class="card-body">
+      <div class="timeline">
+        <div class="tl-row">
+          <div class="tl-line"></div>
+          <div class="tl-dot green"></div>
+          <div class="tl-content">
+            <div class="tl-date">오늘 (3/14)</div>
+            <div class="tl-desc"><span class="badge ok" style="margin-right:4px;">정상</span>DXB 전 활주로 정상 운영 중</div>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"></div>
+          <div class="tl-dot amber"></div>
+          <div class="tl-content">
+            <div class="tl-date">어제 (3/13)</div>
+            <div class="tl-desc"><span class="badge warn" style="margin-right:4px;">경계</span>이란 군사 훈련 인지. UAE 방공망 감시 강화</div>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-line"></div>
+          <div class="tl-dot red"></div>
+          <div class="tl-content">
+            <div class="tl-date">3/11 (화)</div>
+            <div class="tl-desc"><span class="badge err" style="margin-right:4px;">우회</span>IRGC 미사일 시험 발사로 북부 항로 일부 제한</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Routes Card -->
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🗺️</span> 주요 노선 상태</div>
+    <div class="card-body">
+      <div class="grid-2">
+        <div class="item-box">
+          <span class="item-title">인천 (ICN)</span>
+          <div class="item-data"><span class="item-val">EK322</span><span class="badge ok">OPEN</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">밀라노 (MXP)</span>
+          <div class="item-data"><span class="item-val">EK091</span><span class="badge ok">OPEN</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">런던 (LHR)</span>
+          <div class="item-data"><span class="item-val">EK001</span><span class="badge ok">OPEN</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">텔아비브 (TLV)</span>
+          <div class="item-data"><span class="item-val">EK931</span><span class="badge err">SUSP</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">테헤란 (IKA)</span>
+          <div class="item-data"><span class="item-val">EK971</span><span class="badge warn">DIVRT</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">파리 (CDG)</span>
+          <div class="item-data"><span class="item-val">EK073</span><span class="badge ok">OPEN</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Airlines Card -->
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🏢</span> 주요 항공사 현황</div>
+    <div class="card-body">
+      <div class="grid-2">
+        <div class="item-box">
+          <span class="item-title">에미레이트 (EK)</span>
+          <div class="item-data"><span class="item-val">98% <span style="font-size:0.7rem;font-weight:400;color:var(--text-sub)">정시</span></span><span class="badge ok">양호</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">대한항공 (KE)</span>
+          <div class="item-data"><span class="item-val">100% <span style="font-size:0.7rem;font-weight:400;color:var(--text-sub)">정시</span></span><span class="badge ok">양호</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">루프트한자 (LH)</span>
+          <div class="item-data"><span class="item-val">78% <span style="font-size:0.7rem;font-weight:400;color:var(--text-sub)">정시</span></span><span class="badge warn">지연</span></div>
+        </div>
+        <div class="item-box">
+          <span class="item-title">이란항공 (IR)</span>
+          <div class="item-data"><span class="item-val">50% <span style="font-size:0.7rem;font-weight:400;color:var(--text-sub)">정시</span></span><span class="badge err">결항</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Briefing -->
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🤖</span> AI 상황 요약</div>
+    <div class="card-body">
+      <div class="briefing-text">
+        현재 두바이 국제공항(DXB) 및 에미레이트 항공의 주요 노선(인천, 밀라노 등)은 <strong>모두 정상적으로 이착륙</strong>하고 있습니다. <br><br>
+        단, 이란 영공 인근 군사 활동으로 인해 일부 중동 역내 및 동유럽행 비행기가 남쪽 항로로 우회하고 있어 약 10~15분의 추가 비행시간이 발생 중입니다. 여정에 심각한 영향을 줄 수준은 아닙니다.
+      </div>
+    </div>
+  </div>
+  
+  <div style="text-align: center; margin-top: 8px;">
+    <div style="font-size: 0.75rem; color: var(--text-sub);">
+      🔄 마지막 데이터 갱신: 2026-03-14 16:19 (KST)
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ═══ Map Initialization ═══
+  const map = L.map('map-container', {
+    center: [25.25, 55.36],
+    zoom: 6,
+    minZoom: 4,
+    maxZoom: 9,
+    zoomControl: false,
+    attributionControl: false
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19, opacity: 0.5
+  }).addTo(map);
+
+  // DXB Marker
+  L.marker([25.253, 55.365], {
+    icon: L.divIcon({
+      className: '',
+      html: '<div style="font-size:12px;color:#f59e0b;font-weight:700;text-shadow:0 0 10px #f59e0b;">✦ DXB</div>',
+      iconSize: [50, 20]
+    }), interactive: false
+  }).addTo(map);
+
+  // Danger Zones
+  L.circle([27.5, 54.5], { radius: 150000, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.1, weight: 1, dashArray: '4 4' }).addTo(map);
+  L.circle([26.6, 56.2], { radius: 40000, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.15, weight: 1, dashArray: '4 4' }).addTo(map);
+
+  // Flights
+  function planeIcon(color, rot) {
+    let shadow = 'drop-shadow(0px 0px 3px rgba(0,0,0,0.8))';
+    if(color === '#facc15') {
+      shadow = 'drop-shadow(0px 0px 6px #facc15) drop-shadow(0px 0px 3px rgba(0,0,0,0.8))';
+    }
+    
+    // SVG 비행기 아이콘 적용 (모바일 OS의 기본 이모지 렌더링 방지)
+    const svgPlane = `
+      <svg width="24" height="24" viewBox="0 0 24 24" style="transform:rotate(${rot}deg); filter:${shadow};">
+        <path fill="${color}" d="M21,16V14L13,9V3.5C13,2.67 12.33,2 11.5,2C10.67,2 10,2.67 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" />
+      </svg>
+    `;
+
+    return L.divIcon({
+      className: '',
+      html: svgPlane,
+      iconSize: [24, 24], iconAnchor: [12, 12]
+    });
+  }
+
+  const flights = [
+    { lat: 34.6965, lng: 33.3395, rot: 121.0, text: '<b>AEE2LK</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.7469, lng: 34.3053, rot: 0.0, text: '<b>BGH3001</b><br>정상 운항', color: '#64748b' },
+    { lat: 34.9716, lng: 33.6828, rot: 328.5, text: '<b>WMT6203</b><br>정상 운항', color: '#64748b' },
+    { lat: 34.7323, lng: 33.4424, rot: 47.6, text: '<b>AEE544</b><br>정상 운항', color: '#64748b' },
+    { lat: 35.1054, lng: 33.6985, rot: 342.6, text: '<b>PGT1915</b><br>정상 운항', color: '#64748b' },
+    { lat: 28.7800, lng: 33.3204, rot: 308.6, text: '<b>SVA215</b><br>정상 운항', color: '#64748b' },
+    { lat: 37.3324, lng: 30.8501, rot: 358.0, text: '<b>CAI13TP</b><br>정상 운항', color: '#64748b' },
+    { lat: 38.4358, lng: 30.1112, rot: 159.7, text: '<b>FIA6343</b><br>정상 운항', color: '#64748b' },
+    { lat: 30.2135, lng: 31.6100, rot: 351.2, text: '<b>SDM5978</b><br>정상 운항', color: '#64748b' },
+    { lat: 30.3461, lng: 31.1163, rot: 316.9, text: '<b>UAE7AM</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 31.7469, lng: 34.3052, rot: 0.0, text: '<b>UAE17K</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 31.7469, lng: 34.3053, rot: 0.0, text: '<b>ENT4003</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.0031, lng: 34.5305, rot: 181.5, text: '<b>AFL917</b><br>정상 운항', color: '#64748b' },
+    { lat: 23.3200, lng: 49.3187, rot: 98.9, text: '<b>UNKNOWN</b><br>정상 운항', color: '#64748b' },
+    { lat: 39.5269, lng: 37.7039, rot: 280.5, text: '<b>TKJ1ZU</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.1370, lng: 30.1345, rot: 287.6, text: '<b>AIC4101</b><br>정상 운항', color: '#64748b' },
+    { lat: 29.4824, lng: 32.2107, rot: 315.3, text: '<b>UAE4T</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 35.2380, lng: 33.3437, rot: 95.8, text: '<b>TKJ4HD</b><br>정상 운항', color: '#64748b' },
+    { lat: 38.0615, lng: 30.5591, rot: 346.3, text: '<b>THY097</b><br>정상 운항', color: '#64748b' },
+    { lat: 23.1858, lng: 49.8435, rot: 97.8, text: '<b>ABY152</b><br>정상 운항', color: '#64748b' },
+    { lat: 25.2237, lng: 55.3939, rot: 300.6, text: '<b>SEJ5060</b><br>정상 운항', color: '#64748b' },
+    { lat: 35.9677, lng: 30.8282, rot: 176.8, text: '<b>THY108</b><br>정상 운항', color: '#64748b' },
+    { lat: 34.9730, lng: 30.0777, rot: 91.0, text: '<b>RYR5E</b><br>정상 운항', color: '#64748b' },
+    { lat: 39.9435, lng: 31.9526, rot: 116.9, text: '<b>THY6PS</b><br>정상 운항', color: '#64748b' },
+    { lat: 30.1978, lng: 31.2762, rot: 316.7, text: '<b>UAE39</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 31.4448, lng: 37.5104, rot: 63.2, text: '<b>UAE73</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 38.5885, lng: 30.0392, rot: 159.7, text: '<b>THY3LT</b><br>정상 운항', color: '#64748b' },
+    { lat: 38.5569, lng: 30.2964, rot: 38.4, text: '<b>THY9VT</b><br>정상 운항', color: '#64748b' },
+    { lat: 29.8712, lng: 32.4538, rot: 283.5, text: '<b>UAE1</b><br>EK 운항편 / 정상', color: '#facc15' },
+    { lat: 35.5481, lng: 33.8552, rot: 18.3, text: '<b>TKJ56K</b><br>정상 운항', color: '#64748b' },
+    { lat: 34.8301, lng: 31.9581, rot: 177.2, text: '<b>AWG4206</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.7469, lng: 34.3052, rot: 0.0, text: '<b>AHY1091</b><br>정상 운항', color: '#64748b' },
+    { lat: 38.6696, lng: 30.5651, rot: 353.8, text: '<b>THY3LS</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.7476, lng: 34.3057, rot: 0.0, text: '<b>THY38D</b><br>정상 운항', color: '#64748b' },
+    { lat: 23.2129, lng: 50.0194, rot: 99.2, text: '<b>FDB832</b><br>정상 운항', color: '#64748b' },
+    { lat: 37.4061, lng: 30.8389, rot: 358.0, text: '<b>SXS57E</b><br>정상 운항', color: '#64748b' },
+    { lat: 31.7471, lng: 34.3056, rot: 270.0, text: '<b>HYS7611</b><br>정상 운항', color: '#64748b' },
+    { lat: 23.1430, lng: 50.3662, rot: 99.0, text: '<b>ETD76T</b><br>정상 운항', color: '#64748b' },
+    { lat: 26.0957, lng: 53.5700, rot: 270.0, text: '<b>ABY163</b><br>정상 운항', color: '#64748b' },
+    { lat: 23.1868, lng: 49.9608, rot: 97.6, text: '<b>MEA1428</b><br>정상 운항', color: '#64748b' }
+  ];
+
+  // 노선(항로) 점선 표시
+  const dxb = [25.253, 55.365];
+  
+  function drawRoute(destLat, destLng, color, isDashed = true) {
+    L.polyline([dxb, [destLat, destLng]], {
+      color: color,
+      weight: 1.5,
+      opacity: 0.4,
+      dashArray: isDashed ? '4 8' : null // 점선 스타일
+    }).addTo(map);
+  }
+
+  // 주요 항로선 그리기
+  drawRoute(37.46, 126.44, '#38bdf8'); // ICN (인천 방향)
+  drawRoute(45.63, 8.72, '#38bdf8');   // MXP (밀라노 방향)
+  drawRoute(51.47, -0.45, '#38bdf8');  // LHR (런던 방향)
+  drawRoute(35.68, 51.38, '#ef4444');  // IKA (테헤란 방향 - 우회/위험 노선은 빨간색)
+  drawRoute(19.09, 72.86, '#38bdf8');  // BOM (뭄바이 방향)
+  drawRoute(-33.94, 151.17, '#38bdf8'); // SYD (시드니 방향)
+
+  // 비행기 마커 객체들을 저장할 배열
+  const markers = [];
+
+  flights.forEach(f => {
+    let marker = L.marker([f.lat, f.lng], { icon: planeIcon(f.color, f.rot) })
+      .bindPopup(f.text)
+      .addTo(map);
+    markers.push({ marker: marker, data: f });
+  });
+
+  // 비행기 실시간 부드러운 이동 애니메이션 (브라우저 내 자체 이동)
+  setInterval(() => {
+    markers.forEach(m => {
+      // heading(rot)을 라디안으로 변환
+      // 0도는 북쪽(y증가), 90도는 동쪽(x증가)
+      let headingRad = (m.data.rot - 90) * (Math.PI / 180);
+      
+      // 초당 미세하게 이동시킬 거리 산정 (속도 조절)
+      let speed = 0.0003; 
+      let dLat = Math.sin(-headingRad) * speed; 
+      let dLng = Math.cos(-headingRad) * speed;
+
+      m.data.lat += dLat;
+      m.data.lng += dLng;
+      
+      m.marker.setLatLng([m.data.lat, m.data.lng]);
+    });
+  }, 100); // 0.1초마다 아주 부드럽게 갱신
+</script>
+</body>
+</html>

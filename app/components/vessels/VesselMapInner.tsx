@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { VesselWithPosition } from "../../lib/types";
+import { useMapTheme } from "../../hooks/use-map-theme";
 
 const TYPE_LABELS: Record<string, string> = {
   tanker_crude: "원유 유조선",
@@ -41,15 +42,16 @@ interface VesselMapInnerProps {
 }
 
 export default function VesselMapInner({ vessels }: VesselMapInnerProps) {
+  const { tileUrl, mapBg } = useMapTheme();
   return (
     <MapContainer
       center={[22, 50]}
       zoom={4}
-      style={{ height: 340, width: "100%", background: "#1a1b26" }}
+      style={{ height: 340, width: "100%", background: mapBg }}
       zoomControl={false}
       attributionControl={false}
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+      <TileLayer url={tileUrl} />
       {vessels
         .filter((v) => v.latestPosition)
         .map((v) => {

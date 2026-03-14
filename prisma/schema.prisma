@@ -122,7 +122,7 @@ model AirportStatus {
 
 model FlightPosition {
   id            String   @id @default(uuid())
-  icao24        String
+  icao24        String   @unique
   callsign      String
   lat           Float
   lon           Float

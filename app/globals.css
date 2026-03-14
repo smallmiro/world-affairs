@@ -25,26 +25,36 @@
   --glow-cyan: 0 0 20px rgba(125, 207, 255, 0.3);
   --glow-red: 0 0 20px rgba(247, 118, 142, 0.3);
   --glow-amber: 0 0 15px rgba(255, 158, 100, 0.2);
+  --map-bg: #1a1b26;
 }
 
 :root.light {
-  --bg-primary: #d5d6db;
-  --bg-secondary: #e9e9ec;
+  /* Tokyo Night Day */
+  --bg-primary: #e1e2e7;
+  --bg-secondary: #d5d6db;
   --bg-card: #ffffff;
-  --bg-card-hover: #f0f0f2;
-  --border: #c4c8da;
-  --border-active: #9699a3;
-  --text-primary: #343b58;
-  --text-secondary: #565a6e;
-  --text-muted: #9699a3;
-  --accent-cyan-dim: rgba(125, 207, 255, 0.1);
-  --accent-amber-dim: rgba(255, 158, 100, 0.1);
-  --accent-red-dim: rgba(247, 118, 142, 0.1);
-  --accent-green-dim: rgba(158, 206, 106, 0.1);
-  --accent-blue-dim: rgba(59, 130, 246, 0.1);
-  --glow-cyan: rgba(125, 207, 255, 0.15);
-  --glow-red: rgba(247, 118, 142, 0.15);
-  --glow-amber: rgba(255, 158, 100, 0.15);
+  --bg-card-hover: #eef0f3;
+  --border: #b4b5b9;
+  --border-active: #8990a3;
+  --text-primary: #3760bf;
+  --text-secondary: #4c505e;
+  --text-muted: #8990a3;
+  --accent-cyan: #007197;
+  --accent-cyan-dim: rgba(0, 113, 151, 0.1);
+  --accent-amber: #8c6c3e;
+  --accent-amber-dim: rgba(140, 108, 62, 0.1);
+  --accent-red: #f52a65;
+  --accent-red-dim: rgba(245, 42, 101, 0.1);
+  --accent-green: #587539;
+  --accent-green-dim: rgba(88, 117, 57, 0.1);
+  --accent-blue: #2e7de9;
+  --accent-blue-dim: rgba(46, 125, 233, 0.1);
+  --accent-purple: #9854f1;
+  --glow-cyan: rgba(0, 113, 151, 0.15);
+  --glow-red: rgba(245, 42, 101, 0.15);
+  --glow-amber: rgba(140, 108, 62, 0.15);
+  /* Map background for light mode */
+  --map-bg: #e1e2e7;
 }
 
 @theme inline {
