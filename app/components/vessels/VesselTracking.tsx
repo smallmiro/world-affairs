@@ -3,9 +3,12 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useVessels } from "../../hooks/use-vessels";
+import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useSSEPositions } from "../../hooks/use-sse-positions";
+import { useLanguage } from "../../lib/language-context";
+import { getTranslatedText, formatTime } from "../../lib/display-mappers";
 import SectionHeader from "../ui/SectionHeader";
-import type { VesselWithPosition } from "../../lib/types";
+import type { VesselWithPosition, GeoEvent } from "../../lib/types";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
 
@@ -46,6 +49,41 @@ function countByZone(vessels: VesselWithPosition[]): { zone: string; ko: string;
     .sort((a, b) => b.count - a.count);
 }
 
+const MARITIME_KEYWORDS = [
+  "hormuz", "houthi", "ship", "tanker", "naval", "maritime", "red sea",
+  "blockade", "piracy", "vessel", "strait", "navy", "marine", "gulf",
+  "shipping", "cargo ship", "oil tanker", "suez",
+];
+
+const MARITIME_TAG_MAP: [string, string[]][] = [
+  ["ATTACK", ["attack", "strike", "missile", "houthi", "drone"]],
+  ["BLOCKADE", ["blockade", "closure", "restrict", "ban"]],
+  ["MILITARY", ["navy", "naval", "marine", "military", "deploy"]],
+  ["PIRACY", ["piracy", "pirate", "hijack", "seize"]],
+  ["ALERT", ["alert", "warning", "risk", "disruption", "crisis"]],
+];
+
+function classifyMaritimeTag(title: string): { tag: string; color: string } {
+  const lower = title.toLowerCase();
+  for (const [tag, keywords] of MARITIME_TAG_MAP) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      if (tag === "ATTACK") return { tag, color: "var(--accent-red)" };
+      if (tag === "BLOCKADE") return { tag, color: "var(--accent-red)" };
+      if (tag === "MILITARY") return { tag, color: "var(--accent-amber)" };
+      if (tag === "PIRACY") return { tag, color: "var(--accent-red)" };
+      return { tag, color: "var(--accent-amber)" };
+    }
+  }
+  return { tag: "INFO", color: "var(--accent-cyan)" };
+}
+
+function filterMaritimeEvents(events: GeoEvent[]): GeoEvent[] {
+  return events.filter((e) => {
+    const title = (e.title?.en ?? "").toLowerCase();
+    return MARITIME_KEYWORDS.some((kw) => title.includes(kw));
+  });
+}
+
 function getAnomalies(vessels: VesselWithPosition[]): VesselWithPosition[] {
   return vessels.filter(
     (v) => v.latestPosition && (v.latestPosition.status !== "normal" || v.latestPosition.speed === 0),
@@ -80,6 +118,13 @@ export default function VesselTracking() {
   const [activeFilter, setActiveFilter] = useState<VesselFilter>("all");
   const { data: vessels, isLoading } = useVessels({ refetchInterval: 300_000 });
   const { vessels: sseVessels, connected: sseConnected } = useSSEPositions();
+  const { data: geoEvents } = useGeoEvents({ limit: 100 });
+  const { lang } = useLanguage();
+
+  const maritimeNews = useMemo(
+    () => filterMaritimeEvents(geoEvents ?? []).slice(0, 5),
+    [geoEvents],
+  );
 
   const mergedVessels = useMemo(
     () => mergeSSEPositions(vessels ?? [], sseVessels),
@@ -199,49 +244,71 @@ export default function VesselTracking() {
           </div>
         </div>
 
-        {/* Anomaly alerts */}
+        {/* Maritime situation alerts */}
         <div>
           <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
-            이상 감지 알림
+            해상 상황 알림
           </h3>
-          <div className="flex flex-col gap-1">
-            {anomalies.length === 0 ? (
+          <div className="flex flex-col gap-1" style={{ maxHeight: 200, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+            {/* Vessel anomalies */}
+            {anomalies.slice(0, 2).map((v) => {
+              const isCritical = v.latestPosition?.status === "anomaly";
+              return (
+                <div
+                  key={v.id}
+                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
+                  style={{
+                    background: isCritical ? "var(--accent-red-dim)" : "var(--accent-amber-dim)",
+                    borderColor: isCritical ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <span className="font-mono text-[0.55rem] font-bold shrink-0 mt-px" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
+                    {isCritical ? "!!" : "!"}
+                  </span>
+                  <div>
+                    <div className="text-[0.6rem] font-medium mb-0.5" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
+                      {v.name} — {v.latestPosition?.status.toUpperCase()}
+                    </div>
+                    <div className="text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
+                      {v.type} · {v.latestPosition?.speed ?? 0} kn · {v.latestPosition?.zone ?? "—"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Maritime news */}
+            {maritimeNews.map((event) => {
+              const { tag, color } = classifyMaritimeTag(event.title?.en ?? "");
+              return (
+                <div
+                  key={event.id}
+                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
+                  style={{ background: "var(--bg-secondary)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
+                >
+                  <span
+                    className="font-mono text-[0.46rem] font-bold tracking-[0.5px] shrink-0 mt-0.5 px-1 py-px"
+                    style={{ color, background: `${color}15` }}
+                  >
+                    {tag}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[0.6rem] leading-[1.4] line-clamp-2" style={{ color: "var(--text-secondary)" }}>
+                      {getTranslatedText(event.title, lang)}
+                    </div>
+                    <div className="text-[0.48rem] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      {formatTime(event.eventDate)} · {event.countries.join(", ")}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {anomalies.length === 0 && maritimeNews.length === 0 && (
               <span className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>
                 이상 감지 없음
               </span>
-            ) : (
-              anomalies.slice(0, 3).map((v) => {
-                const isCritical = v.latestPosition?.status === "anomaly";
-                return (
-                  <div
-                    key={v.id}
-                    className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
-                    style={{
-                      background: isCritical ? "var(--accent-red-dim)" : "var(--accent-amber-dim)",
-                      borderColor: isCritical ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    <span
-                      className="font-mono text-[0.55rem] font-bold shrink-0 mt-px"
-                      style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}
-                    >
-                      {isCritical ? "!!" : "!"}
-                    </span>
-                    <div>
-                      <div
-                        className="text-[0.6rem] font-medium mb-0.5"
-                        style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}
-                      >
-                        {v.name} — {v.latestPosition?.status.toUpperCase()}
-                      </div>
-                      <div className="text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
-                        {v.type} · {v.latestPosition?.speed ?? 0} kn · {v.latestPosition?.zone ?? "—"}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
             )}
           </div>
         </div>

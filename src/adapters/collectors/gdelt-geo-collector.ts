@@ -6,7 +6,7 @@ const GDELT_GKG_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
 const GDELT_EVENT_PARAMS = {
   query:
-    "(conflict OR protest OR sanctions OR military exercise OR trade dispute OR humanitarian crisis OR coup OR ceasefire OR territorial) sourcelang:eng",
+    "(conflict OR protest OR sanctions OR military exercise OR trade dispute OR humanitarian crisis OR coup OR ceasefire OR territorial OR hormuz OR houthi OR maritime OR tanker OR blockade OR \"red sea\" OR naval OR piracy) sourcelang:eng",
   mode: "artlist",
   format: "json",
   maxrecords: "50",
