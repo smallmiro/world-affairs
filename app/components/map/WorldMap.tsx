@@ -99,12 +99,19 @@ export default function WorldMap() {
         )}
         {/* Legend */}
         <div
-          className="absolute bottom-2 right-2 z-[600] px-2 py-1 font-mono text-[0.5rem] border flex gap-2"
-          style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
+          className="absolute bottom-2 right-2 z-[600] px-2 py-1.5 font-mono text-[0.5rem] border flex flex-col gap-1"
+          style={{ background: "rgba(10,14,23,0.9)", borderColor: "var(--border)" }}
         >
-          <span style={{ color: "#ef4444" }}>✈ Emirates</span>
-          <span style={{ color: "#f59e0b" }}>✈ Etihad</span>
-          <span style={{ color: "#64748b" }}>✈ Other</span>
+          <div className="flex gap-2">
+            <span style={{ color: "#ef4444" }}>◉ 분쟁구역</span>
+            <span style={{ color: "#f59e0b" }}>◉ 경계구역</span>
+            <span style={{ color: "#22c55e" }}>◉ 안전</span>
+          </div>
+          <div className="flex gap-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 3 }}>
+            <span style={{ color: "#ef4444" }}>✈ Emirates</span>
+            <span style={{ color: "#f59e0b" }}>✈ Etihad</span>
+            <span style={{ color: "#64748b" }}>✈ Other</span>
+          </div>
         </div>
       </div>
     </section>
