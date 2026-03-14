@@ -6,11 +6,12 @@
 
 - **Frontend + Backend**: Next.js (App Router) + TypeScript
 - **ORM / DB**: Prisma + SQLite
-- **배치 스케줄러**: node-cron (별도 프로세스)
+- **배치 스케줄러**: node-cron + setInterval (별도 프로세스)
 - **프로세스 관리**: pm2
 - **UI**: MUI v5 + Tailwind CSS + react-leaflet + Recharts
-- **데이터 수집**: GDELT, RSS, OpenSky, AviationStack, Yahoo Finance
-- **AI**: Gemini API (번역/요약/감성/브리핑)
+- **데이터 수집**: GDELT, RSS, OpenSky (OAuth2), AviationStack, AISStream (WebSocket), Yahoo Finance
+- **AI/번역**: Gemini API (번역 EN/KO/JA + 요약/감성/브리핑)
+- **실시간 통신**: SSE (Server-Sent Events) + in-memory pub/sub
 
 ## 설치
 
@@ -26,10 +27,21 @@ npx prisma generate
 
 ```
 DATABASE_URL="file:../db/data.sqlite"
+
+# AI/번역 (필수)
 GEMINI_API_KEY=your_key
+GEMINI_MODEL=gemini-2.5-flash-lite     # Optional, 기본값
+
+# 항공 모니터 (필수)
 AVIATIONSTACK_API_KEY=your_key
-OPENSKY_USERNAME=your_username        # Optional
-OPENSKY_PASSWORD=your_password        # Optional
+OPENSKY_USERNAME=your_client_id         # OAuth2 Client ID
+OPENSKY_PASSWORD=your_client_secret     # OAuth2 Client Secret
+
+# 선박 추적 (필수)
+AISSTREAM_API_KEY=your_key
+
+# 내부 SSE 통신 (Optional)
+INTERNAL_API_KEY=world-affairs-internal
 ```
 
 ## 개발 모드
@@ -57,7 +69,7 @@ pm2 start ecosystem.config.js
 | 프로세스 | 역할 | 포트 |
 |----------|------|------|
 | `world-affairs-web` | Next.js 웹 서버 | :3000 |
-| `world-affairs-batch` | 배치 스케줄러 (7개 cron job) | - |
+| `world-affairs-batch` | 배치 스케줄러 + AIS WebSocket | - |
 
 ### 3. 상태/로그 확인
 
@@ -70,26 +82,40 @@ pm2 logs world-affairs-batch       # 배치 로그만
 ### 4. 운영 명령어
 
 ```bash
-pm2 restart all     # 전체 재시작
-pm2 stop all        # 전체 중지
-pm2 delete all      # 전체 삭제
-pm2 save            # 현재 상태 저장 (재부팅 후 자동 복구)
-pm2 startup         # 시스템 부팅 시 자동 시작 등록
+pm2 restart all                    # 전체 재시작
+pm2 restart world-affairs-batch --update-env  # .env 변경 시
+pm2 stop all                       # 전체 중지
+pm2 delete all                     # 전체 삭제
+pm2 save                           # 현재 상태 저장 (재부팅 후 자동 복구)
+pm2 startup                        # 시스템 부팅 시 자동 시작 등록
 ```
 
 ## 배치 스케줄
 
-| Job | Cron | 주기 | 데이터 소스 | 시작 시 실행 |
-|-----|------|------|------------|------------|
-| `collect-news` | `*/15 * * * *` | 15분마다 | GDELT + RSS | O |
-| `collect-market` | `*/15 * * * *` | 15분마다 | Yahoo Finance | O |
-| `collect-geo` | `*/30 * * * *` | 30분마다 | GDELT Events | O |
-| `airport:flights` | `setInterval 2min` | 07-23시 2분, 그 외 1시간 | OpenSky | O |
-| `airport:ops` | `0 6,18 * * *` | 하루 2회 (06:00, 18:00) | AviationStack | X (Free tier 절약) |
-| `airport:events` | `0 */4 * * *` | 4시간마다 | GDELT Airport | O |
-| `airport:cleanup` | `0 3 * * *` | 매일 03:00 | - (7일 보존) | X |
+### 데이터 수집
+
+| Job | 주기 | 데이터 소스 | 시작 시 실행 |
+|-----|------|------------|------------|
+| `collect-news` | 15분마다 | GDELT + RSS | O |
+| `collect-market` | 15분마다 | Yahoo Finance | O |
+| `collect-geo` | 30분마다 | GDELT Events | O |
+| `airport:flights` | 07-23시 2분, 그 외 1시간 | OpenSky (OAuth2) | O |
+| `airport:ops` | 하루 2회 (06:00, 18:00) | AviationStack | O |
+| `airport:events` | 4시간마다 | GDELT Airport | O |
+| `airport:cleanup` | 매일 03:00 | - (7일 보존) | X |
+| `ais:stream` | **상시 WebSocket** | AISStream.io | O (자동 재연결) |
+
+### 번역
+
+| Job | 주기 | 대상 |
+|-----|------|------|
+| `translate:news` | 15분마다 (수집 5분 후) | Article title/summary → ko/ja |
+| `translate:geo` | 30분마다 (수집 5분 후) | GeoEvent title/desc → ko/ja |
+| `translate:airport` | 4시간마다 (수집 5분 후) | AirportEvent title → ko/ja |
 
 ## API 엔드포인트
+
+### REST API
 
 | Endpoint | Method | 파라미터 |
 |----------|--------|---------|
@@ -99,6 +125,57 @@ pm2 startup         # 시스템 부팅 시 자동 시작 등록
 | `/api/vessels` | GET | `type`, `zone` |
 | `/api/airport` | GET | `section` (status\|flights\|events\|airlines\|routes), `limit` |
 | `/api/analysis/briefing` | GET | `lang` |
+
+### SSE (Server-Sent Events)
+
+| Endpoint | Method | 설명 |
+|----------|--------|------|
+| `/api/sse/positions` | GET | 실시간 선박/항공기 위치 스트리밍 |
+| `/api/sse/publish` | POST | 내부 pub/sub 발행 (배치→웹, `x-internal-key` 인증) |
+
+#### SSE 클라이언트 사용법
+
+```typescript
+const es = new EventSource("/api/sse/positions");
+
+es.addEventListener("vessels", (e) => {
+  const vessels = JSON.parse(e.data);
+  // [{ mmsi, name, type, lat, lon, speed, course, timestamp }]
+});
+
+es.addEventListener("flights", (e) => {
+  const flights = JSON.parse(e.data);
+  // [{ icao24, callsign, lat, lon, altitude, speed, heading, aircraftClass }]
+});
+```
+
+## 아키텍처
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     pm2 프로세스 관리                         │
+├──────────────────────────┬──────────────────────────────────┤
+│  world-affairs-batch     │  world-affairs-web               │
+│                          │                                  │
+│  ┌─ node-cron ────────┐  │  ┌─ Next.js App Router ───────┐ │
+│  │ News (GDELT+RSS)   │  │  │ /api/news                  │ │
+│  │ Market (Yahoo)     │  │  │ /api/markets               │ │
+│  │ Geo (GDELT)        │  │  │ /api/geo-events            │ │
+│  │ Airport (OpenSky)  │  │  │ /api/vessels               │ │
+│  │ Airport (Aviation) │  │  │ /api/airport               │ │
+│  │ Translate (Gemini) │  │  │ /api/sse/positions (SSE)   │ │
+│  └────────────────────┘  │  │ /api/sse/publish (내부)    │ │
+│                          │  └─────────────┬───────────────┘ │
+│  ┌─ WebSocket ────────┐  │                │ pub/sub         │
+│  │ AIS (상시 연결)     │──┼── HTTP POST ──→│                 │
+│  └────────────────────┘  │                ↓                 │
+│           │              │          SSE 클라이언트           │
+│           ↓              │                                  │
+│    ┌─ SQLite DB ─────────┼──────────────────────────────┐   │
+│    │ db/data.sqlite      │                              │   │
+│    └─────────────────────┼──────────────────────────────┘   │
+└──────────────────────────┴──────────────────────────────────┘
+```
 
 ## 테스트
 
@@ -110,15 +187,23 @@ npx tsc --noEmit    # 타입 체크
 ## 프로젝트 구조
 
 ```
-app/                  # Next.js App Router (프론트 + API)
+app/                        # Next.js App Router
+  api/                      # REST + SSE API
+  components/               # React 컴포넌트
+  hooks/                    # React Query 훅
+  lib/                      # API 클라이언트, 타입
 src/
-  domain/             # 도메인 엔티티 + 포트 (순수 비즈니스)
-  adapters/           # 포트 구현체 (DB, 외부 API)
-  usecases/           # 유스케이스 (도메인 오케스트레이션)
-  infrastructure/     # 프레임워크 설정 (prisma, gemini)
-  batch/              # 배치 스케줄러 (node-cron)
-  shared/             # 공통 타입, 유틸
-prisma/               # DB 스키마 + 마이그레이션
-db/                   # SQLite DB 파일
-docs/                 # PRD, 프로토타입
+  domain/                   # 엔티티 + 포트 (순수 비즈니스)
+    news/, market/, vessel/, geopolitics/, airport/, analysis/
+  adapters/                 # 포트 구현체
+    collectors/             # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS)
+    repositories/           # Prisma DB 어댑터
+    ai/                     # Gemini 번역기
+  usecases/                 # 도메인 오케스트레이션
+  infrastructure/           # prisma, gemini, pubsub, publish-sse
+  batch/                    # 스케줄러 (node-cron + WebSocket)
+  shared/                   # 공통 타입, 분류 유틸
+prisma/                     # DB 스키마 + 마이그레이션
+db/                         # SQLite DB 파일
+docs/                       # PRD, 프로토타입
 ```
