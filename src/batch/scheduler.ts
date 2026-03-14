@@ -18,6 +18,7 @@ import { AviationStackCollector } from "../adapters/collectors/aviationstack-col
 import { GdeltAirportEventCollector } from "../adapters/collectors/airport-event-collector";
 import { AisStreamCollector } from "../adapters/collectors/ais-collector";
 import { processVesselMessage } from "../usecases/process-vessel";
+import { publishToSSE } from "../infrastructure/publish-sse";
 import { NewsRepository } from "../adapters/repositories/news-repository";
 import { MarketRepository } from "../adapters/repositories/market-repository";
 import { GeoRepository } from "../adapters/repositories/geo-repository";
@@ -84,6 +85,14 @@ async function runCollectAirportFlights() {
     console.log(
       `[${new Date().toISOString()}] ${label}: total=${result.total} saved=${result.saved}`,
     );
+    if (result.saved > 0) {
+      const flights = await airportRepo.findLatestFlights(100);
+      publishToSSE("flights", flights.map((f) => ({
+        icao24: f.icao24, callsign: f.callsign, lat: f.lat, lon: f.lon,
+        altitude: f.altitude, speed: f.speed, heading: f.heading,
+        onGround: f.onGround, aircraftClass: f.aircraftClass,
+      })));
+    }
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ${label}: error`, error);
   }
@@ -233,6 +242,17 @@ async function startAisStream() {
         const result = await processVesselMessage(raw, vesselRepo);
         if (result.vesselType) {
           aisMessageCount++;
+          // Publish to SSE
+          publishToSSE("vessels", [{
+            mmsi: raw.mmsi,
+            name: raw.name,
+            type: result.vesselType,
+            lat: raw.lat,
+            lon: raw.lon,
+            speed: raw.speed,
+            course: raw.course,
+            timestamp: raw.timestamp,
+          }]);
           if (aisMessageCount % 100 === 0) {
             console.log(`[${new Date().toISOString()}] ${label}: processed ${aisMessageCount} messages`);
           }
