@@ -23,12 +23,34 @@ const LANG_DISPLAY: Record<string, string> = {
   ja: "JA",
 };
 
+const THEME_STORAGE_KEY = "sigint-theme";
+
 export default function TopBar() {
   const [activeTab, setActiveTab] = useState<string>("OVERVIEW");
   const [time, setTime] = useState("");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const { lang, cycleLang } = useLanguage();
   const { data: news } = useNews({ limit: 50 });
   const { data: events } = useGeoEvents({ limit: 50 });
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "light") {
+      setTheme("light");
+      document.documentElement.classList.add("light");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    if (next === "light") {
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+    }
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+  };
 
   useEffect(() => {
     const update = () =>
@@ -46,7 +68,7 @@ export default function TopBar() {
     <header
       className="sticky top-0 z-[1000] flex items-center justify-between px-6 h-[52px] border-b"
       style={{
-        background: "rgba(10,14,23,0.92)",
+        background: theme === "light" ? "rgba(248,250,252,0.92)" : "rgba(10,14,23,0.92)",
         backdropFilter: "blur(12px)",
         borderColor: "var(--border)",
       }}
@@ -135,6 +157,14 @@ export default function TopBar() {
             <circle cx="12" cy="12" r="3" />
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
           </svg>
+        </button>
+        <button
+          aria-label="테마 변경"
+          onClick={toggleTheme}
+          className="w-8 h-8 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+          style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
+        >
+          {theme === "dark" ? "\u2600" : "\u25CF"}
         </button>
         <button
           aria-label="언어 변경"
