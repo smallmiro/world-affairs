@@ -8,7 +8,6 @@ import NewsFeed from "./components/news/NewsFeed";
 import IssueTracker from "./components/issues/IssueTracker";
 import VesselTracking from "./components/vessels/VesselTracking";
 import AirportMonitor from "./components/airport/AirportMonitor";
-import FlightStatusPanel from "./components/airport/FlightStatusPanel";
 import MarketSection from "./components/markets/MarketSection";
 import AiAnalysis from "./components/analysis/AiAnalysis";
 
@@ -57,8 +56,6 @@ export default function DashboardPage() {
           <VesselTracking />
           <AirportMonitor />
         </div>
-        {/* DXB Flight Status */}
-        <FlightStatusPanel />
         <div id="section-markets"><MarketSection /></div>
         <div id="section-analysis"><AiAnalysis /></div>
       </div>
