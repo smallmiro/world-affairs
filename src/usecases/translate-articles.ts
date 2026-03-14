@@ -28,11 +28,12 @@ export async function translateUntranslatedArticles(
       TARGET_LANGUAGES,
     );
 
-    // Only translate summaries that need translation (ko or ja empty)
+    // Only translate summaries that need translation (ko or ja empty or same as en = untranslated fallback)
     const summaryNeedsTranslation = batch.map(
       (a) =>
         a.summary !== null &&
-        (a.summary.ko === "" || a.summary.ja === ""),
+        (a.summary.ko === "" || a.summary.ja === "" ||
+         a.summary.ko === a.summary.en || a.summary.ja === a.summary.en),
     );
     const summariesToTranslate = batch
       .filter((_, idx) => summaryNeedsTranslation[idx])

@@ -30,7 +30,8 @@ export async function translateUntranslatedGeoEvents(
     const descNeedsTranslation = batch.map(
       (e) =>
         e.description !== null &&
-        (e.description.ko === "" || e.description.ja === ""),
+        (e.description.ko === "" || e.description.ja === "" ||
+         e.description.ko === e.description.en || e.description.ja === e.description.en),
     );
     const descsToTranslate = batch
       .filter((_, idx) => descNeedsTranslation[idx])
