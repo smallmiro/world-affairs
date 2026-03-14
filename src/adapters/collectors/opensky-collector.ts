@@ -25,6 +25,31 @@ const ICAO_TO_IATA: Record<string, string> = {
 // UAE-based airline ICAO prefixes
 const UAE_CARRIERS = new Set(["UAE", "FDB", "ETD"]);
 
+// Airline hub airports (ICAO prefix → home airport IATA)
+const AIRLINE_HUB: Record<string, string> = {
+  UAE: "DXB", FDB: "DXB", ETD: "AUH",
+  QTR: "DOH", SVA: "JED", GFA: "BAH", KAC: "KWI", OMA: "MCT", MEA: "BEY",
+  BAW: "LHR", DLH: "FRA", KAL: "ICN", ANA: "NRT", SIA: "SIN", THY: "IST",
+  QFA: "SYD", JAI: "DEL", IGO: "DEL", PIA: "KHI", IRA: "IKA",
+  ABY: "SHJ", PGT: "SAW", MSR: "CAI", RJA: "AMM",
+};
+
+const DXB_AREA = { minLat: 23, maxLat: 27, minLon: 53, maxLon: 57 };
+
+function resolveRoute(callsign: string, lat: number, lon: number): { depAirport: string | null; arrAirport: string | null } {
+  const prefix = callsign.trim().slice(0, 3).toUpperCase();
+  const hub = AIRLINE_HUB[prefix];
+  if (!hub) return { depAirport: null, arrAirport: null };
+
+  const nearDXB = lat >= DXB_AREA.minLat && lat <= DXB_AREA.maxLat && lon >= DXB_AREA.minLon && lon <= DXB_AREA.maxLon;
+
+  if (hub === "DXB") {
+    return nearDXB ? { depAirport: "DXB", arrAirport: null } : { depAirport: "DXB", arrAirport: "EN ROUTE" };
+  }
+  if (nearDXB) return { depAirport: hub, arrAirport: "DXB" };
+  return { depAirport: hub, arrAirport: null };
+}
+
 function resolveAirlineIata(callsign: string): string | null {
   const icaoPrefix = callsign.slice(0, 3).toUpperCase();
   return ICAO_TO_IATA[icaoPrefix] ?? null;
@@ -107,8 +132,8 @@ function parseState(state: OpenSkyState): RawFlightPosition | null {
     onGround: state[8] as boolean,
     airlineIata: resolveAirlineIata(callsign),
     aircraftClass: resolveAircraftClass(callsign),
-    depAirport: null,
-    arrAirport: null,
+    depAirport: resolveRoute(callsign, lat, lon).depAirport,
+    arrAirport: resolveRoute(callsign, lat, lon).arrAirport,
     depTime: null,
     arrTime: null,
     flightStatus: null,
