@@ -59,7 +59,7 @@ export class GeminiTranslator implements TranslatorPort {
       throw new Error("GEMINI_API_KEY is required");
     }
     this.genAI = new GoogleGenerativeAI(key);
-    this.modelName = modelName ?? "gemini-2.5-flash-lite";
+    this.modelName = modelName ?? process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
   }
 
   async translate(

@@ -14,7 +14,7 @@ export async function translateUntranslatedAirportEvents(
   let translated = 0;
 
   const needsTranslation = events.filter(
-    (e) => e.title.ko === "" || e.title.ja === "",
+    (e) => e.title.ko === "" || e.title.ja === "" || e.title.ko === e.title.en || e.title.ja === e.title.en,
   );
 
   for (let i = 0; i < needsTranslation.length; i += BATCH_SIZE) {

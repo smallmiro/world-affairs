@@ -13,9 +13,9 @@ export async function translateUntranslatedArticles(
   const articles = await repository.findLatest(limit, "en");
   let translated = 0;
 
-  // Filter articles that need title translation (ko or ja empty)
+  // Filter articles that need title translation (ko/ja empty or same as en = untranslated fallback)
   const needsTranslation = articles.filter(
-    (a) => a.title.ko === "" || a.title.ja === "",
+    (a) => a.title.ko === "" || a.title.ja === "" || a.title.ko === a.title.en || a.title.ja === a.title.en,
   );
 
   for (let i = 0; i < needsTranslation.length; i += BATCH_SIZE) {
