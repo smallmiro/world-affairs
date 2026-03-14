@@ -43,7 +43,7 @@ export default function AiAnalysis() {
       }}
     >
       {/* Sentiment */}
-      <div className="p-4">
+      <div className="p-4" style={{ minHeight: 320 }}>
         <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
@@ -99,7 +99,7 @@ export default function AiAnalysis() {
       </div>
 
       {/* Trend chart */}
-      <div className="p-4">
+      <div className="p-4" style={{ minHeight: 320 }}>
         <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
