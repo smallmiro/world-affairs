@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useNews } from "../../hooks/use-news";
 import { useLanguage } from "../../lib/language-context";
 import SectionHeader from "../ui/SectionHeader";
+import ArticleDetailModal from "./ArticleDetailModal";
+import type { Article } from "../../../src/domain/news/entities";
 import {
   mapSeverity,
   getCategoryLabel,
@@ -34,6 +36,7 @@ const REGION_FILTERS: { label: string; region?: Region }[] = [
 export default function NewsFeed() {
   const [activeFilter, setActiveFilter] = useState(0);
   const [activeRegion, setActiveRegion] = useState(0);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { lang } = useLanguage();
   const filterCategory = FILTERS[activeFilter].category;
   const filterRegion = REGION_FILTERS[activeRegion].region;
@@ -108,6 +111,7 @@ export default function NewsFeed() {
             <div
               key={item.id}
               className="news-item-card relative pl-3 pr-3 py-3 border cursor-pointer transition-all duration-150"
+              onClick={() => setSelectedArticle(item as unknown as Article)}
             >
               <div
                 className="absolute left-0 top-0 bottom-0 w-0.5"
@@ -151,6 +155,14 @@ export default function NewsFeed() {
           </div>
         )}
       </div>
+
+      {selectedArticle && (
+        <ArticleDetailModal
+          article={selectedArticle}
+          lang={lang}
+          onClose={() => setSelectedArticle(null)}
+        />
+      )}
     </section>
   );
 }
