@@ -50,7 +50,7 @@ export default function NewsFeed() {
 
   return (
     <section
-      className="p-4 flex flex-col lg:h-full lg:max-h-[calc(100vh-180px)] max-h-[600px]"
+      className="p-4 flex flex-col lg:h-full lg:max-h-[calc(100vh-220px)] max-h-[450px]"
       style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}
     >
       <div className="mb-4">
