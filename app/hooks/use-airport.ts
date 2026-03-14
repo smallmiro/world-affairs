@@ -53,3 +53,38 @@ export function useEmiratesRoutes() {
     staleTime: 60 * 1000,
   });
 }
+
+interface DxbAirline {
+  code: string;
+  name: string;
+  flights: number;
+  onTime: number;
+  status: "normal" | "delays" | "disrupted";
+}
+
+interface DxbEkRoute {
+  dest: string;
+  flightCode: string;
+  status: "open" | "diverted" | "suspended";
+}
+
+interface DxbStats {
+  airlines: DxbAirline[];
+  ekRoutes: DxbEkRoute[];
+  count: number;
+}
+
+async function fetchDxbStats(): Promise<DxbStats> {
+  const res = await fetch("/api/airport/dxb-stats");
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+}
+
+export function useDxbStats() {
+  return useQuery({
+    queryKey: ["airport", "dxb-stats"],
+    queryFn: fetchDxbStats,
+    refetchInterval: 60 * 1000,
+    staleTime: 30 * 1000,
+  });
+}

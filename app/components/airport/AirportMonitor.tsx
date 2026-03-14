@@ -9,7 +9,7 @@ import {
   EK_ROUTES,
   AIRPORT_MAP_DATA,
 } from "../../lib/airport-data";
-import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes } from "../../hooks/use-airport";
+import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes, useDxbStats } from "../../hooks/use-airport";
 import { useSSEPositions } from "../../hooks/use-sse-positions";
 import type { SSEFlightPosition } from "../../hooks/use-sse-positions";
 import { toStaticStatus, toMapData, toTimelineEvents, toAirlines, toRoutes } from "../../lib/airport-mappers";
@@ -58,6 +58,7 @@ export default function AirportMonitor() {
   const { data: eventsData } = useAirportEvents();
   const { data: airlinesData } = useAirlineOps();
   const { data: routesData } = useEmiratesRoutes();
+  const { data: dxbStats } = useDxbStats();
   const { flights: sseFlights, connected: sseConnected } = useSSEPositions();
   const { lang } = useLanguage();
 
@@ -78,14 +79,22 @@ export default function AirportMonitor() {
     () => (eventsData && eventsData.length > 0 ? toTimelineEvents(eventsData, lang) : TIMELINE_EVENTS),
     [eventsData, lang],
   );
-  const airlines = useMemo(
-    () => (airlinesData && airlinesData.length > 0 ? toAirlines(airlinesData) : AIRLINES),
-    [airlinesData],
-  );
-  const routes = useMemo(
-    () => (routesData && routesData.length > 0 ? toRoutes(routesData) : EK_ROUTES),
-    [routesData],
-  );
+  // Prefer DXB scraping data over AviationStack
+  const airlines = useMemo(() => {
+    if (dxbStats && dxbStats.airlines.length > 0) {
+      return dxbStats.airlines.map((a) => ({ code: a.code, name: a.name, flights: a.flights, onTime: a.onTime, status: a.status }));
+    }
+    if (airlinesData && airlinesData.length > 0) return toAirlines(airlinesData);
+    return AIRLINES;
+  }, [dxbStats, airlinesData]);
+
+  const routes = useMemo(() => {
+    if (dxbStats && dxbStats.ekRoutes.length > 0) {
+      return dxbStats.ekRoutes;
+    }
+    if (routesData && routesData.length > 0) return toRoutes(routesData);
+    return EK_ROUTES;
+  }, [dxbStats, routesData]);
 
   return (
     <div className="p-5 flex flex-col gap-3" style={{ background: "var(--bg-primary)" }}>

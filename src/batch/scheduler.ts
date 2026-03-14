@@ -216,8 +216,8 @@ cron.schedule("0 6,18 * * *", runCollectAirportOps);
 // Airport: cleanup daily at 03:00
 cron.schedule("0 3 * * *", runAirportCleanup);
 
-// DXB Flight Status: scrape every 30 minutes
-cron.schedule("*/30 * * * *", runCollectDxbFlights);
+// DXB Flight Status: scrape every 10 minutes
+cron.schedule("*/10 * * * *", runCollectDxbFlights);
 
 // Translation: run after each collection cycle (5 min offset to allow collection to finish)
 cron.schedule("5,20,35,50 * * * *", runTranslateNews);
