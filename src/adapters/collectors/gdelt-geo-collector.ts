@@ -80,6 +80,22 @@ const COUNTRY_KEYWORDS: [string, string[]][] = [
   ["LB", ["lebanon", "beirut"]],
 ];
 
+const COUNTRY_COORDS: Record<string, [number, number]> = {
+  US: [38.9, -77.0], CN: [39.9, 116.4], RU: [55.8, 37.6], UA: [50.4, 30.5],
+  IR: [35.7, 51.4], IL: [31.8, 35.2], PS: [31.5, 34.5], KP: [39.0, 125.8],
+  KR: [37.6, 127.0], JP: [35.7, 139.7], TW: [25.0, 121.5], SY: [33.5, 36.3],
+  YE: [15.4, 44.2], SA: [24.7, 46.7], IQ: [33.3, 44.4], AF: [34.5, 69.2],
+  MM: [19.8, 96.2], SD: [15.6, 32.5], ET: [9.0, 38.7], LB: [33.9, 35.5],
+};
+
+function getCountryCoords(countries: string[]): { lat: number; lon: number } | null {
+  for (const code of countries) {
+    const coords = COUNTRY_COORDS[code];
+    if (coords) return { lat: coords[0], lon: coords[1] };
+  }
+  return null;
+}
+
 function extractCountries(text: string): string[] {
   const lower = text.toLowerCase();
   const found: string[] = [];
@@ -113,14 +129,16 @@ export class GdeltGeoCollector implements GeoCollectorPort {
 
     const events: RawGeoEvent[] = articles.map((article) => {
       const text = `${article.title} ${article.domain}`;
+      const countries = extractCountries(text);
+      const coords = getCountryCoords(countries);
       return {
         source: "gdelt",
         eventType: classifyEventType(text),
         title: article.title,
         description: null,
-        countries: extractCountries(text),
-        lat: null,
-        lon: null,
+        countries,
+        lat: coords?.lat ?? null,
+        lon: coords?.lon ?? null,
         goldsteinScale: null,
         eventDate: parseGdeltDate(article.seendate),
         originalLanguage: "en",
