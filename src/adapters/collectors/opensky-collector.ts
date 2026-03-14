@@ -83,8 +83,8 @@ export class OpenSkyCollector implements OpenSkyCollectorPort {
       headers: buildHeaders(),
     });
 
-    if (response.status === 429) {
-      console.warn("[OpenSky] Rate limited (429). Returning empty result.");
+    if (response.status === 429 || response.status === 401 || response.status === 403) {
+      console.warn(`[OpenSky] ${response.status} response. Returning empty result.`);
       return { data: [], collectedAt: new Date(), source: "opensky" };
     }
 

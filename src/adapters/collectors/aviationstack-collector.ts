@@ -109,7 +109,7 @@ export class AviationStackCollector implements AviationStackCollectorPort {
 
       ops.push({
         airlineIata,
-        airlineName: airlineFlights[0].airline.name,
+        airlineName: airlineFlights[0].airline.name ?? airlineIata,
         totalFlights: total,
         onTimePercent,
         status,
