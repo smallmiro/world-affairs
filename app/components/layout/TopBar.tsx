@@ -162,22 +162,12 @@ export default function TopBar() {
         </button>
         <AlertPanel open={alertOpen} onClose={closeAlert} />
         <button
-          aria-label="설정"
+          aria-label="테마 변경"
+          onClick={toggleTheme}
           className="w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-          </svg>
-        </button>
-        <button
-          aria-label="테마 변경"
-          onClick={toggleTheme}
-          className="w-11 h-11 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
-          style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
-        >
-          {theme === "dark" ? "\u2600" : "\u25CF"}
+          {theme === "dark" ? "☀️" : "🌙"}
         </button>
         <button
           aria-label="언어 변경"
