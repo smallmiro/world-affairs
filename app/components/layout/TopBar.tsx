@@ -167,7 +167,7 @@ export default function TopBar() {
           className="w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
-          {theme === "dark" ? "☀️" : "🌙"}
+          {theme === "dark" ? "LT" : "DK"}
         </button>
         <button
           aria-label="언어 변경"
