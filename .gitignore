@@ -38,3 +38,4 @@ pm2-*.log
 /src/generated/
 .mcp.json
 tsconfig.tsbuildinfo
+.claude/worktrees/
