@@ -210,8 +210,8 @@ cron.schedule("0 0,1,2,3,4,5,6,23 * * *", runCollectAirportFlights);
 // Airport: ops twice daily (06:00, 18:00)
 cron.schedule("0 6,18 * * *", runCollectAirportOps);
 
-// Airport: events every 4 hours
-cron.schedule("0 */4 * * *", runCollectAirportEvents);
+// Airport: GDELT events disabled — timeline uses dubaiairports.ae data only
+// cron.schedule("0 */4 * * *", runCollectAirportEvents);
 
 // Airport: cleanup daily at 03:00
 cron.schedule("0 3 * * *", runAirportCleanup);
@@ -308,6 +308,6 @@ runCollectMarket();
 runCollectGeoEvents();
 runCollectAirportFlights();
 runCollectAirportOps();
-runCollectAirportEvents();
+// runCollectAirportEvents(); — disabled, using dubaiairports.ae scraping instead
 startAisStream();
 runCollectDxbFlights();
