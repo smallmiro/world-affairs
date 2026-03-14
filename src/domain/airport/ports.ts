@@ -16,6 +16,7 @@ import type {
 
 export interface OpenSkyCollectorPort {
   collectFlights(): Promise<CollectionResult<RawFlightPosition[]>>;
+  refreshByIcao24(icao24s: string[]): Promise<CollectionResult<RawFlightPosition[]>>;
 }
 
 export interface AviationStackCollectorPort {

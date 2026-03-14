@@ -4,7 +4,7 @@ import { prisma } from "../infrastructure/prisma";
 import { collectNews } from "../usecases/collect-news";
 import { collectMarket } from "../usecases/collect-market";
 import { collectGeoEvents } from "../usecases/collect-geo-events";
-import { collectAirportFlights, collectAirportOps, collectAirportEvents } from "../usecases/collect-airport";
+import { collectAirportFlights, collectAirportOps, collectAirportEvents, refreshAircraftStates } from "../usecases/collect-airport";
 import { translateUntranslatedArticles } from "../usecases/translate-articles";
 import { translateUntranslatedGeoEvents } from "../usecases/translate-geo-events";
 import { translateUntranslatedAirportEvents } from "../usecases/translate-airport-events";
@@ -100,6 +100,19 @@ async function runCollectAirportFlights() {
         onGround: f.onGround, aircraftClass: f.aircraftClass,
       })));
     }
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error);
+  }
+}
+
+async function runRefreshAircraftStates() {
+  const label = "airport:refresh";
+  try {
+    const collector = new OpenSkyCollector();
+    const result = await refreshAircraftStates(collector, airportRepo);
+    console.log(
+      `[${new Date().toISOString()}] ${label}: updated=${result.updated} deleted=${result.deleted}`,
+    );
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ${label}: error`, error);
   }
@@ -255,15 +268,20 @@ cron.schedule("*/15 * * * *", runCollectMarket);
 // Geopolitics: GDELT events every 30 minutes
 cron.schedule("*/30 * * * *", runCollectGeoEvents);
 
-// Airport: flights — 07:00~23:00 every 2 min, otherwise every hour
-const FLIGHT_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+// Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every minute
+let flightTick = 0;
 setInterval(() => {
   const hour = new Date().getHours();
   if (hour >= 7 && hour < 23) {
-    runCollectAirportFlights();
+    if (flightTick % 2 === 0) {
+      runCollectAirportFlights(); // bbox discovery (even ticks)
+    } else {
+      runRefreshAircraftStates(); // icao24 state refresh (odd ticks)
+    }
+    flightTick++;
   }
-}, FLIGHT_INTERVAL_MS);
-// Off-peak: every hour (runs at :00, skipped during 07-22 by the function itself is not needed — cron handles off-peak)
+}, 60 * 1000); // every 1 minute
+// Off-peak: every hour
 cron.schedule("0 0,1,2,3,4,5,6,23 * * *", runCollectAirportFlights);
 
 // Airport: ops twice daily (06:00, 18:00)

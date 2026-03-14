@@ -141,6 +141,47 @@ function parseState(state: OpenSkyState): RawFlightPosition | null {
 }
 
 export class OpenSkyCollector implements OpenSkyCollectorPort {
+  // Query specific aircraft by icao24 addresses
+  async refreshByIcao24(icao24s: string[]): Promise<CollectionResult<RawFlightPosition[]>> {
+    if (icao24s.length === 0) return { data: [], collectedAt: new Date(), source: "opensky" };
+
+    // OpenSky allows multiple icao24 params: ?icao24=aaa&icao24=bbb
+    // Split into batches of 50 to avoid URL length limits
+    const BATCH_SIZE = 50;
+    const allFlights: RawFlightPosition[] = [];
+    const headers = await buildHeaders();
+
+    for (let i = 0; i < icao24s.length; i += BATCH_SIZE) {
+      const batch = icao24s.slice(i, i + BATCH_SIZE);
+      const params = batch.map((id) => `icao24=${id}`).join("&");
+      const url = `https://opensky-network.org/api/states/all?${params}`;
+
+      try {
+        let response = await fetch(url, { headers });
+        if (response.status === 401 || response.status === 403) {
+          cachedToken = null;
+          tokenExpiresAt = 0;
+          response = await fetch(url);
+        }
+        if (response.status === 429) {
+          console.warn("[OpenSky] Rate limited on refresh. Skipping batch.");
+          continue;
+        }
+        if (!response.ok) continue;
+
+        const body: OpenSkyResponse = await response.json();
+        for (const state of body.states ?? []) {
+          const parsed = parseState(state);
+          if (parsed) allFlights.push(parsed);
+        }
+      } catch {
+        // Skip failed batch
+      }
+    }
+
+    return { data: allFlights, collectedAt: new Date(), source: "opensky" };
+  }
+
   async collectFlights(): Promise<CollectionResult<RawFlightPosition[]>> {
     const headers = await buildHeaders();
     let response = await fetch(OPENSKY_API_URL, { headers });

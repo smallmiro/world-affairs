@@ -116,6 +116,48 @@ export async function collectAirportFlights(
   return { total: flights.length, saved: airborne.length, skipped: grounded.length };
 }
 
+// ─── Refresh existing aircraft states ─────────────────────────
+
+export async function refreshAircraftStates(
+  collector: OpenSkyCollectorPort,
+  repo: AirportRepositoryPort,
+): Promise<{ updated: number; deleted: number }> {
+  // Get all icao24s currently in DB
+  const existing = await repo.findLatestFlights(1000);
+  const icao24s = existing.map((f) => f.icao24);
+  if (icao24s.length === 0) return { updated: 0, deleted: 0 };
+
+  // Query OpenSky for their current state
+  const result = await collector.refreshByIcao24(icao24s);
+  const activeSet = new Set(result.data.map((f) => f.icao24));
+
+  // Upsert airborne, delete grounded
+  const airborne = result.data.filter((f) => !f.onGround);
+  const grounded = result.data.filter((f) => f.onGround);
+
+  if (airborne.length > 0) {
+    await repo.saveFlights(airborne.map((raw) => ({
+      id: randomUUID(),
+      ...raw,
+      collectedAt: result.collectedAt,
+    })));
+  }
+
+  // Delete grounded
+  let deleted = 0;
+  if (grounded.length > 0) {
+    deleted += await repo.deleteFlightsByIcao24(grounded.map((f) => f.icao24));
+  }
+
+  // Delete aircraft no longer returned by API (no longer transmitting)
+  const disappeared = icao24s.filter((id) => !activeSet.has(id));
+  if (disappeared.length > 0) {
+    deleted += await repo.deleteFlightsByIcao24(disappeared);
+  }
+
+  return { updated: airborne.length, deleted };
+}
+
 // ─── Ops (status + airlines + routes) ─────────────────────────
 
 export async function collectAirportOps(
