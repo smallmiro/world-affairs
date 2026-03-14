@@ -12,7 +12,7 @@ import {
   SEVERITY_STYLES,
   SEVERITY_LABELS,
 } from "../../lib/display-mappers";
-import type { NewsCategory } from "../../lib/types";
+import type { NewsCategory, Region } from "../../lib/types";
 
 const FILTERS: { label: string; category?: NewsCategory }[] = [
   { label: "전체" },
@@ -20,15 +20,28 @@ const FILTERS: { label: string; category?: NewsCategory }[] = [
   { label: "군사", category: "military" },
   { label: "경제", category: "economy" },
   { label: "환경", category: "environment" },
+  { label: "인권", category: "human_rights" },
+];
+
+const REGION_FILTERS: { label: string; region?: Region }[] = [
+  { label: "전체" },
+  { label: "동아시아", region: "east-asia" },
+  { label: "중동", region: "middle-east" },
+  { label: "유럽", region: "europe" },
+  { label: "북미", region: "north-america" },
 ];
 
 export default function NewsFeed() {
   const [activeFilter, setActiveFilter] = useState(0);
+  const [activeRegion, setActiveRegion] = useState(0);
   const { lang } = useLanguage();
   const filterCategory = FILTERS[activeFilter].category;
-  const { data: articles, isLoading, error } = useNews(
-    filterCategory ? { category: filterCategory, limit: 20 } : { limit: 20 },
-  );
+  const filterRegion = REGION_FILTERS[activeRegion].region;
+  const { data: articles, isLoading, error } = useNews({
+    ...(filterCategory && { category: filterCategory }),
+    ...(filterRegion && { region: filterRegion }),
+    limit: 20,
+  });
 
   return (
     <section
@@ -49,6 +62,23 @@ export default function NewsFeed() {
               color: activeFilter === i ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === i ? "var(--accent-cyan)" : "var(--border)",
               background: activeFilter === i ? "var(--accent-cyan-dim)" : "transparent",
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-1 flex-wrap mb-3">
+        {REGION_FILTERS.map((f, i) => (
+          <button
+            key={f.label}
+            onClick={() => setActiveRegion(i)}
+            className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+            style={{
+              color: activeRegion === i ? "var(--accent-cyan)" : "var(--text-muted)",
+              borderColor: activeRegion === i ? "var(--accent-cyan)" : "var(--border)",
+              background: activeRegion === i ? "var(--accent-cyan-dim)" : "transparent",
             }}
           >
             {f.label}
@@ -102,6 +132,11 @@ export default function NewsFeed() {
               <div className="text-[0.82rem] font-medium leading-[1.4] mb-1" style={{ color: "var(--text-primary)" }}>
                 {getTranslatedText(item.title, lang)}
               </div>
+              {item.summary && (
+                <div className="text-[0.58rem] line-clamp-2 mb-1" style={{ color: "var(--text-muted)" }}>
+                  {getTranslatedText(item.summary, lang)}
+                </div>
+              )}
               <div className="font-mono text-[0.6rem]" style={{ color: "var(--text-muted)" }}>
                 {item.source}
               </div>
