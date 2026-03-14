@@ -154,7 +154,7 @@ export default function VesselTracking() {
   const anomalies = getAnomalies(allVessels);
 
   return (
-    <div className="p-4 flex flex-col gap-3">
+    <div className="p-4 flex flex-col gap-3 flex-1">
       {/* Header */}
       <SectionHeader
         title={t("vessels.title")}
