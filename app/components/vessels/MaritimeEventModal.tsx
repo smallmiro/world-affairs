@@ -121,33 +121,6 @@ export default function MaritimeEventModal({ event, lang, onClose }: MaritimeEve
             </div>
           )}
 
-          {/* Multilingual */}
-          <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
-            <div className="font-mono text-[0.8rem] tracking-[1px] uppercase mb-2" style={{ color: "var(--text-muted)" }}>
-              {t("news.multilingual")}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {event.title.en && (
-                <div className="flex gap-2">
-                  <span className="font-mono text-[0.8rem] shrink-0 mt-0.5" style={{ color: "var(--accent-cyan)" }}>EN</span>
-                  <span className="text-[0.9rem]" style={{ color: "var(--text-secondary)" }}>{event.title.en}</span>
-                </div>
-              )}
-              {event.title.ko && event.title.ko !== event.title.en && (
-                <div className="flex gap-2">
-                  <span className="font-mono text-[0.8rem] shrink-0 mt-0.5" style={{ color: "var(--accent-amber)" }}>KO</span>
-                  <span className="text-[0.9rem]" style={{ color: "var(--text-secondary)" }}>{event.title.ko}</span>
-                </div>
-              )}
-              {event.title.ja && event.title.ja !== event.title.en && (
-                <div className="flex gap-2">
-                  <span className="font-mono text-[0.8rem] shrink-0 mt-0.5" style={{ color: "var(--accent-red)" }}>JA</span>
-                  <span className="text-[0.9rem]" style={{ color: "var(--text-secondary)" }}>{event.title.ja}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* View original */}
           <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
             <a
