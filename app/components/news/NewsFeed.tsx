@@ -61,12 +61,13 @@ export default function NewsFeed() {
         <select
           value={activeFilter}
           onChange={(e) => setActiveFilter(Number(e.target.value))}
-          className="font-mono text-[0.85rem] px-3 py-2 border rounded-lg cursor-pointer flex-1"
+          className="font-mono text-[1rem] px-4 py-3 border rounded-xl cursor-pointer flex-1"
           style={{
             color: "var(--accent-cyan)",
             borderColor: "var(--border)",
             background: "var(--bg-card)",
             outline: "none",
+            minHeight: 48,
           }}
         >
           {FILTERS.map((f, i) => (
@@ -76,12 +77,13 @@ export default function NewsFeed() {
         <select
           value={activeRegion}
           onChange={(e) => setActiveRegion(Number(e.target.value))}
-          className="font-mono text-[0.85rem] px-3 py-2 border rounded-lg cursor-pointer flex-1"
+          className="font-mono text-[1rem] px-4 py-3 border rounded-xl cursor-pointer flex-1"
           style={{
             color: "var(--accent-cyan)",
             borderColor: "var(--border)",
             background: "var(--bg-card)",
             outline: "none",
+            minHeight: 48,
           }}
         >
           {REGION_FILTERS.map((f, i) => (
