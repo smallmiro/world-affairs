@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useBriefing } from "../../hooks/use-briefing";
 import { useLanguage } from "../../lib/language-context";
-import { goldsteinToSentiment, inferRegion, REGION_LABELS } from "../../lib/geo-aggregation";
+import { computeRegionSentiment } from "../../lib/geo-aggregation";
 import { getTranslatedText } from "../../lib/display-mappers";
 import { aggregateTrend } from "../../lib/trend-aggregation";
 import TrendChart from "./TrendChart";
@@ -21,25 +21,10 @@ export default function AiAnalysis() {
   const { data: events } = useGeoEvents({ limit: 100 });
   const { data: briefing } = useBriefing();
 
-  // Build sentiment data from events
-  const regionSentiments = new Map<string, number[]>();
-  if (events) {
-    for (const event of events) {
-      const region = inferRegion(event.countries);
-      if (region === "other") continue;
-      if (!regionSentiments.has(region)) regionSentiments.set(region, []);
-      regionSentiments.get(region)!.push(event.goldsteinScale ?? 0);
-    }
-  }
-
-  const sentimentRows = [...regionSentiments.entries()]
-    .map(([region, scales]) => {
-      const avg = scales.reduce((a, b) => a + b, 0) / scales.length;
-      const { value, type } = goldsteinToSentiment(avg);
-      return { region, label: REGION_LABELS[region]?.ko ?? region, value, type };
-    })
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 6);
+  const sentimentRows = useMemo(
+    () => computeRegionSentiment(events ?? []).slice(0, 6),
+    [events],
+  );
 
   const trendData = useMemo(
     () => aggregateTrend(events ?? []),

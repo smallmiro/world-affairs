@@ -104,6 +104,18 @@ export function aggregateByRegion(events: GeoEvent[], lang: Language): RegionIss
   return issues.sort((a, b) => b.severityLevel - a.severityLevel);
 }
 
+// Event type → tension score (higher = more tension)
+const EVENT_TENSION: Record<string, number> = {
+  conflict: 90,
+  military_exercise: 75,
+  protest: 65,
+  sanctions: 60,
+  humanitarian_crisis: 70,
+  trade_dispute: 40,
+  diplomacy: 20,
+  other: 50,
+};
+
 export function goldsteinToSentiment(goldstein: number | null): { value: number; type: "negative" | "mixed" | "positive" } {
   if (goldstein === null) return { value: 50, type: "mixed" };
   const normalized = Math.round(((goldstein + 10) / 20) * 100);
@@ -112,4 +124,34 @@ export function goldsteinToSentiment(goldstein: number | null): { value: number;
   if (inverted >= 60) return { value: inverted, type: "negative" };
   if (inverted <= 30) return { value: inverted, type: "positive" };
   return { value: inverted, type: "mixed" };
+}
+
+export function computeRegionSentiment(events: GeoEvent[]): { region: string; label: string; value: number; type: "negative" | "mixed" | "positive" }[] {
+  const regionMap = new Map<string, { scores: number[]; label: string }>();
+
+  for (const e of events) {
+    const region = inferRegion(e.countries);
+    if (!region || region === "other") continue;
+    if (!regionMap.has(region)) {
+      regionMap.set(region, { scores: [], label: REGION_LABELS[region]?.ko ?? region });
+    }
+    // Use goldsteinScale if available, otherwise derive from eventType
+    const tension = e.goldsteinScale !== null
+      ? Math.round(((-(e.goldsteinScale) + 10) / 20) * 100)
+      : EVENT_TENSION[e.eventType] ?? 50;
+    regionMap.get(region)!.scores.push(tension);
+  }
+
+  return [...regionMap.entries()]
+    .map(([region, data]) => {
+      const avg = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length);
+      const clamped = Math.max(0, Math.min(100, avg));
+      return {
+        region,
+        label: data.label,
+        value: clamped,
+        type: clamped >= 60 ? "negative" as const : clamped <= 30 ? "positive" as const : "mixed" as const,
+      };
+    })
+    .sort((a, b) => b.value - a.value);
 }
