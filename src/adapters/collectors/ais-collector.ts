@@ -57,7 +57,7 @@ export class AisStreamCollector implements VesselCollectorPort {
 
       this.ws.onopen = () => {
         const subscribeMsg = {
-          Apikey: this.apiKey,
+          APIkey: this.apiKey,
           BoundingBoxes: [
             // Middle East maritime region: Suez → Strait of Hormuz
             // Format: [[lon_min, lat_min], [lon_max, lat_max]]
