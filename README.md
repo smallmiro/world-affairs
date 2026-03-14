@@ -8,10 +8,11 @@
 - **ORM / DB**: Prisma + SQLite
 - **배치 스케줄러**: node-cron + setInterval (별도 프로세스)
 - **프로세스 관리**: pm2
-- **UI**: MUI v5 + Tailwind CSS + react-leaflet + Recharts
-- **데이터 수집**: GDELT, RSS, OpenSky (OAuth2), AviationStack, AISStream (WebSocket), Yahoo Finance
-- **AI/번역**: Gemini API (번역 EN/KO/JA + 요약/감성/브리핑)
-- **실시간 통신**: SSE (Server-Sent Events) + in-memory pub/sub
+- **UI**: Tailwind CSS v4 + inline CSS (Tokyo Night Storm/Day 테마) + react-leaflet + Recharts + react-markdown
+- **i18n**: 커스텀 useT() 훅 + ko.json/en.json/ja.json
+- **데이터 수집**: GDELT, RSS, OpenSky (OAuth2 Client Credentials), AviationStack, AISStream (WebSocket), Yahoo Finance, DXB HTML 스크래핑 (cheerio)
+- **AI**: Gemini API (번역 EN/KO/JA + 요약/감성/분석/브리핑)
+- **실시간 통신**: SSE (Server-Sent Events) + in-memory PubSub
 
 ## 설치
 
@@ -28,7 +29,7 @@ npx prisma generate
 ```
 DATABASE_URL="file:../db/data.sqlite"
 
-# AI/번역 (필수)
+# AI (필수)
 GEMINI_API_KEY=your_key
 GEMINI_MODEL=gemini-2.5-flash-lite     # Optional, 기본값
 
@@ -41,6 +42,7 @@ OPENSKY_PASSWORD=your_client_secret     # OAuth2 Client Secret
 AISSTREAM_API_KEY=your_key
 
 # 내부 SSE 통신 (Optional)
+SSE_PUBLISH_URL=http://localhost:3000/api/sse/publish
 INTERNAL_API_KEY=world-affairs-internal
 ```
 
@@ -69,17 +71,19 @@ npm run dev
 | **News Feed** | 카테고리/지역 필터 뉴스 목록 | GDELT + RSS |
 | **Issue Tracker** | 지역별 이슈 심각도 카드 (정렬) | GeoEvents 집계 |
 | **Vessel Tracking** | 중동 해역 선박 추적 지도 (유형 필터) | AISStream WebSocket |
-| **Airport Monitor** | DXB 공항 상태/항공기/이벤트/항공사/노선 | OpenSky + AviationStack |
+| **Airport Monitor** | DXB 공항 상태/항공기/이벤트/항공사/노선 + DXB Flight Status | OpenSky + AviationStack + dubaiairports.ae |
 | **Market Section** | 주식 지수 카드 + 원자재/환율 테이블 | Yahoo Finance |
-| **AI Analysis** | 지역 감성 분석 + AI 브리핑 | Goldstein scale + Gemini |
+| **AI Analysis** | 지역 감성 분석 + AI 브리핑 (마크다운 렌더링) | Goldstein scale + Gemini |
 
 ### 조작법
 
 - **언어 전환**: TopBar 우측 `KO` 버튼 클릭 → KO → EN → JA 순환
+- **다크/라이트 토글**: TopBar 테마 전환 버튼 (Tokyo Night Storm / Tokyo Night Day)
 - **네비게이션**: TopBar 탭 (MAP, VESSELS, MARKETS, ANALYSIS) 클릭 → 해당 섹션 스크롤
 - **뉴스 필터**: 카테고리(외교/군사/경제/인권/환경) + 지역(동아시아/중동/유럽/북미) 필터
-- **지도 필터**: 긴장도(전체) / 분쟁(conflict+military) 토글
-- **선박 필터**: 전체 / 유조선 / LPG|LNG 필터
+- **기사 상세**: 뉴스 항목 클릭 → 기사 상세 모달 표시
+- **지도 필터**: 긴장도(전체) / 분쟁(conflict+military) 토글 + 긴장 구역 오버레이
+- **선박 필터**: 전체 / 유조선 / LPG|LNG 필터 + 해상 경보 표시
 - **이슈 정렬**: 심각도순 / 최신순 토글
 
 ## 개발 모드
@@ -139,9 +143,14 @@ pm2 startup                        # 시스템 부팅 시 자동 시작 등록
 | `collect-geo` | 30분마다 | GDELT Events | O |
 | `airport:flights` | 07-23시 2분, 그 외 1시간 | OpenSky (OAuth2) | O |
 | `airport:ops` | 하루 2회 (06:00, 18:00) | AviationStack | O |
-| `airport:events` | 4시간마다 | GDELT Airport | O |
+| `airport:dxb-flights` | 10분마다 | dubaiairports.ae (HTML 스크래핑) | O |
 | `airport:cleanup` | 매일 03:00 | - (7일 보존) | X |
+| `ai:analysis` | 4시간마다 | Gemini API | X |
+| `ai:briefing` | 매일 06:00 | Gemini API | X |
+| `cleanup:global` | 매일 04:00 | - (30일 보존) | X |
 | `ais:stream` | **상시 WebSocket** | AISStream.io | O (자동 재연결) |
+
+> **참고:** 시작 시 실행(O) 잡은 3초 간격으로 staggered 실행됩니다. `airport:events` (GDELT) 는 현재 비활성화 상태입니다.
 
 ### 번역
 
@@ -162,6 +171,10 @@ pm2 startup                        # 시스템 부팅 시 자동 시작 등록
 | `/api/geo-events` | GET | `lang`, `limit`, `severity`, `eventType` |
 | `/api/vessels` | GET | `type`, `zone` |
 | `/api/airport` | GET | `section` (status\|flights\|events\|airlines\|routes), `limit` |
+| `/api/airport/flights` | GET | DXB 출발/도착 항공편 |
+| `/api/airport/dxb-stats` | GET | DXB 스크래핑 통계 |
+| `/api/airport/opensky-flights` | GET | OpenSky 항공편 위치 |
+| `/api/airport/assessment` | GET | 공항 리스크 평가 |
 | `/api/analysis/briefing` | GET | `lang` |
 
 ### SSE (Server-Sent Events)
@@ -229,6 +242,7 @@ app/                        # Next.js App Router
   api/                      # REST + SSE API
   components/               # React 컴포넌트
   hooks/                    # React Query 훅
+  i18n/                     # 다국어 번역 (ko.json, en.json, ja.json, useT 훅)
   lib/                      # API 클라이언트, 타입
 src/
   domain/                   # 엔티티 + 포트 (순수 비즈니스)

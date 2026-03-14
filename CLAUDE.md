@@ -17,18 +17,27 @@
 | DB | SQLite (`db/data.sqlite`) |
 | 배치 스케줄러 | node-cron (별도 프로세스) |
 | 프로세스 관리 | pm2 |
-| UI | MUI v5 + Tailwind CSS |
+| UI | Tailwind CSS v4 + inline CSS (Tokyo Night Storm/Day 테마) |
 | 지도 | react-leaflet + Leaflet.js |
 | 차트 | Recharts |
-| 스크래핑 | Playwright |
-| AI/번역 | Gemini API (번역 EN/KO/JA + 요약/감성/브리핑) |
+| 마크다운 | react-markdown |
+| 스크래핑 | Playwright + cheerio (HTML 파싱) |
+| AI | Gemini API (번역 EN/KO/JA + 요약/감성/분석/브리핑) |
+| i18n | 커스텀 useT() 훅 + ko.json/en.json/ja.json |
+| 실시간 통신 | SSE (Server-Sent Events) + in-memory PubSub |
+| WebSocket | ws (AISStream.io 선박 데이터) |
 
 ## 프로젝트 구조
 
 ```
 /
 ├── app/                        # Next.js App Router (프론트 + API Routes)
-│   └── api/                    # API 엔드포인트
+│   ├── api/                    # API 엔드포인트
+│   │   └── sse/                # SSE 실시간 스트리밍 (positions, publish)
+│   ├── components/             # React 컴포넌트
+│   ├── hooks/                  # React Query 훅
+│   ├── i18n/                   # 다국어 번역 (ko.json, en.json, ja.json, useT 훅)
+│   └── lib/                    # API 클라이언트, 타입
 ├── src/                        # 헥사고날 아키텍처 소스
 │   ├── domain/                 # 도메인 엔티티 + 포트 (순수 비즈니스, 외부 의존성 없음)
 │   ├── adapters/               # 포트 구현체 (외부 의존성)
@@ -36,7 +45,7 @@
 │   │   ├── repositories/       # Prisma DB 어댑터
 │   │   └── ai/                 # Gemini API 어댑터
 │   ├── usecases/               # 유스케이스 (도메인 오케스트레이션)
-│   ├── infrastructure/         # 프레임워크 설정 (prisma.ts, gemini.ts)
+│   ├── infrastructure/         # 프레임워크 설정 (prisma.ts, gemini.ts, pubsub.ts, publish-sse.ts)
 │   ├── batch/                  # 배치 스케줄러 (node-cron)
 │   └── shared/                 # 공통 타입, 유틸
 ├── prisma/

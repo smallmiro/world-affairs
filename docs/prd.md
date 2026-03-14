@@ -130,11 +130,16 @@
 
 #### 4.8.6 데이터 수집
 
-- 항공기 위치: 07:00~23:00 **2분 간격**, 23:00~07:00 1시간 간격 (OpenSky OAuth2, 일 4,000크레딧 내)
+- 항공기 위치: 07:00~23:00 **2분 간격**, 23:00~07:00 1시간 간격 (OpenSky OAuth2 Client Credentials, 일 4,000크레딧 내)
+- FlightPosition: icao24 기준 upsert (시계열 아님, 최신 위치만 유지)
+- DXB Flight Status: **10분 간격** (dubaiairports.ae HTML 스크래핑, cheerio 파싱)
 - 공항 상태/항공사: 하루 2회 06:00, 18:00 (AviationStack, Free tier 월 100회 대응)
-- 공항 이벤트: 4시간 간격 (GDELT 항공 키워드 필터)
-- 데이터 보관: 최근 7일간 이벤트 이력 (매일 03:00 자동 정리)
-- 수집 대상: 공항 운영 상태, 항공기 위치, NOTAM, 항공사 운항 정보, 주변 분쟁/군사 활동 정보
+- 공항 이벤트 (GDELT): 현재 **비활성화**
+- AI 분석: 4시간마다 (Gemini API, 지역별 감성/분석)
+- AI 브리핑: 매일 06:00 (Gemini API, 일간 브리핑 생성)
+- 데이터 보관: 최근 7일간 이벤트 이력 (매일 03:00 자동 정리), 전역 30일 정리 (매일 04:00)
+- 시작 시 잡 실행: 3초 간격 staggered
+- 수집 대상: 공항 운영 상태, 항공기 위치, DXB 출도착 항공편, NOTAM, 항공사 운항 정보, 주변 분쟁/군사 활동 정보
 
 ### 4.9 대시보드 UI
 
@@ -153,17 +158,19 @@
 |------|------|------|
 | 프레임워크 | **Next.js** (App Router) + TypeScript | React 포함, 프론트/백엔드 통합 |
 | API | **Next.js API Routes** (`app/api/`) | REST API 엔드포인트 |
-| UI 라이브러리 | MUI (Material UI) v5 | 테이블, 카드, 탭, 다이얼로그 등 |
-| 스타일링 | Tailwind CSS | 유틸리티 기반 커스텀 스타일링 |
+| UI/스타일링 | Tailwind CSS v4 + inline CSS | Tokyo Night Storm (dark) / Tokyo Night Day (light) 테마 |
 | 지도 | react-leaflet + Leaflet.js | 세계 지도 및 선박 추적 지도 |
-| 차트 | Recharts 또는 Apache ECharts | 트렌드, 미니 차트, 감성 분석 |
-| 상태 관리 | Zustand 또는 React Query | 서버 상태 캐싱 및 클라이언트 상태 |
-| 다국어 | react-i18next | 한국어/영어/일본어 |
+| 차트 | Recharts | 트렌드, 미니 차트, 감성 분석 |
+| 마크다운 | react-markdown | AI 브리핑 렌더링 |
+| 상태 관리 | React Query | 서버 상태 캐싱 |
+| 다국어 | 커스텀 useT() 훅 + ko.json/en.json/ja.json | 한국어/영어/일본어 |
 | ORM | **Prisma** | 타입 안전 DB 접근, 마이그레이션 관리 |
 | 스케줄러 | **node-cron** + setInterval | 배치 데이터 수집 (별도 프로세스) |
 | 실시간 통신 | **SSE** (Server-Sent Events) + in-memory pub/sub | 선박/항공기 위치 실시간 스트리밍 |
 | 선박 데이터 | **AISStream.io** (WebSocket) | 상시 연결, 자동 재연결 |
-| AI/LLM + 번역 | **Gemini API** (Google) | 뉴스 요약, 감성 분석, 브리핑 생성, 다국어 번역 (EN/KO/JA) |
+| 스크래핑 보조 | **cheerio** | HTML 파싱 (DXB 등) |
+| WebSocket | **ws** | AISStream.io 선박 데이터 수신 |
+| AI/LLM + 번역 | **Gemini API** (Google) | 뉴스 요약, 감성 분석, 지역 분석, 브리핑 생성, 다국어 번역 (EN/KO/JA) |
 
 ### 5.3 데이터 수집
 
@@ -212,7 +219,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        클라이언트 (브라우저)                      │
-│  Next.js (React) + TypeScript + MUI + Tailwind CSS             │
+│  Next.js (React) + TypeScript + Tailwind CSS v4                │
 │  ┌──────────┬──────────┬──────────┬──────────┬───────────┬───────────┐│
 │  │ 세계지도  │ 뉴스피드  │ 이슈트래커│ 선박추적  │ 공항모니터 │ 시장데이터 ││
 │  │(Leaflet) │          │          │(Leaflet) │ (Leaflet) │ (Recharts)││
@@ -298,6 +305,11 @@
 │   │   └── sse/
 │   │       ├── positions/route.ts  # SSE 실시간 위치 스트리밍
 │   │       └── publish/route.ts    # 배치→웹 내부 pub/sub 엔드포인트
+│   ├── i18n/                     # 다국어 번역
+│   │   ├── ko.json               # 한국어
+│   │   ├── en.json               # 영어
+│   │   ├── ja.json               # 일본어
+│   │   └── useT.ts               # 번역 훅
 │   └── components/               # React 컴포넌트
 │       ├── layout/
 │       │   ├── TopBar.tsx
@@ -327,25 +339,20 @@
 │           ├── SentimentGauge.tsx
 │           ├── TrendChart.tsx
 │           └── AIBriefing.tsx
-├── batch/                        # 배치 스케줄러 (별도 프로세스)
-│   ├── scheduler.ts              # node-cron 진입점
-│   └── collectors/               # 데이터 수집 로직
-│       ├── news.ts
-│       ├── markets.ts
-│       ├── vessels.ts
-│       ├── airport.ts            # 항공 데이터 수집
-│       └── scraper.ts            # Playwright 스크래핑
+├── src/                          # 헥사고날 아키텍처 소스
+│   ├── domain/                   # 엔티티 + 포트 (순수 비즈니스)
+│   ├── adapters/                 # 포트 구현체
+│   │   ├── collectors/           # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS, DXB)
+│   │   ├── repositories/        # Prisma DB 어댑터
+│   │   └── ai/                  # Gemini API 어댑터
+│   ├── usecases/                 # 도메인 오케스트레이션
+│   ├── infrastructure/           # prisma, gemini, pubsub, publish-sse
+│   ├── batch/                    # 스케줄러 (node-cron + WebSocket)
+│   └── shared/                   # 공통 타입, 분류 유틸
 ├── prisma/
 │   └── schema.prisma             # DB 스키마 정의
 ├── db/
 │   └── data.sqlite               # SQLite DB 파일
-├── lib/                          # 공유 라이브러리
-│   ├── prisma.ts                 # Prisma 클라이언트 싱글턴
-│   └── ai.ts                    # Claude API 래퍼
-├── i18n/
-│   ├── ko.json                   # 한국어
-│   ├── en.json                   # 영어
-│   └── ja.json                   # 일본어
 ├── ecosystem.config.js           # pm2 설정 파일
 ├── package.json
 └── tsconfig.json
