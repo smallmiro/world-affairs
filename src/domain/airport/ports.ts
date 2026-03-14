@@ -41,6 +41,7 @@ export interface AirportRepositoryPort {
 
   // Events
   saveEvents(events: AirportEvent[]): Promise<void>;
+  updateEvent(event: AirportEvent): Promise<void>;
   findLatestEvents(limit: number): Promise<AirportEvent[]>;
   filterExistingSourceIds(ids: { sourceId: string; source: string }[]): Promise<Set<string>>;
 

@@ -41,8 +41,9 @@ export class GeoRepository implements GeoRepositoryPort {
   async save(events: GeoEvent[]): Promise<void> {
     await this.prisma.$transaction(
       events.map((event) =>
-        this.prisma.geoEvent.create({
-          data: {
+        this.prisma.geoEvent.upsert({
+          where: { id: event.id },
+          create: {
             id: event.id,
             source: event.source,
             eventType: event.eventType,
@@ -58,6 +59,14 @@ export class GeoRepository implements GeoRepositoryPort {
             severity: event.severity,
             goldsteinScale: event.goldsteinScale,
             eventDate: event.eventDate,
+          },
+          update: {
+            titleEn: event.title.en,
+            titleKo: event.title.ko,
+            titleJa: event.title.ja,
+            descEn: event.description?.en ?? null,
+            descKo: event.description?.ko ?? null,
+            descJa: event.description?.ja ?? null,
           },
         }),
       ),

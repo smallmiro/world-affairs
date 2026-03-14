@@ -173,6 +173,20 @@ export class AirportRepository implements AirportRepositoryPort {
     );
   }
 
+  async updateEvent(event: AirportEvent): Promise<void> {
+    await this.prisma.airportEvent.update({
+      where: { id: event.id },
+      data: {
+        titleEn: event.title.en,
+        titleKo: event.title.ko,
+        titleJa: event.title.ja,
+        descEn: event.description?.en ?? null,
+        descKo: event.description?.ko ?? null,
+        descJa: event.description?.ja ?? null,
+      },
+    });
+  }
+
   async findLatestEvents(limit: number): Promise<AirportEvent[]> {
     const rows = await this.prisma.airportEvent.findMany({
       orderBy: { eventDate: "desc" },
