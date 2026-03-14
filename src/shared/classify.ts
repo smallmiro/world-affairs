@@ -162,13 +162,22 @@ export function classifyZone(lat: number, lon: number): MaritimeZone | null {
 // ─── Vessel Type Classification ────────────────────────────────
 
 const TANKER_CODES = new Set([80, 81, 82, 83, 84, 85, 86, 87, 88, 89]);
-const LPG_CODE = 82;
-const LNG_CODE = 84;
 
 export function classifyShipType(aisType: number): VesselType | null {
-  if (aisType === LPG_CODE) return "lpg";
-  if (aisType === LNG_CODE) return "lng";
+  if (aisType === 0) return null; // unknown
+  // Tankers (80-89)
+  if (aisType === 82) return "lpg";
+  if (aisType === 84) return "lng";
   if (aisType === 81) return "tanker_crude";
   if (TANKER_CODES.has(aisType)) return "tanker_product";
-  return null;
+  // Cargo (70-79)
+  if (aisType >= 70 && aisType <= 79) return "cargo";
+  // Passenger (60-69)
+  if (aisType >= 60 && aisType <= 69) return "passenger";
+  // Other known types
+  if (aisType >= 40 && aisType <= 49) return "other"; // high-speed craft
+  if (aisType >= 50 && aisType <= 59) return "other"; // special craft
+  if (aisType >= 90 && aisType <= 99) return "other"; // other
+  if (aisType >= 1 && aisType <= 39) return "other";  // reserved/misc
+  return "other";
 }

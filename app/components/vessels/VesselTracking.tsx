@@ -9,12 +9,14 @@ import type { VesselWithPosition } from "../../lib/types";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
 
-type VesselFilter = "all" | "tanker" | "lpg_lng";
+type VesselFilter = "all" | "tanker" | "lpg_lng" | "cargo" | "passenger";
 
 const FILTER_BUTTONS: { key: VesselFilter; label: string }[] = [
   { key: "all", label: "전체" },
   { key: "tanker", label: "유조선" },
   { key: "lpg_lng", label: "LPG|LNG" },
+  { key: "cargo", label: "화물선" },
+  { key: "passenger", label: "여객선" },
 ];
 
 const ZONE_LABELS: Record<string, { ko: string; en: string }> = {
@@ -90,6 +92,12 @@ export default function VesselTracking() {
     }
     if (activeFilter === "lpg_lng") {
       return mergedVessels.filter((v) => v.type === "lpg" || v.type === "lng");
+    }
+    if (activeFilter === "cargo") {
+      return mergedVessels.filter((v) => v.type === "cargo" || v.type === "container" || v.type === "bulk");
+    }
+    if (activeFilter === "passenger") {
+      return mergedVessels.filter((v) => v.type === "passenger");
     }
     return mergedVessels;
   }, [mergedVessels, activeFilter]);

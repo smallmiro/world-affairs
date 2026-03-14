@@ -237,6 +237,14 @@ body::after {
   border-bottom-color: var(--accent-red);
   filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
 }
+.vessel-marker.cargo {
+  border-bottom-color: #94a3b8;
+  filter: drop-shadow(0 0 3px rgba(148, 163, 184, 0.4));
+}
+.vessel-marker.passenger {
+  border-bottom-color: var(--accent-green);
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.5));
+}
 
 /* Leaflet dark theme overrides */
 .leaflet-container {

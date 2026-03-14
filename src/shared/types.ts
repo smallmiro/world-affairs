@@ -33,7 +33,12 @@ export type VesselType =
   | "tanker_crude"
   | "tanker_product"
   | "lpg"
-  | "lng";
+  | "lng"
+  | "cargo"
+  | "container"
+  | "bulk"
+  | "passenger"
+  | "other";
 
 export type MaritimeZone =
   | "hormuz"

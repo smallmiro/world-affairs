@@ -10,11 +10,18 @@ const TYPE_LABELS: Record<string, string> = {
   tanker_product: "석유제품 유조선",
   lpg: "LPG선",
   lng: "LNG선",
+  cargo: "화물선",
+  container: "컨테이너선",
+  bulk: "벌크선",
+  passenger: "여객선",
+  other: "기타",
 };
 
 function vesselMarkerClass(type: string, isAnomaly: boolean): string {
   if (isAnomaly) return "vessel-marker reroute";
   if (type === "lpg" || type === "lng") return "vessel-marker lpg";
+  if (type === "cargo" || type === "container" || type === "bulk") return "vessel-marker cargo";
+  if (type === "passenger") return "vessel-marker passenger";
   return "vessel-marker";
 }
 
