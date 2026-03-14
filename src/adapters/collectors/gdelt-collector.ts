@@ -6,7 +6,7 @@ import { classifyCategory, classifyRegionFromText, hashString } from "../../shar
 const GDELT_API_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
 const GDELT_QUERY_PARAMS = {
-  query: "(geopolitics OR conflict OR sanctions OR military OR diplomacy OR war OR nuclear OR missile) sourcelang:eng",
+  query: "(geopolitics OR conflict OR sanctions OR military OR diplomacy OR war OR nuclear OR missile OR dubai OR saudi OR israel OR iran OR UAE OR gulf OR hormuz) sourcelang:eng",
   mode: "artlist",
   format: "json",
   maxrecords: "50",

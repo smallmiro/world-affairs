@@ -11,8 +11,10 @@ interface RssFeed {
 
 const RSS_FEEDS: RssFeed[] = [
   { name: "bbc-world", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
+  { name: "bbc-middleeast", url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml" },
   { name: "aljazeera", url: "https://www.aljazeera.com/xml/rss/all.xml" },
   { name: "nbc-world", url: "https://feeds.nbcnews.com/nbcnews/public/world" },
+  { name: "reuters-world", url: "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best" },
 ];
 
 export class RssCollector implements NewsCollectorPort {

@@ -10,23 +10,20 @@ const METERS_TO_FEET = 3.28084;
 const MPS_TO_KNOTS = 1.94384;
 
 const ICAO_TO_IATA: Record<string, string> = {
-  UAE: "EK",
-  FDB: "FZ",
-  QTR: "QR",
-  ETD: "EY",
-  SVA: "SV",
-  QFA: "QF",
-  BAW: "BA",
-  DLH: "LH",
-  KAL: "KE",
-  ANA: "NH",
-  SIA: "SQ",
-  THY: "TK",
-  JAI: "9W",
-  IGO: "6E",
-  FDX: "FX",
-  UPS: "5X",
+  // UAE carriers
+  UAE: "EK", FDB: "FZ", ETD: "EY",
+  // Gulf carriers
+  QTR: "QR", GFA: "GF", SVA: "SV", KAC: "KU", OMA: "WY", MEA: "ME",
+  // Major international
+  BAW: "BA", DLH: "LH", KAL: "KE", ANA: "NH", SIA: "SQ", THY: "TK",
+  QFA: "QF", JAI: "9W", IGO: "6E", FDX: "FX", UPS: "5X",
+  // Regional
+  ABY: "G9", PAX: "2P", FJL: "F3", ADY: "AD", MSC: "M5", ABQ: "A7",
+  PIA: "PK", IRA: "IR", IAW: "IA",
 };
+
+// UAE-based airline ICAO prefixes
+const UAE_CARRIERS = new Set(["UAE", "FDB", "ETD"]);
 
 function resolveAirlineIata(callsign: string): string | null {
   const icaoPrefix = callsign.slice(0, 3).toUpperCase();
@@ -34,7 +31,8 @@ function resolveAirlineIata(callsign: string): string | null {
 }
 
 function resolveAircraftClass(callsign: string): AircraftClass {
-  return callsign.toUpperCase().startsWith("UAE") ? "ek" : "other";
+  const prefix = callsign.slice(0, 3).toUpperCase();
+  return UAE_CARRIERS.has(prefix) ? "ek" : "other";
 }
 
 const OPENSKY_TOKEN_URL =
