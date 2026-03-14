@@ -35,7 +35,7 @@ export default function TrendChart({ data }: TrendChartProps) {
           dataKey="date"
           tick={{
             fontFamily: "monospace",
-            fontSize: "0.55rem",
+            fontSize: "0.75rem",
             fill: "var(--text-muted)",
           }}
           axisLine={{ stroke: "var(--border)" }}
@@ -44,7 +44,7 @@ export default function TrendChart({ data }: TrendChartProps) {
         <YAxis
           tick={{
             fontFamily: "monospace",
-            fontSize: "0.55rem",
+            fontSize: "0.75rem",
             fill: "var(--text-muted)",
           }}
           axisLine={false}
@@ -63,7 +63,7 @@ export default function TrendChart({ data }: TrendChartProps) {
           itemStyle={{ color: "var(--text-secondary)" }}
           labelStyle={{
             fontFamily: "monospace",
-            fontSize: "0.6rem",
+            fontSize: "0.8rem",
             color: "var(--text-muted)",
             marginBottom: 4,
           }}

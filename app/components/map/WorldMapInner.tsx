@@ -84,7 +84,7 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
     <MapContainer
       center={[32, 52]}
       zoom={4}
-      style={{ height: 420, width: "100%", background: "#0a0e17" }}
+      style={{ height: 420, width: "100%", background: "#1a1b26" }}
       zoomControl={false}
       attributionControl={false}
     >
@@ -105,12 +105,12 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
           }}
         >
           <Popup>
-            <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 200, background: "#0f1420", padding: 8, borderRadius: 2 }}>
+            <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 200, background: "#16161e", padding: 8, borderRadius: 2 }}>
               <div style={{ fontWeight: "bold", color: zone.color, marginBottom: 4, fontSize: "0.8rem" }}>
                 {zone.label}
               </div>
               <div style={{
-                fontSize: "0.55rem", fontWeight: "bold", letterSpacing: "0.5px",
+                fontSize: "0.75rem", fontWeight: "bold", letterSpacing: "0.5px",
                 color: zone.color, background: `${zone.color}20`, padding: "2px 6px",
                 display: "inline-block", marginBottom: 6,
               }}>
@@ -129,7 +129,7 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
           position={zone.labelPos}
           icon={L.divIcon({
             className: "",
-            html: `<div style="font-family:monospace;font-size:8px;color:${zone.color};text-shadow:0 0 4px ${zone.color}80;white-space:nowrap">${zone.label}</div>`,
+            html: `<div style="font-family:monospace;font-size:11px;color:${zone.color};text-shadow:0 0 4px ${zone.color}80;white-space:nowrap">${zone.label}</div>`,
             iconSize: [80, 12],
             iconAnchor: [40, 6],
           })}
@@ -205,20 +205,20 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
               icon={aircraftIcon(f.callsign, f.heading)}
             >
               <Popup>
-                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: "#0f1420", padding: 6, minWidth: 120 }}>
+                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: "#16161e", padding: 6, minWidth: 120 }}>
                   <div style={{ fontWeight: "bold", color, marginBottom: 3, fontSize: "0.8rem" }}>
                     ✈ {f.callsign.trim()}
                   </div>
-                  <div style={{ fontSize: "0.6rem", color: "#e2e8f0", marginBottom: 2 }}>
+                  <div style={{ fontSize: "0.8rem", color: "#e2e8f0", marginBottom: 2 }}>
                     {airlineName}
                   </div>
                   {(f.depAirport || f.arrAirport) && (
-                    <div style={{ fontSize: "0.6rem", color: "#06b6d4", marginBottom: 2 }}>
+                    <div style={{ fontSize: "0.8rem", color: "#06b6d4", marginBottom: 2 }}>
                       {f.depAirport ?? "?"} → {f.arrAirport ?? "?"}
                       {f.flightStatus && <span style={{ marginLeft: 4, color: f.flightStatus === "delayed" ? "#ef4444" : "#22c55e" }}>{f.flightStatus}</span>}
                     </div>
                   )}
-                  <div style={{ fontSize: "0.55rem", color: "#94a3b8" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
                     FL{Math.round(f.altitude / 100)} · {Math.round(f.speed)}kt
                     {f.depTime && <span> · DEP {f.depTime}</span>}
                   </div>

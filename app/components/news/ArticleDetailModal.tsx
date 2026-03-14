@@ -53,19 +53,19 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
         >
           <div className="flex items-center gap-2">
             <span
-              className="font-mono text-[0.55rem] font-bold tracking-[1px] px-1.5 py-px uppercase"
+              className="font-mono text-[0.75rem] font-bold tracking-[1px] px-1.5 py-px uppercase"
               style={{ color: s.color, background: s.bg }}
             >
               {SEVERITY_LABELS[displaySeverity]}
             </span>
             <span
-              className="font-mono text-[0.55rem] tracking-[0.5px] px-1.5 py-px border"
+              className="font-mono text-[0.75rem] tracking-[0.5px] px-1.5 py-px border"
               style={{ color: "var(--text-muted)", borderColor: "var(--border)" }}
             >
               {getCategoryLabel(article.category, lang)}
             </span>
             <span
-              className="font-mono text-[0.55rem] tracking-[0.5px] px-1.5 py-px border"
+              className="font-mono text-[0.75rem] tracking-[0.5px] px-1.5 py-px border"
               style={{ color: "var(--text-muted)", borderColor: "var(--border)" }}
             >
               {t(lang, `regions.${article.region}`)}
@@ -73,7 +73,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
           </div>
           <button
             onClick={onClose}
-            className="font-mono text-[0.8rem] px-2 py-0.5 cursor-pointer"
+            className="font-mono text-[0.8rem] w-11 h-11 flex items-center justify-center cursor-pointer"
             style={{ color: "var(--text-muted)" }}
           >
             ✕
@@ -107,10 +107,10 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
 
           {/* Meta */}
           <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-[0.62rem]" style={{ color: "var(--text-muted)" }}>
+            <span className="font-mono text-[0.85rem]" style={{ color: "var(--text-muted)" }}>
               {formatTime(article.publishedAt)}
             </span>
-            <span className="font-mono text-[0.62rem]" style={{ color: "var(--accent-cyan)" }}>
+            <span className="font-mono text-[0.85rem]" style={{ color: "var(--accent-cyan)" }}>
               {article.source}
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
           {article.summary && (
             <div className="mb-4">
               <div
-                className="font-mono text-[0.55rem] tracking-[1px] uppercase mb-2"
+                className="font-mono text-[0.75rem] tracking-[1px] uppercase mb-2"
                 style={{ color: "var(--text-muted)" }}
               >
                 {t(lang, "news.summary")}
@@ -136,7 +136,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
           {/* Multilingual titles */}
           <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
             <div
-              className="font-mono text-[0.55rem] tracking-[1px] uppercase mb-2"
+              className="font-mono text-[0.75rem] tracking-[1px] uppercase mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               {t(lang, "news.multilingual")}
@@ -144,19 +144,19 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
             <div className="flex flex-col gap-1.5">
               {article.title.en && (
                 <div className="flex gap-2">
-                  <span className="font-mono text-[0.55rem] shrink-0 mt-0.5" style={{ color: "var(--accent-cyan)" }}>EN</span>
+                  <span className="font-mono text-[0.75rem] shrink-0 mt-0.5" style={{ color: "var(--accent-cyan)" }}>EN</span>
                   <span className="text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>{article.title.en}</span>
                 </div>
               )}
               {article.title.ko && article.title.ko !== article.title.en && (
                 <div className="flex gap-2">
-                  <span className="font-mono text-[0.55rem] shrink-0 mt-0.5" style={{ color: "var(--accent-amber)" }}>KO</span>
+                  <span className="font-mono text-[0.75rem] shrink-0 mt-0.5" style={{ color: "var(--accent-amber)" }}>KO</span>
                   <span className="text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>{article.title.ko}</span>
                 </div>
               )}
               {article.title.ja && article.title.ja !== article.title.en && (
                 <div className="flex gap-2">
-                  <span className="font-mono text-[0.55rem] shrink-0 mt-0.5" style={{ color: "var(--accent-red)" }}>JA</span>
+                  <span className="font-mono text-[0.75rem] shrink-0 mt-0.5" style={{ color: "var(--accent-red)" }}>JA</span>
                   <span className="text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>{article.title.ja}</span>
                 </div>
               )}

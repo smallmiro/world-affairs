@@ -162,7 +162,7 @@ export default function VesselTracking() {
         controls={
           sseConnected ? (
             <span
-              className="font-mono text-[0.5rem] tracking-[1.5px] px-1.5 py-0.5 border"
+              className="font-mono text-[0.72rem] tracking-[1.5px] px-1.5 py-0.5 border"
               style={{ color: "var(--accent-green)", borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)" }}
             >
               LIVE
@@ -177,7 +177,7 @@ export default function VesselTracking() {
           <button
             key={btn.key}
             onClick={() => setActiveFilter(btn.key)}
-            className="font-mono text-[0.65rem] tracking-[1px] px-3 py-1 border cursor-pointer transition-all duration-200"
+            className="font-mono text-[0.65rem] tracking-[1px] px-3 py-2.5 border cursor-pointer transition-all duration-200"
             style={{
               color: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--border)",
@@ -195,8 +195,8 @@ export default function VesselTracking() {
         style={{ borderColor: "var(--border)", height: 340 }}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center h-full" style={{ background: "#0a0e17" }}>
-            <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
+          <div className="flex items-center justify-center h-full" style={{ background: "#1a1b26" }}>
+            <span className="font-mono text-[0.8rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
               {t("common.loadingMap")}
             </span>
           </div>
@@ -209,7 +209,7 @@ export default function VesselTracking() {
       <div className="grid grid-cols-2 gap-2 max-lg:grid-cols-1">
         {/* Passage stats */}
         <div>
-          <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
+          <h3 className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
             {t("vessels.passageStats")}
           </h3>
           <div className="flex flex-col gap-1">
@@ -225,10 +225,10 @@ export default function VesselTracking() {
                   style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
                 >
                   <div>
-                    <div className="font-mono text-[0.58rem] tracking-[0.5px]" style={{ color: "var(--text-secondary)" }}>
+                    <div className="font-mono text-[0.8rem] tracking-[0.5px]" style={{ color: "var(--text-secondary)" }}>
                       {z.ko}
                     </div>
-                    <div className="font-mono text-[0.46rem]" style={{ color: "var(--text-muted)" }}>
+                    <div className="font-mono text-[0.7rem]" style={{ color: "var(--text-muted)" }}>
                       {z.en}
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export default function VesselTracking() {
                     <span className="font-mono text-[0.8rem] font-bold" style={{ color: "var(--text-primary)" }}>
                       {z.count}
                     </span>
-                    <span className="font-mono text-[0.46rem]" style={{ color: "var(--text-muted)" }}>
+                    <span className="font-mono text-[0.7rem]" style={{ color: "var(--text-muted)" }}>
                       {t("vessels.ships")}
                     </span>
                   </div>
@@ -248,7 +248,7 @@ export default function VesselTracking() {
 
         {/* Maritime situation alerts */}
         <div>
-          <h3 className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
+          <h3 className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--accent-amber)" }}>
             {t("vessels.maritimeAlerts")}
           </h3>
           <div className="flex flex-col gap-1" style={{ maxHeight: 200, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
@@ -265,14 +265,14 @@ export default function VesselTracking() {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  <span className="font-mono text-[0.55rem] font-bold shrink-0 mt-px" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
+                  <span className="font-mono text-[0.75rem] font-bold shrink-0 mt-px" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
                     {isCritical ? "!!" : "!"}
                   </span>
                   <div>
-                    <div className="text-[0.6rem] font-medium mb-0.5" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
+                    <div className="text-[0.8rem] font-medium mb-0.5" style={{ color: isCritical ? "var(--accent-red)" : "var(--accent-amber)" }}>
                       {v.name} — {v.latestPosition?.status.toUpperCase()}
                     </div>
-                    <div className="text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
+                    <div className="text-[0.75rem]" style={{ color: "var(--text-muted)" }}>
                       {v.type} · {v.latestPosition?.speed ?? 0} kn · {v.latestPosition?.zone ?? "—"}
                     </div>
                   </div>
@@ -290,16 +290,16 @@ export default function VesselTracking() {
                   style={{ background: "var(--bg-secondary)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
                 >
                   <span
-                    className="font-mono text-[0.46rem] font-bold tracking-[0.5px] shrink-0 mt-0.5 px-1 py-px"
+                    className="font-mono text-[0.7rem] font-bold tracking-[0.5px] shrink-0 mt-0.5 px-1 py-px"
                     style={{ color, background: `${color}15` }}
                   >
                     {tag}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[0.6rem] leading-[1.4] line-clamp-2" style={{ color: "var(--text-secondary)" }}>
+                    <div className="text-[0.8rem] leading-[1.4] line-clamp-2" style={{ color: "var(--text-secondary)" }}>
                       {getTranslatedText(event.title, lang)}
                     </div>
-                    <div className="text-[0.48rem] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    <div className="text-[0.72rem] mt-0.5" style={{ color: "var(--text-muted)" }}>
                       {formatTime(event.eventDate)} · {event.countries.join(", ")}
                     </div>
                   </div>

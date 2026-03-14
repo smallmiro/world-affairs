@@ -25,13 +25,13 @@ function TickerItem({ item }: { item: MarketSnapshot }) {
       style={{ borderColor: "var(--border)", whiteSpace: "nowrap" }}
     >
       <div className="flex items-center gap-2 h-5">
-        <span className="font-mono text-[0.62rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.85rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
           {item.symbol}
         </span>
         <span className="font-mono text-[0.78rem] font-semibold" style={{ color: "var(--text-primary)" }}>
           {formatPrice(item.price, item.currency)}
         </span>
-        <span className="font-mono text-[0.62rem] font-semibold" style={{ color }}>
+        <span className="font-mono text-[0.85rem] font-semibold" style={{ color }}>
           {arrow} {formatChange(item.change)} ({formatChangePct(item.changePct)})
         </span>
       </div>

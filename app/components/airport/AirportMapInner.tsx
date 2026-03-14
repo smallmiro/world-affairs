@@ -44,7 +44,7 @@ function aircraftIcon(cls: string, rotation: number) {
 function labelIcon(text: string, color: string) {
   return L.divIcon({
     className: "",
-    html: `<div style="font-family:monospace;font-size:9px;color:${color};text-shadow:0 0 6px ${color}80;white-space:nowrap">${text}</div>`,
+    html: `<div style="font-family:monospace;font-size:11px;color:${color};text-shadow:0 0 6px ${color}80;white-space:nowrap">${text}</div>`,
     iconSize: [80, 14],
     iconAnchor: [40, 7],
   });
@@ -66,7 +66,7 @@ export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
     <MapContainer
       center={[25.25, 50.0]}
       zoom={5}
-      style={{ height: "100%", width: "100%", background: "#0a0e17" }}
+      style={{ height: "100%", width: "100%", background: "#1a1b26" }}
       zoomControl={false}
       attributionControl={false}
     >
@@ -127,17 +127,17 @@ export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
         return (
           <Marker key={ac.flightLabel} position={[ac.lat, ac.lng]} icon={aircraftIcon(ac.cls, ac.rotation)}>
             <Popup>
-              <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 140, background: "#0f1420", padding: 6, borderRadius: 2 }}>
+              <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 140, background: "#16161e", padding: 6, borderRadius: 2 }}>
                 <div style={{ fontWeight: "bold", color: ac.cls === "ek" ? "#f59e0b" : "#94a3b8", marginBottom: 4, fontSize: "0.8rem" }}>
                   ✈ {info.flightNum}
                 </div>
                 <div style={{ fontSize: "0.65rem", color: "#e2e8f0", marginBottom: 2 }}>
                   {info.airline}
                 </div>
-                <div style={{ fontSize: "0.6rem", color: "#06b6d4", marginBottom: 4 }}>
+                <div style={{ fontSize: "0.8rem", color: "#06b6d4", marginBottom: 4 }}>
                   {info.direction}
                 </div>
-                <div style={{ fontSize: "0.55rem", color: "#94a3b8", borderTop: "1px solid #1e293b", paddingTop: 3 }}>
+                <div style={{ fontSize: "0.75rem", color: "#94a3b8", borderTop: "1px solid #1e293b", paddingTop: 3 }}>
                   <div>ALT: {ac.altLabel}</div>
                   <div>POS: {ac.lat.toFixed(2)}°N {ac.lng.toFixed(2)}°E</div>
                 </div>

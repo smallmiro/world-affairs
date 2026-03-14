@@ -45,7 +45,7 @@ export default function VesselMapInner({ vessels }: VesselMapInnerProps) {
     <MapContainer
       center={[22, 50]}
       zoom={4}
-      style={{ height: 340, width: "100%", background: "#0a0e17" }}
+      style={{ height: 340, width: "100%", background: "#1a1b26" }}
       zoomControl={false}
       attributionControl={false}
     >

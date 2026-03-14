@@ -60,7 +60,7 @@ export default function IssueTracker() {
                   <button
                     key={key}
                     onClick={() => setSortMode(mode)}
-                    className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+                    className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
                     style={{
                       color: isActive ? "var(--accent-cyan)" : "var(--text-muted)",
                       borderColor: isActive ? "var(--accent-cyan)" : "var(--border)",
@@ -104,7 +104,7 @@ export default function IssueTracker() {
                   style={{ background: sev.bar, boxShadow: sev.glow }}
                 />
 
-                <div className="font-mono text-[0.55rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
+                <div className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
                   {issue.regionLabel}
                 </div>
                 <div className="text-[0.88rem] font-bold mb-2.5 line-clamp-2" style={{ color: "var(--text-primary)" }}>
@@ -127,7 +127,7 @@ export default function IssueTracker() {
                   <span className="font-mono text-[0.7rem] font-semibold" style={{ color: trend.color }}>
                     {trend.arrow} {issue.trendLabel}
                   </span>
-                  <span className="font-mono text-[0.55rem]" style={{ color: "var(--text-muted)" }}>
+                  <span className="font-mono text-[0.75rem]" style={{ color: "var(--text-muted)" }}>
                     {issue.countries}
                   </span>
                 </div>

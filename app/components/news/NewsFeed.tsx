@@ -62,7 +62,7 @@ export default function NewsFeed() {
           <button
             key={f.key}
             onClick={() => setActiveFilter(i)}
-            className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+            className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
             style={{
               color: activeFilter === i ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === i ? "var(--accent-cyan)" : "var(--border)",
@@ -79,7 +79,7 @@ export default function NewsFeed() {
           <button
             key={f.key}
             onClick={() => setActiveRegion(i)}
-            className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+            className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
             style={{
               color: activeRegion === i ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeRegion === i ? "var(--accent-cyan)" : "var(--border)",
@@ -112,7 +112,7 @@ export default function NewsFeed() {
           return (
             <div
               key={item.id}
-              className="news-item-card relative pl-3 pr-3 py-3 border cursor-pointer transition-all duration-150"
+              className="news-item-card relative pl-3 pr-3 py-4 border cursor-pointer transition-all duration-150"
               onClick={() => setSelectedArticle(item as unknown as Article)}
             >
               <div
@@ -122,15 +122,15 @@ export default function NewsFeed() {
 
               <div className="flex items-center gap-2 mb-1.5">
                 <span
-                  className="font-mono text-[0.55rem] font-bold tracking-[1px] px-1.5 py-px uppercase"
+                  className="font-mono text-[0.75rem] font-bold tracking-[1px] px-1.5 py-px uppercase"
                   style={{ color: s.color, background: s.bg }}
                 >
                   {SEVERITY_LABELS[displaySeverity]}
                 </span>
-                <span className="font-mono text-[0.62rem]" style={{ color: "var(--text-muted)" }}>
+                <span className="font-mono text-[0.85rem]" style={{ color: "var(--text-muted)" }}>
                   {formatTime(item.publishedAt)}
                 </span>
-                <span className="font-mono text-[0.55rem] tracking-[0.5px] ml-auto" style={{ color: "var(--text-muted)" }}>
+                <span className="font-mono text-[0.75rem] tracking-[0.5px] ml-auto" style={{ color: "var(--text-muted)" }}>
                   {getCategoryLabel(item.category, lang)}
                 </span>
               </div>
@@ -139,11 +139,11 @@ export default function NewsFeed() {
                 {getTranslatedText(item.title, lang)}
               </div>
               {item.summary && (
-                <div className="text-[0.58rem] line-clamp-2 mb-1" style={{ color: "var(--text-muted)" }}>
+                <div className="text-[0.8rem] line-clamp-2 mb-1" style={{ color: "var(--text-muted)" }}>
                   {getTranslatedText(item.summary, lang)}
                 </div>
               )}
-              <div className="font-mono text-[0.6rem]" style={{ color: "var(--text-muted)" }}>
+              <div className="font-mono text-[0.8rem]" style={{ color: "var(--text-muted)" }}>
                 {item.source}
               </div>
             </div>

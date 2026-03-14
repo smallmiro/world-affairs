@@ -58,11 +58,11 @@ export default function FlightStatusPanel() {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5" style={{ background: "var(--accent-amber)", clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)" }} />
-          <span className="font-mono text-[0.62rem] font-semibold tracking-[1.5px] uppercase" style={{ color: "var(--text-secondary)" }}>
+          <span className="font-mono text-[0.85rem] font-semibold tracking-[1.5px] uppercase" style={{ color: "var(--text-secondary)" }}>
             {t("airport.flightStatus")}
           </span>
         </div>
-        <span className="font-mono text-[0.46rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.7rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
           dubaiairports.ae · 10min
         </span>
       </div>
@@ -73,7 +73,7 @@ export default function FlightStatusPanel() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="font-mono text-[0.58rem] tracking-[1px] px-2.5 py-0.5 border cursor-pointer transition-all duration-150"
+            className="font-mono text-[0.8rem] tracking-[1px] px-2.5 py-2.5 border cursor-pointer transition-all duration-150"
             style={{
               color: activeTab === tab ? "var(--accent-amber)" : "var(--text-muted)",
               borderColor: activeTab === tab ? "var(--accent-amber)" : "var(--border)",
@@ -87,16 +87,16 @@ export default function FlightStatusPanel() {
 
       {/* Table */}
       <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
-        <table className="w-full border-collapse font-mono text-[0.58rem]">
+        <table className="w-full border-collapse font-mono text-[0.8rem]">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.flightCode")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.airline")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{activeTab === "departures" ? t("airport.destination") : t("airport.origin")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.scheduled")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.actual")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.terminal")}</th>
-              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.46rem" }}>{t("airport.status")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.airline")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{activeTab === "departures" ? t("airport.destination") : t("airport.origin")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.scheduled")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.actual")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.terminal")}</th>
+              <th className="text-left py-1 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
             </tr>
           </thead>
           <tbody>
@@ -118,13 +118,13 @@ export default function FlightStatusPanel() {
                   <td className="py-1 px-2 font-semibold" style={{ color: isEK ? "var(--accent-amber)" : isFZ ? "var(--accent-cyan)" : "var(--text-primary)" }}>
                     {f.flightCode}
                   </td>
-                  <td className="py-1 px-2" style={{ color: "var(--text-muted)", fontSize: "0.5rem" }}>{f.airline}</td>
+                  <td className="py-1 px-2" style={{ color: "var(--text-muted)", fontSize: "0.72rem" }}>{f.airline}</td>
                   <td className="py-1 px-2" style={{ color: "var(--text-secondary)" }}>{f.destination}</td>
                   <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.scheduled}</td>
                   <td className="py-1 px-2" style={{ color: isDelayed ? "var(--accent-red)" : "var(--text-muted)" }}>{f.actual}</td>
                   <td className="py-1 px-2" style={{ color: "var(--text-muted)" }}>{f.terminal}</td>
                   <td className="py-1 px-2">
-                    <span className="font-mono text-[0.46rem] font-bold tracking-[0.5px] px-1 py-px" style={{ color: statusColor, background: `${statusColor}15` }}>
+                    <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1 py-px" style={{ color: statusColor, background: `${statusColor}15` }}>
                       {f.status}
                     </span>
                   </td>

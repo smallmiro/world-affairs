@@ -62,7 +62,7 @@ export default function WorldMap() {
                   <button
                     key={key}
                     onClick={disabled ? undefined : () => setActiveFilter(filter!)}
-                    className={`font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border transition-all duration-150 ${
+                    className={`font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border transition-all duration-150 ${
                       disabled
                         ? "cursor-not-allowed opacity-50"
                         : "cursor-pointer"
@@ -90,9 +90,9 @@ export default function WorldMap() {
         {isLoading ? (
           <div
             className="flex items-center justify-center h-full"
-            style={{ background: "#0a0e17" }}
+            style={{ background: "#1a1b26" }}
           >
-            <span className="font-mono text-[0.6rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
+            <span className="font-mono text-[0.8rem] tracking-[2px]" style={{ color: "var(--text-muted)", opacity: 0.4 }}>
               {t("common.loadingMap")}
             </span>
           </div>
@@ -101,8 +101,8 @@ export default function WorldMap() {
         )}
         {/* Legend */}
         <div
-          className="absolute bottom-2 right-2 z-[600] px-2 py-1.5 font-mono text-[0.5rem] border flex flex-col gap-1"
-          style={{ background: "rgba(10,14,23,0.9)", borderColor: "var(--border)" }}
+          className="absolute bottom-2 right-2 z-[600] px-2 py-1.5 font-mono text-[0.72rem] border flex flex-col gap-1"
+          style={{ background: "rgba(26,27,38,0.9)", borderColor: "var(--border)" }}
         >
           <div className="flex gap-2">
             <span style={{ color: "#ef4444" }}>◉ {t("map.conflictZone")}</span>

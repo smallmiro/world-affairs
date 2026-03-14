@@ -26,7 +26,7 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
   return (
     <div>
       <div
-        className="font-mono text-[0.58rem] tracking-[1.5px] uppercase mb-2"
+        className="font-mono text-[0.8rem] tracking-[1.5px] uppercase mb-2"
         style={{ color: "var(--text-muted)", paddingLeft: 10 }}
       >
         {t("airport.timeline")}
@@ -43,12 +43,12 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
           >
             {/* Date */}
             <div
-              className="text-right pr-2 pt-1.5 font-mono text-[0.58rem] leading-tight"
+              className="text-right pr-2 pt-1.5 font-mono text-[0.8rem] leading-tight"
               style={{ color: event.isToday ? "var(--accent-cyan)" : "var(--text-muted)" }}
             >
               {event.date}
               <span
-                className="block text-[0.48rem]"
+                className="block text-[0.72rem]"
                 style={{ opacity: event.isToday ? 0.8 : 0.6 }}
               >
                 {event.dayLabel}
@@ -74,7 +74,7 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
 
             {/* Card */}
             <div
-              className="my-1 ml-1.5 px-2.5 py-1.5 text-[0.6rem] leading-[1.45] border"
+              className="my-1 ml-1.5 px-2.5 py-1.5 text-[0.8rem] leading-[1.45] border"
               style={{
                 background: event.isToday ? "rgba(6,182,212,0.04)" : "var(--bg-secondary)",
                 borderColor: event.isToday ? "rgba(6,182,212,0.25)" : "var(--border)",
@@ -88,7 +88,7 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
                     return (
                       <span
                         key={k}
-                        className="font-mono text-[0.46rem] font-semibold tracking-[0.5px] inline-block mr-1 align-middle"
+                        className="font-mono text-[0.7rem] font-semibold tracking-[0.5px] inline-block mr-1 align-middle"
                         style={{ color: s.color, background: s.bg, padding: "1px 4px" }}
                       >
                         {tag.label}

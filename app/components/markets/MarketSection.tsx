@@ -25,7 +25,7 @@ function StockCard({ item }: { item: MarketSnapshot }) {
       style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className="font-mono text-[0.6rem] tracking-[1px] uppercase" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.8rem] tracking-[1px] uppercase" style={{ color: "var(--text-muted)" }}>
           {item.name || item.symbol}
         </span>
       </div>
@@ -35,7 +35,7 @@ function StockCard({ item }: { item: MarketSnapshot }) {
       <div className="font-mono text-[0.68rem] font-semibold flex items-center gap-1.5" style={{ color }}>
         {arrow} {formatChange(item.change)}{" "}
         <span
-          className="px-1 py-px text-[0.6rem]"
+          className="px-1 py-px text-[0.8rem]"
           style={{ background: dir === "up" ? "var(--accent-red-dim)" : "var(--accent-blue-dim)" }}
         >
           {formatChangePct(item.changePct)}
@@ -67,7 +67,7 @@ function CommodityRow({ item }: { item: MarketSnapshot }) {
     <tr className="transition-colors duration-100 hover:bg-[var(--bg-secondary)]">
       <td className="font-mono text-[0.75rem] py-2 px-2.5 border-b" style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}>
         <span className="text-[0.7rem]" style={{ color: "var(--text-secondary)" }}>{item.name || item.symbol}</span>
-        <span className="text-[0.55rem] ml-1" style={{ color: "var(--text-muted)" }}>{item.currency}</span>
+        <span className="text-[0.75rem] ml-1" style={{ color: "var(--text-muted)" }}>{item.currency}</span>
       </td>
       <td
         className="font-mono text-[0.75rem] py-2 px-2.5 border-b font-semibold"
@@ -149,7 +149,7 @@ export default function MarketSection() {
                 {[t("markets.symbol"), t("markets.price"), t("markets.change"), t("markets.changePct")].map((th, i) => (
                   <th
                     key={th}
-                    className="font-mono text-[0.55rem] tracking-[1px] uppercase py-1.5 px-2.5 border-b"
+                    className="font-mono text-[0.75rem] tracking-[1px] uppercase py-1.5 px-2.5 border-b"
                     style={{
                       color: "var(--text-muted)",
                       borderColor: "var(--border)",

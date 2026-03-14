@@ -24,7 +24,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
   const t = useT();
   return (
     <div>
-      <div className="font-mono text-[0.58rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
+      <div className="font-mono text-[0.8rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
         {t("airport.airlines")}
       </div>
       <div className="grid grid-cols-3 gap-1 max-lg:grid-cols-2">
@@ -35,13 +35,13 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
             style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
           >
             <StatusLight color={STATUS_TO_LIGHT[a.status] ?? "green"} size={5} pulse={false} glow={false} />
-            <span className="font-mono text-[0.58rem] flex-1" style={{ color: "var(--text-secondary)" }}>
+            <span className="font-mono text-[0.8rem] flex-1" style={{ color: "var(--text-secondary)" }}>
               {a.name}
             </span>
             <span className="font-mono text-[0.65rem] font-semibold" style={{ color: "var(--text-primary)" }}>
               {a.flights}{t("airport.flights")}
             </span>
-            <span className="font-mono text-[0.48rem]" style={{ color: STATUS_COLORS[a.status] }}>
+            <span className="font-mono text-[0.72rem]" style={{ color: STATUS_COLORS[a.status] }}>
               {a.onTime}%
             </span>
           </div>

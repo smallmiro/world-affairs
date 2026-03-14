@@ -126,13 +126,13 @@ export default function AirportMonitor() {
           <span className="flex items-center gap-2">
             {sseConnected && (
               <span
-                className="font-mono text-[0.5rem] tracking-[1.5px] px-1.5 py-0.5 border"
+                className="font-mono text-[0.72rem] tracking-[1.5px] px-1.5 py-0.5 border"
                 style={{ color: "var(--accent-green)", borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.06)" }}
               >
                 LIVE
               </span>
             )}
-            <span className="font-mono text-[0.55rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+            <span className="font-mono text-[0.75rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
               {t("airport.cycle")}
             </span>
           </span>
@@ -147,13 +147,13 @@ export default function AirportMonitor() {
             <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[assessment.light] }}>
               {assessment.status}
             </span>
-            <span className="font-mono text-[0.55rem] px-1.5 py-px" style={{
+            <span className="font-mono text-[0.75rem] px-1.5 py-px" style={{
               color: STATUS_LIGHT_COLORS[assessment.light],
               background: `${STATUS_LIGHT_COLORS[assessment.light]}15`,
             }}>
               RISK {assessment.riskScore}/100
             </span>
-            <span className="font-mono text-[0.55rem] ml-auto" style={{ color: "var(--text-muted)" }}>
+            <span className="font-mono text-[0.75rem] ml-auto" style={{ color: "var(--text-muted)" }}>
               AI ASSESSMENT
             </span>
           </div>
@@ -164,13 +164,13 @@ export default function AirportMonitor() {
             {assessment.factors.map((f, i) => {
               const color = f.impact === "negative" ? "var(--accent-red)" : f.impact === "positive" ? "var(--accent-green)" : "var(--text-muted)";
               return (
-                <span key={i} className="font-mono text-[0.48rem] px-1.5 py-px border" style={{ color, borderColor: `${color}30`, background: `${color}08` }}>
+                <span key={i} className="font-mono text-[0.72rem] px-1.5 py-px border" style={{ color, borderColor: `${color}30`, background: `${color}08` }}>
                   {f.impact === "negative" ? "▼" : f.impact === "positive" ? "▲" : "―"} {lang === "ko" ? f.text.ko : f.text.en}
                 </span>
               );
             })}
           </div>
-          <div className="px-3 py-1.5 font-mono text-[0.52rem] border-t" style={{ color: "var(--accent-amber)", borderColor: "var(--border)", background: "rgba(245,158,11,0.03)" }}>
+          <div className="px-3 py-1.5 font-mono text-[0.75rem] border-t" style={{ color: "var(--accent-amber)", borderColor: "var(--border)", background: "rgba(245,158,11,0.03)" }}>
             ⚠ {lang === "ja" ? assessment.recommendation.ja : lang === "en" ? assessment.recommendation.en : assessment.recommendation.ko}
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function AirportMonitor() {
           <span className="font-mono text-[0.65rem] font-semibold tracking-[1px]" style={{ color: STATUS_LIGHT_COLORS[status.light] }}>
             {status.label}
           </span>
-          <span className="font-mono text-[0.58rem]" style={{ color: "var(--text-muted)" }}>
+          <span className="font-mono text-[0.8rem]" style={{ color: "var(--text-muted)" }}>
             {status.runways}
           </span>
         </div>
@@ -204,8 +204,8 @@ export default function AirportMonitor() {
           />
           {/* Flight counter */}
           <div
-            className="absolute top-2 left-2 z-[600] px-2 py-1 font-mono text-[0.6rem] border"
-            style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
+            className="absolute top-2 left-2 z-[600] px-2 py-1 font-mono text-[0.8rem] border"
+            style={{ background: "rgba(26,27,38,0.85)", borderColor: "var(--border)" }}
           >
             <span style={{ color: "var(--accent-cyan)" }}>✈ {mapData.aircraft.length}</span>
             <span className="mx-1" style={{ color: "var(--text-muted)" }}>TRACKED</span>
@@ -216,8 +216,8 @@ export default function AirportMonitor() {
           </div>
           {/* Legend */}
           <div
-            className="absolute bottom-2 right-2 z-[600] px-2 py-1 font-mono text-[0.55rem] border"
-            style={{ background: "rgba(10,14,23,0.85)", borderColor: "var(--border)" }}
+            className="absolute bottom-2 right-2 z-[600] px-2 py-1 font-mono text-[0.75rem] border"
+            style={{ background: "rgba(26,27,38,0.85)", borderColor: "var(--border)" }}
           >
             <span style={{ color: "var(--accent-red)" }}>◉ {t("map.conflictZone")}</span>
             <span className="ml-1.5" style={{ color: "var(--accent-amber)" }}>◉ {t("map.cautionZone")}</span>

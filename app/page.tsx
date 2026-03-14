@@ -24,29 +24,23 @@ export default function DashboardPage() {
       <div
         id="section-map"
         className="grid gap-px"
-        style={{
-          gridTemplateColumns: "1fr 360px",
-          background: "var(--border)",
-        }}
+        style={{ background: "var(--border)" }}
       >
         {/* Row 1: World Map */}
-        <div style={{ background: "var(--bg-primary)", gridColumn: 1 }}>
+        <div style={{ background: "var(--bg-primary)" }}>
           <WorldMap />
         </div>
 
-        {/* Row 1-2: News Feed (spans 2 rows) */}
+        {/* Row 1-2: News Feed (spans 2 rows on desktop) */}
         <div
-          style={{
-            background: "var(--bg-primary)",
-            gridColumn: 2,
-            gridRow: "1 / 3",
-          }}
+          className="section-map-news"
+          style={{ background: "var(--bg-primary)" }}
         >
           <NewsFeed />
         </div>
 
         {/* Row 2: Issue Tracker */}
-        <div style={{ background: "var(--bg-primary)", gridColumn: 1 }}>
+        <div style={{ background: "var(--bg-primary)" }}>
           <IssueTracker />
         </div>
       </div>
@@ -67,10 +61,10 @@ export default function DashboardPage() {
         className="flex justify-between items-center px-6 py-2.5 border-t"
         style={{ borderColor: "var(--border)" }}
       >
-        <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.8rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
           {t("footer.system")}
         </span>
-        <span className="font-mono text-[0.6rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.8rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
           {t("footer.sources")}
         </span>
       </footer>

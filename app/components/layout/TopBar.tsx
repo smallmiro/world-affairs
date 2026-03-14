@@ -72,7 +72,7 @@ export default function TopBar() {
     <header
       className="sticky top-0 z-[1000] flex items-center justify-between px-6 h-[52px] border-b"
       style={{
-        background: theme === "light" ? "rgba(248,250,252,0.92)" : "rgba(10,14,23,0.92)",
+        background: theme === "light" ? "rgba(213,214,219,0.92)" : "rgba(26,27,38,0.92)",
         backdropFilter: "blur(12px)",
         borderColor: "var(--border)",
       }}
@@ -103,7 +103,7 @@ export default function TopBar() {
                 document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
               }
             }}
-            className="font-mono text-[0.72rem] tracking-[1px] uppercase px-3.5 py-1.5 border cursor-pointer transition-all duration-200"
+            className="font-mono text-[0.72rem] tracking-[1px] uppercase px-4 py-2.5 border cursor-pointer transition-all duration-200"
             style={{
               color: activeTab === tab ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeTab === tab ? "var(--border-active)" : "transparent",
@@ -133,7 +133,7 @@ export default function TopBar() {
       <div className="flex items-center gap-2">
         <button
           aria-label="알림"
-          className="relative w-8 h-8 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+          className="relative w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -142,7 +142,7 @@ export default function TopBar() {
           </svg>
           {criticalCount > 0 && (
             <span
-              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full grid place-items-center font-mono text-[0.55rem] text-white"
+              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full grid place-items-center font-mono text-[0.75rem] text-white"
               style={{
                 background: "var(--accent-red)",
                 animation: "pulse-badge 1.5s ease-in-out infinite",
@@ -154,7 +154,7 @@ export default function TopBar() {
         </button>
         <button
           aria-label="설정"
-          className="w-8 h-8 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+          className="w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -165,7 +165,7 @@ export default function TopBar() {
         <button
           aria-label="테마 변경"
           onClick={toggleTheme}
-          className="w-8 h-8 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+          className="w-11 h-11 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
           {theme === "dark" ? "\u2600" : "\u25CF"}
@@ -173,7 +173,7 @@ export default function TopBar() {
         <button
           aria-label="언어 변경"
           onClick={cycleLang}
-          className="w-8 h-8 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+          className="w-11 h-11 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
           style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
         >
           {LANG_DISPLAY[lang]}
