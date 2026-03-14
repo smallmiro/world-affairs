@@ -11,6 +11,7 @@ export interface RegionIssue {
   trendLabel: string;
   countries: string;
   eventCount: number;
+  topEventDate: Date;
 }
 
 const SEVERITY_LEVEL: Record<Severity, number> = {
@@ -81,6 +82,11 @@ export function aggregateByRegion(events: GeoEvent[], lang: Language): RegionIss
         ? allCountries.join(", ")
         : `${allCountries.slice(0, 2).join(", ")} +${allCountries.length - 2}`;
 
+    const latestDate = regionEvents.reduce((latest, e) =>
+      e.eventDate > latest ? e.eventDate : latest,
+      regionEvents[0].eventDate,
+    );
+
     issues.push({
       region,
       regionLabel: REGION_LABELS[region]?.en ?? region.toUpperCase(),
@@ -91,6 +97,7 @@ export function aggregateByRegion(events: GeoEvent[], lang: Language): RegionIss
       trendLabel: highestSeverity === "critical" ? "급상승" : "유지",
       countries: countryDisplay,
       eventCount: regionEvents.length,
+      topEventDate: latestDate,
     });
   }
 

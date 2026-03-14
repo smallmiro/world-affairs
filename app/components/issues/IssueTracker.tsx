@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useLanguage } from "../../lib/language-context";
 import SectionHeader from "../ui/SectionHeader";
 import { aggregateByRegion, type RegionIssue } from "../../lib/geo-aggregation";
 import type { Severity } from "../../lib/types";
+
+type SortMode = "severity" | "latest";
 
 const SEVERITY_COLORS: Record<number, { bar: string; glow: string }> = {
   5: { bar: "var(--accent-red)", glow: "var(--glow-red)" },
@@ -19,11 +22,24 @@ const TREND_STYLES: Record<string, { color: string; arrow: string }> = {
   down: { color: "var(--accent-green)", arrow: "\u25BC" },
 };
 
+const SORT_BUTTONS: { label: string; mode: SortMode }[] = [
+  { label: "심각도순", mode: "severity" },
+  { label: "최신순", mode: "latest" },
+];
+
+function sortIssues(issues: RegionIssue[], mode: SortMode): RegionIssue[] {
+  if (mode === "severity") return issues;
+  return [...issues].sort(
+    (a, b) => b.topEventDate.getTime() - a.topEventDate.getTime(),
+  );
+}
+
 export default function IssueTracker() {
   const { lang } = useLanguage();
   const { data: events, isLoading } = useGeoEvents({ limit: 100 });
+  const [sortMode, setSortMode] = useState<SortMode>("severity");
 
-  const issues = events ? aggregateByRegion(events, lang) : [];
+  const issues = events ? sortIssues(aggregateByRegion(events, lang), sortMode) : [];
 
   return (
     <section
@@ -36,19 +52,23 @@ export default function IssueTracker() {
           accentColor="var(--accent-cyan)"
           controls={
             <div className="flex gap-1">
-              {["심각도순", "최신순"].map((label, i) => (
-                <button
-                  key={label}
-                  className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
-                  style={{
-                    color: i === 0 ? "var(--accent-cyan)" : "var(--text-muted)",
-                    borderColor: i === 0 ? "var(--accent-cyan)" : "var(--border)",
-                    background: i === 0 ? "var(--accent-cyan-dim)" : "transparent",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+              {SORT_BUTTONS.map(({ label, mode }) => {
+                const isActive = sortMode === mode;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setSortMode(mode)}
+                    className="font-mono text-[0.62rem] tracking-[0.5px] px-2 py-[3px] border cursor-pointer transition-all duration-150"
+                    style={{
+                      color: isActive ? "var(--accent-cyan)" : "var(--text-muted)",
+                      borderColor: isActive ? "var(--accent-cyan)" : "var(--border)",
+                      background: isActive ? "var(--accent-cyan-dim)" : "transparent",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           }
         />
