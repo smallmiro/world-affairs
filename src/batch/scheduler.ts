@@ -317,7 +317,7 @@ cron.schedule("30 3 * * *", runGlobalCleanup);
 
 async function runCollectDxbFlights() {
   const label = "dxb:flights";
-  console.log(`[${new Date().toISOString()}] ${label}: starting (skyscanner)`);
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
   try {
     const result = await collectDxbHtmlFlights(prisma);
     console.log(
@@ -380,7 +380,7 @@ console.log("Schedules:");
 console.log("  */15 * * * *     News collection (GDELT + RSS)");
 console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
-console.log("  */2min 07-23h    Airport flights (OpenSky, 2min peak / 1h off-peak)");
+console.log("  */1min 07-23h    Airport flights (bbox + icao24 refresh alternating)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
 console.log("  */10 * * * *     DXB flight status (scraping)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
