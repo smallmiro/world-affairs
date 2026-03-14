@@ -82,17 +82,17 @@ export default function AiAnalysis() {
           })
         )}
         {/* Legend */}
-        <div className="mt-3 pt-2 border-t flex flex-col gap-1" style={{ borderColor: "var(--border)" }}>
-          <div className="font-mono text-[0.7rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
+        <div className="mt-3 pt-2 border-t flex flex-col gap-1.5" style={{ borderColor: "var(--border)" }}>
+          <div className="font-mono text-[0.8rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
             {t("analysis.tensionIndex")}
           </div>
-          <div className="flex gap-3 font-mono text-[0.7rem]">
+          <div className="flex gap-3 font-mono text-[0.8rem]">
             <span style={{ color: "var(--accent-red)" }}>■ {t("analysis.danger")}</span>
             <span style={{ color: "var(--accent-amber)" }}>■ {t("analysis.caution")}</span>
             <span style={{ color: "var(--accent-blue)" }}>■ {t("analysis.watch")}</span>
             <span style={{ color: "var(--accent-green)" }}>■ {t("analysis.stable")}</span>
           </div>
-          <div className="font-mono text-[0.7rem] leading-[1.4]" style={{ color: "var(--text-muted)" }}>
+          <div className="font-mono text-[0.75rem] leading-[1.5]" style={{ color: "var(--text-muted)" }}>
             분쟁=90 군사훈련=75 시위=65 제재=60 인도위기=70 무역분쟁=40 외교=20
           </div>
         </div>
