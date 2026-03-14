@@ -11,6 +11,7 @@ import {
 } from "../../lib/airport-data";
 import { useAirportStatus, useFlightPositions, useAirportEvents, useAirlineOps, useEmiratesRoutes } from "../../hooks/use-airport";
 import { toStaticStatus, toMapData, toTimelineEvents, toAirlines, toRoutes } from "../../lib/airport-mappers";
+import { useLanguage } from "../../lib/language-context";
 import AirportTimeline from "./AirportTimeline";
 import AirlineGrid from "./AirlineGrid";
 import EKRouteBadges from "./EKRouteBadges";
@@ -31,6 +32,7 @@ export default function AirportMonitor() {
   const { data: eventsData } = useAirportEvents();
   const { data: airlinesData } = useAirlineOps();
   const { data: routesData } = useEmiratesRoutes();
+  const { lang } = useLanguage();
 
   const status = useMemo(
     () => (statusData ? toStaticStatus(statusData) : AIRPORT_STATUS),
@@ -41,8 +43,8 @@ export default function AirportMonitor() {
     [flightsData],
   );
   const timelineEvents = useMemo(
-    () => (eventsData && eventsData.length > 0 ? toTimelineEvents(eventsData, "ko") : TIMELINE_EVENTS),
-    [eventsData],
+    () => (eventsData && eventsData.length > 0 ? toTimelineEvents(eventsData, lang) : TIMELINE_EVENTS),
+    [eventsData, lang],
   );
   const airlines = useMemo(
     () => (airlinesData && airlinesData.length > 0 ? toAirlines(airlinesData) : AIRLINES),

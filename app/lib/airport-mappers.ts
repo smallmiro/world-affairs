@@ -3,6 +3,7 @@ import type {
   Airline,
   EKRoute,
   AirportMapData,
+  FlightPath,
   TimelineEvent,
 } from "./airport-data";
 import type {
@@ -12,6 +13,18 @@ import type {
   AirlineOpsResponse,
   EmiratesRouteResponse,
 } from "./api-client";
+
+const DESTINATION_COORDS: Record<string, [number, number]> = {
+  ICN: [37.5, 127.0],
+  LHR: [51.47, -0.46],
+  NRT: [35.76, 140.39],
+  JFK: [40.64, -73.78],
+  CDG: [49.0, 2.55],
+  BKK: [13.68, 100.75],
+  SYD: [-33.95, 151.18],
+  SIN: [1.35, 103.99],
+  DME: [55.41, 37.91],
+};
 
 export const STATUS_LABELS: Record<string, string> = {
   green: "OPERATIONAL",
@@ -28,19 +41,38 @@ export function toStaticStatus(data: AirportStatusResponse): StaticAirportStatus
   };
 }
 
+function buildFlightPaths(flights: FlightPositionResponse[]): FlightPath[] {
+  const seen = new Set<string>();
+  const paths: FlightPath[] = [];
+
+  for (const f of flights) {
+    const callsign = f.callsign.trim();
+    if (f.aircraftClass !== "ek" || !callsign) continue;
+
+    for (const [code, dest] of Object.entries(DESTINATION_COORDS)) {
+      if (!seen.has(code)) {
+        seen.add(code);
+        paths.push({ dest, color: "#f59e0b" });
+      }
+    }
+    break; // only need one EK flight to trigger all destinations
+  }
+
+  return paths;
+}
+
 export function toMapData(flights: FlightPositionResponse[]): AirportMapData {
+  const airborne = flights.filter((f) => !f.onGround);
   return {
-    aircraft: flights
-      .filter((f) => !f.onGround)
-      .map((f) => ({
-        lat: f.lat,
-        lng: f.lon,
-        rotation: f.heading,
-        flightLabel: f.callsign.trim() || f.icao24,
-        altLabel: `FL${Math.round(f.altitude / 100)}`,
-        cls: f.aircraftClass as "ek" | "other",
-      })),
-    flightPaths: [],
+    aircraft: airborne.map((f) => ({
+      lat: f.lat,
+      lng: f.lon,
+      rotation: f.heading,
+      flightLabel: f.callsign.trim() || f.icao24,
+      altLabel: `FL${Math.round(f.altitude / 100)}`,
+      cls: f.aircraftClass as "ek" | "other",
+    })),
+    flightPaths: buildFlightPaths(flights),
   };
 }
 
