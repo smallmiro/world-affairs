@@ -21,15 +21,15 @@ export default function DashboardPage() {
       <MarketTickerBar />
 
       <div className="p-4 flex flex-col gap-4">
-        {/* Map card */}
-        <div className="card" id="section-map">
-          <WorldMap />
-        </div>
-
-        {/* News + Issues row */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-4">
-          <div className="card">
-            <IssueTracker />
+        {/* Map + Issues (left) | News (right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="card" id="section-map">
+              <WorldMap />
+            </div>
+            <div className="card">
+              <IssueTracker />
+            </div>
           </div>
           <div className="card">
             <NewsFeed />

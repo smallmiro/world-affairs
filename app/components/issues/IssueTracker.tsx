@@ -85,7 +85,7 @@ export default function IssueTracker() {
           <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.noData")}</span>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-2 max-lg:grid-cols-2">
+        <div className="grid grid-cols-4 gap-2 max-lg:grid-cols-2 max-md:grid-cols-1">
           {issues.slice(0, 4).map((issue) => {
             const sev = SEVERITY_COLORS[issue.severityLevel] ?? SEVERITY_COLORS[3];
             const trend = TREND_STYLES[issue.trend];
@@ -93,7 +93,7 @@ export default function IssueTracker() {
             return (
               <div
                 key={issue.region}
-                className="issue-card-item relative overflow-hidden p-3.5 border cursor-pointer transition-all duration-200 hover:-translate-y-px"
+                className="issue-card-item relative overflow-hidden p-2.5 border cursor-pointer transition-all duration-200 hover:-translate-y-px"
                 style={{
                   background: "var(--bg-secondary)",
                   borderColor: "var(--border)",
