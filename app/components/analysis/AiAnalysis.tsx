@@ -20,7 +20,7 @@ const SENTIMENT_COLORS = {
 export default function AiAnalysis() {
   const { lang } = useLanguage();
   const t = useT();
-  const { data: events } = useGeoEvents({ limit: 100 });
+  const { data: events } = useGeoEvents({ limit: 1000 });
   const { data: briefing } = useBriefing();
 
   const sentimentRows = useMemo(
