@@ -28,6 +28,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="dark">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            if (localStorage.getItem("sigint-theme") === "light") {
+              document.documentElement.classList.add("light");
+            }
+          } catch(e) {}
+        `}} />
+      </head>
       <body
         className={`${ibmPlexMono.variable} ${notoSansKR.variable} antialiased`}
       >
