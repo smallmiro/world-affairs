@@ -44,7 +44,7 @@ export default function AiAnalysis() {
     >
       {/* Sentiment */}
       <div className="p-4">
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
+        <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
             style={{
@@ -55,14 +55,14 @@ export default function AiAnalysis() {
           {t("analysis.sentiment")}
         </h3>
         {sentimentRows.length === 0 ? (
-          <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>NO DATA</div>
+          <div className="font-mono text-[0.85rem]" style={{ color: "var(--text-muted)" }}>NO DATA</div>
         ) : (
           sentimentRows.map((s) => {
             const style = SENTIMENT_COLORS[s.type];
             const valueColor = s.value >= 60 ? "var(--accent-red)" : s.value >= 40 ? "var(--accent-amber)" : s.value >= 20 ? "var(--accent-blue)" : "var(--accent-green)";
             return (
               <div key={s.region} className="flex items-center gap-2.5 mb-2.5">
-                <span className="font-mono text-[0.68rem] w-[70px]" style={{ color: "var(--text-secondary)" }}>
+                <span className="font-mono text-[0.85rem] w-[70px]" style={{ color: "var(--text-secondary)" }}>
                   {s.label}
                 </span>
                 <div className="flex-1 h-1 relative" style={{ background: "var(--border)" }}>
@@ -74,7 +74,7 @@ export default function AiAnalysis() {
                     }}
                   />
                 </div>
-                <span className="font-mono text-[0.65rem] w-[35px] text-right" style={{ color: valueColor }}>
+                <span className="font-mono text-[0.85rem] w-[35px] text-right" style={{ color: valueColor }}>
                   {s.type === "positive" ? "+" : "-"}{s.value}
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function AiAnalysis() {
 
       {/* Trend chart */}
       <div className="p-4">
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
+        <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
             style={{
@@ -115,7 +115,7 @@ export default function AiAnalysis() {
 
       {/* AI Briefing */}
       <div className="p-4">
-        <h3 className="font-mono text-[0.65rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
+        <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
             style={{
@@ -144,7 +144,7 @@ export default function AiAnalysis() {
             </div>
           </div>
         ) : (
-          <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>
+          <div className="font-mono text-[0.85rem]" style={{ color: "var(--text-muted)" }}>
             {t("analysis.noBriefing")}
           </div>
         )}
