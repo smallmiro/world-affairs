@@ -130,8 +130,10 @@
 
 #### 4.8.6 데이터 수집
 
-- 수집 주기: 1시간 간격
-- 데이터 보관: 최근 7일간 이벤트 이력
+- 항공기 위치: 07:00~23:00 **2분 간격**, 23:00~07:00 1시간 간격 (OpenSky OAuth2, 일 4,000크레딧 내)
+- 공항 상태/항공사: 하루 2회 06:00, 18:00 (AviationStack, Free tier 월 100회 대응)
+- 공항 이벤트: 4시간 간격 (GDELT 항공 키워드 필터)
+- 데이터 보관: 최근 7일간 이벤트 이력 (매일 03:00 자동 정리)
 - 수집 대상: 공항 운영 상태, 항공기 위치, NOTAM, 항공사 운항 정보, 주변 분쟁/군사 활동 정보
 
 ### 4.9 대시보드 UI
@@ -158,7 +160,9 @@
 | 상태 관리 | Zustand 또는 React Query | 서버 상태 캐싱 및 클라이언트 상태 |
 | 다국어 | react-i18next | 한국어/영어/일본어 |
 | ORM | **Prisma** | 타입 안전 DB 접근, 마이그레이션 관리 |
-| 스케줄러 | **node-cron** | 배치 데이터 수집 (별도 프로세스) |
+| 스케줄러 | **node-cron** + setInterval | 배치 데이터 수집 (별도 프로세스) |
+| 실시간 통신 | **SSE** (Server-Sent Events) + in-memory pub/sub | 선박/항공기 위치 실시간 스트리밍 |
+| 선박 데이터 | **AISStream.io** (WebSocket) | 상시 연결, 자동 재연결 |
 | AI/LLM + 번역 | **Gemini API** (Google) | 뉴스 요약, 감성 분석, 브리핑 생성, 다국어 번역 (EN/KO/JA) |
 
 ### 5.3 데이터 수집
@@ -222,6 +226,8 @@
 │  │ /api/news    /api/markets    /api/vessels            │      │
 │  │ /api/issues  /api/analysis   /api/alerts             │      │
 │  │ /api/airport                                        │      │
+│  │ /api/sse/positions (SSE 실시간 스트리밍)            │      │
+│  │ /api/sse/publish   (배치→웹 내부 pub/sub)          │      │
 │  └──────────────────────┬───────────────────────────────┘      │
 │                         │                                       │
 │  ┌──────────────────────▼───────────────────────────────┐      │
@@ -268,11 +274,12 @@
 
 ### 6.2 데이터 흐름
 
-1. **수집**: 배치 스케줄러(node-cron)가 주기적으로 외부 API/Playwright에서 데이터를 수집
+1. **수집**: 배치 스케줄러(node-cron)가 주기적으로 외부 API에서 데이터를 수집, AIS는 WebSocket 상시 연결
 2. **번역**: Gemini API를 사용하여 수집된 데이터를 한국어/영어/일본어 3개 언어로 번역 후 SQLite에 저장
-3. **가공**: AI Processor가 Claude API를 호출하여 뉴스 요약, 감성 분석, 브리핑을 생성하고 DB에 저장
-4. **제공**: 클라이언트가 Next.js API Routes를 통해 사용자 언어 설정에 맞는 데이터를 로드
-5. **알림**: 이상 감지(선박 우회, 긴장도 변화, 급등락) 시 DB에 알림 기록, 클라이언트 폴링으로 표시
+3. **가공**: AI Processor가 Gemini API를 호출하여 뉴스 요약, 감성 분석, 브리핑을 생성하고 DB에 저장
+4. **제공 (REST)**: 클라이언트가 Next.js API Routes를 통해 사용자 언어 설정에 맞는 데이터를 로드
+5. **제공 (SSE)**: 배치에서 DB 저장 후 HTTP POST → Next.js pub/sub → SSE로 선박/항공기 위치 실시간 스트리밍
+6. **알림**: 이상 감지(선박 우회, 긴장도 변화, 급등락) 시 DB에 알림 기록, 클라이언트 폴링으로 표시
 
 ### 6.3 프로젝트 구조
 
@@ -287,7 +294,10 @@
 │   │   ├── vessels/route.ts
 │   │   ├── issues/route.ts
 │   │   ├── analysis/route.ts
-│   │   └── airport/route.ts
+│   │   ├── airport/route.ts
+│   │   └── sse/
+│   │       ├── positions/route.ts  # SSE 실시간 위치 스트리밍
+│   │       └── publish/route.ts    # 배치→웹 내부 pub/sub 엔드포인트
 │   └── components/               # React 컴포넌트
 │       ├── layout/
 │       │   ├── TopBar.tsx
@@ -472,7 +482,7 @@
 | AviationStack | `aviationstack.com/documentation` | REST API (키 필요) | 무료: 100건/월, 유료: $49.99/월~ | 실시간 항공편 추적, 공항 상태, 지연 정보 |
 | FlightRadar24 | `flightradar24.com` | Playwright 스크래핑 | 무료 (스크래핑) | 항공기 위치, 항로 시각화, API는 엔터프라이즈 |
 | ADS-B Exchange | `adsbexchange.com/data` | REST API | 무료 (커뮤니티) / 유료: $10/월 | 비필터 ADS-B 데이터, 군용기 포함 |
-| OpenSky Network | `opensky-network.org/api` | REST API (인증 선택) | 무료 (학술/연구) | 실시간 항공기 위치, 이력 데이터, Rate Limit 있음 |
+| OpenSky Network | `opensky-network.org/api` | REST API (OAuth2 Client Credentials) | 무료: 4,000크레딧/일 | 실시간 항공기 위치, Basic Auth 2026-03-18 폐지 |
 | FAA NOTAM | `notams.aim.faa.gov` | REST API / Playwright | 무료 | 미국 FAA 발행 NOTAM, 국제 NOTAM 포함 |
 
 #### 수집 대상 데이터
