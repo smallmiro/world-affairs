@@ -5,6 +5,7 @@ import L from "leaflet";
 import { Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { AirportMapData } from "../../lib/airport-data";
+import { useMapTheme } from "../../hooks/use-map-theme";
 
 const CONFLICT_ZONES = [
   { center: [15.5, 44.0] as [number, number], radius: 200000, color: "#ef4444", label: "Yemen", labelPos: [14.5, 44.0] as [number, number] },
@@ -55,6 +56,7 @@ interface AirportMapInnerProps {
 }
 
 export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
+  const { tileNoLabels, tileLabels, mapBg, popupBg, popupText } = useMapTheme();
   const dxbIcon = L.divIcon({
     className: "",
     html: `<div style="font-family:monospace;font-size:11px;font-weight:bold;color:#f59e0b;text-shadow:0 0 10px rgba(245,158,11,0.8)">DXB</div>`,
@@ -66,12 +68,12 @@ export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
     <MapContainer
       center={[25.25, 50.0]}
       zoom={5}
-      style={{ height: "100%", width: "100%", background: "#1a1b26" }}
+      style={{ height: "100%", width: "100%", background: mapBg }}
       zoomControl={false}
       attributionControl={false}
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png" opacity={0.4} />
+      <TileLayer url={tileNoLabels} />
+      <TileLayer url={tileLabels} opacity={0.4} />
 
       {/* DXB marker */}
       <Marker position={[25.253, 55.365]} icon={dxbIcon} interactive={false} />
@@ -127,7 +129,7 @@ export default function AirportMapInner({ mapData }: AirportMapInnerProps) {
         return (
           <Marker key={ac.flightLabel} position={[ac.lat, ac.lng]} icon={aircraftIcon(ac.cls, ac.rotation)}>
             <Popup>
-              <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 140, background: "#16161e", padding: 6, borderRadius: 2 }}>
+              <div style={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: 140, background: popupBg, padding: 6, borderRadius: 2 }}>
                 <div style={{ fontWeight: "bold", color: ac.cls === "ek" ? "#f59e0b" : "#94a3b8", marginBottom: 4, fontSize: "0.8rem" }}>
                   ✈ {info.flightNum}
                 </div>
