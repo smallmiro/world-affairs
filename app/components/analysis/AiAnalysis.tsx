@@ -8,6 +8,7 @@ import { goldsteinToSentiment, inferRegion, REGION_LABELS } from "../../lib/geo-
 import { getTranslatedText } from "../../lib/display-mappers";
 import { aggregateTrend } from "../../lib/trend-aggregation";
 import TrendChart from "./TrendChart";
+import ReactMarkdown from "react-markdown";
 
 const SENTIMENT_COLORS = {
   negative: { gradient: "linear-gradient(90deg,var(--accent-red),var(--accent-amber))", color: "var(--accent-red)" },
@@ -125,18 +126,21 @@ export default function AiAnalysis() {
         </h3>
         {briefingText ? (
           <div
-            className="px-3 py-2.5 border-l-2"
+            className="px-3 py-2.5 border-l-2 overflow-y-auto"
             style={{
               borderColor: "var(--accent-purple)",
               background: "rgba(168,85,247,0.04)",
+              maxHeight: 320,
+              scrollbarWidth: "thin",
+              scrollbarColor: "var(--border-active) transparent",
             }}
           >
-            <div className="font-mono text-[0.55rem] tracking-[1px] mb-1" style={{ color: "var(--accent-purple)" }}>
+            <div className="font-mono text-[0.55rem] tracking-[1px] mb-2" style={{ color: "var(--accent-purple)" }}>
               DAILY BRIEFING
             </div>
-            <p className="text-[0.78rem] leading-[1.6]" style={{ color: "var(--text-secondary)" }}>
-              {briefingText}
-            </p>
+            <div className="briefing-markdown text-[0.75rem] leading-[1.7]" style={{ color: "var(--text-secondary)" }}>
+              <ReactMarkdown>{briefingText}</ReactMarkdown>
+            </div>
           </div>
         ) : (
           <div className="font-mono text-[0.68rem]" style={{ color: "var(--text-muted)" }}>

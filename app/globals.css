@@ -246,6 +246,43 @@ body::after {
   filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.5));
 }
 
+/* Briefing markdown styles */
+.briefing-markdown h2 {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-purple);
+  margin: 1rem 0 0.5rem;
+  text-transform: uppercase;
+}
+.briefing-markdown h3 {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  margin: 0.8rem 0 0.4rem;
+}
+.briefing-markdown ul {
+  padding-left: 1rem;
+  margin: 0.3rem 0;
+}
+.briefing-markdown li {
+  margin-bottom: 0.3rem;
+  line-height: 1.6;
+}
+.briefing-markdown li::marker {
+  color: var(--accent-purple);
+}
+.briefing-markdown p {
+  margin: 0.3rem 0;
+}
+.briefing-markdown strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Leaflet dark theme overrides */
 .leaflet-container {
   background: #0a0e17 !important;
