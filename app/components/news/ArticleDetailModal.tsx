@@ -73,7 +73,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
           </div>
           <button
             onClick={onClose}
-            className="font-mono text-[0.8rem] w-11 h-11 flex items-center justify-center cursor-pointer"
+            className="font-mono text-[0.8rem] w-11 h-11 flex items-center justify-center rounded cursor-pointer"
             style={{ color: "var(--text-muted)" }}
           >
             ✕
@@ -169,7 +169,7 @@ export default function ArticleDetailModal({ article, lang, onClose }: ArticleDe
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-[0.65rem] tracking-[0.5px] px-3 py-1.5 border inline-block transition-all duration-150"
+              className="font-mono text-[0.65rem] tracking-[0.5px] px-3 py-1.5 border rounded inline-block transition-all duration-150"
               style={{
                 color: "var(--accent-cyan)",
                 borderColor: "var(--accent-cyan)",

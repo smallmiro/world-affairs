@@ -62,7 +62,7 @@ export default function WorldMap() {
                   <button
                     key={key}
                     onClick={disabled ? undefined : () => setActiveFilter(filter!)}
-                    className={`font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border transition-all duration-150 ${
+                    className={`font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border rounded transition-all duration-150 ${
                       disabled
                         ? "cursor-not-allowed opacity-50"
                         : "cursor-pointer"

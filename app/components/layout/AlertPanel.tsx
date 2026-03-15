@@ -123,7 +123,7 @@ export default function AlertPanel({ open, onClose }: AlertPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 grid place-items-center cursor-pointer transition-colors duration-150"
+          className="w-7 h-7 grid place-items-center rounded cursor-pointer transition-colors duration-150"
           style={{ color: "var(--text-muted)" }}
           aria-label="Close"
         >

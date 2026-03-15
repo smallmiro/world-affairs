@@ -122,7 +122,7 @@ export default function TopBar() {
             <button
               key={tab}
               onClick={() => handleTabClick(tab)}
-              className="font-mono text-[0.85rem] tracking-[1px] uppercase px-4 py-2.5 border cursor-pointer transition-all duration-200"
+              className="font-mono text-[0.85rem] tracking-[1px] uppercase px-4 py-2.5 border rounded cursor-pointer transition-all duration-200"
               style={{
                 color: activeTab === tab ? "var(--accent-cyan)" : "var(--text-muted)",
                 borderColor: activeTab === tab ? "var(--border-active)" : "transparent",
@@ -155,7 +155,7 @@ export default function TopBar() {
             aria-label="메뉴 열기"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((v) => !v)}
-            className="md:hidden w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+            className="md:hidden w-11 h-11 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
             style={{
               background: isMenuOpen ? "var(--bg-card)" : "transparent",
               borderColor: isMenuOpen ? "var(--accent-cyan)" : "var(--border)",
@@ -181,7 +181,7 @@ export default function TopBar() {
           <button
             aria-label="알림"
             onClick={() => setAlertOpen((v) => !v)}
-            className="relative w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+            className="relative w-11 h-11 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
             style={{
               background: alertOpen ? "var(--bg-card)" : "transparent",
               borderColor: alertOpen ? "var(--accent-cyan)" : "var(--border)",
@@ -208,7 +208,7 @@ export default function TopBar() {
           <button
             aria-label="테마 변경"
             onClick={toggleTheme}
-            className="w-11 h-11 grid place-items-center border cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+            className="w-11 h-11 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
             style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
           >
             {theme === "dark" ? "LT" : "DK"}
@@ -216,7 +216,7 @@ export default function TopBar() {
           <button
             aria-label="언어 변경"
             onClick={cycleLang}
-            className="w-11 h-11 grid place-items-center border font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+            className="w-11 h-11 grid place-items-center border rounded font-mono text-[0.72rem] cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
             style={{ background: "transparent", borderColor: "var(--border)", color: "var(--text-secondary)" }}
           >
             {LANG_DISPLAY[lang]}

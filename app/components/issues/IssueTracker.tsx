@@ -60,7 +60,7 @@ export default function IssueTracker() {
                   <button
                     key={key}
                     onClick={() => setSortMode(mode)}
-                    className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border cursor-pointer transition-all duration-150"
+                    className="font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border rounded cursor-pointer transition-all duration-150"
                     style={{
                       color: isActive ? "var(--accent-cyan)" : "var(--text-muted)",
                       borderColor: isActive ? "var(--accent-cyan)" : "var(--border)",

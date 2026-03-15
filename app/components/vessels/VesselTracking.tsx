@@ -180,7 +180,7 @@ export default function VesselTracking() {
           <button
             key={btn.key}
             onClick={() => setActiveFilter(btn.key)}
-            className="font-mono text-[0.65rem] tracking-[1px] px-2 py-2 sm:px-3 sm:py-2.5 border cursor-pointer transition-all duration-200"
+            className="font-mono text-[0.65rem] tracking-[1px] px-2 py-2 sm:px-3 sm:py-2.5 border rounded cursor-pointer transition-all duration-200"
             style={{
               color: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--border)",
