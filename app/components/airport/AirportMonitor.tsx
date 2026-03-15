@@ -150,7 +150,7 @@ export default function AirportMonitor() {
       </div>
 
       {/* Map + Timeline side by side */}
-      <div className="grid grid-cols-2 gap-px max-lg:grid-cols-1" style={{ background: "var(--border)" }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "var(--border)" }}>
         {/* Map */}
         <div className="relative" style={{ background: "var(--bg-primary)" }}>
           <div className="border overflow-hidden" style={{ borderColor: "var(--border)", height: 420 }}>

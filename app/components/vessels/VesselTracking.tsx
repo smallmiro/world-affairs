@@ -209,7 +209,7 @@ export default function VesselTracking() {
       </div>
 
       {/* Passage Stats (left) + Anomaly Alerts (right) */}
-      <div className="grid grid-cols-2 gap-2 max-lg:grid-cols-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Passage stats */}
         <div>
           <h3 className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>

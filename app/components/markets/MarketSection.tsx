@@ -107,7 +107,7 @@ export default function MarketSection() {
 
   return (
     <section
-      className="grid grid-cols-2 gap-4 max-lg:grid-cols-1"
+      className="grid grid-cols-1 md:grid-cols-2 gap-4"
       style={{
         animation: "fade-in-up 0.4s ease-out 0.25s both",
       }}

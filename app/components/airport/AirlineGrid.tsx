@@ -27,7 +27,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
       <div className="font-mono text-[0.8rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
         {t("airport.airlines")}
       </div>
-      <div className="grid grid-cols-3 gap-1 max-lg:grid-cols-2">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1">
         {airlines.map((a) => (
           <div
             key={a.code}

@@ -84,8 +84,8 @@ export default function WorldMap() {
       </div>
 
       <div
-        className="relative w-full border overflow-hidden"
-        style={{ borderColor: "var(--border)", height: 500 }}
+        className="relative w-full border overflow-hidden h-[380px] lg:h-[500px]"
+        style={{ borderColor: "var(--border)" }}
       >
         {isLoading ? (
           <div
