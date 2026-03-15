@@ -49,7 +49,6 @@ function StockCard({ item }: { item: MarketSnapshot }) {
             low={item.low}
             price={item.price}
             direction={dir}
-            width={120}
             height={36}
           />
         </div>
@@ -123,7 +122,7 @@ export default function MarketSection() {
             <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {stockIndices.map((item) => (
               <StockCard key={item.id ?? item.symbol} item={item} />
             ))}
@@ -142,6 +141,7 @@ export default function MarketSection() {
             <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -166,6 +166,7 @@ export default function MarketSection() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </section>
