@@ -20,10 +20,10 @@ export default function DashboardPage() {
       <AlertTicker />
       <MarketTickerBar />
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-2 md:p-3 lg:p-4 flex flex-col gap-3 md:gap-4">
         {/* Map + Issues (left) | News (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
-          <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_320px] gap-3 md:gap-4 items-start">
+          <div className="flex flex-col gap-3 md:gap-4">
             <div className="card" id="section-map">
               <WorldMap />
             </div>
@@ -37,7 +37,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Vessel + Airport */}
-        <div id="section-vessels" className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <div id="section-vessels" className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 items-stretch">
           <div className="card flex flex-col">
             <VesselTracking />
           </div>
@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
       {/* Footer */}
       <footer
-        className="flex justify-between items-center px-6 py-2.5 border-t"
+        className="flex flex-wrap justify-center md:justify-between items-center px-3 md:px-6 py-2.5 border-t text-center md:text-left gap-1"
         style={{ borderColor: "var(--border)" }}
       >
         <span className="font-mono text-[0.8rem] tracking-[0.5px]" style={{ color: "var(--text-muted)" }}>
