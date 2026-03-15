@@ -20,7 +20,7 @@ export default function EKRouteBadges({ routes }: EKRouteBadgesProps) {
       <div className="font-mono text-[0.8rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--accent-amber)" }}>
         {t("airport.ekRoutes")}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
         {routes.map((r) => {
           const s = STATUS_STYLES[r.status];
           return (

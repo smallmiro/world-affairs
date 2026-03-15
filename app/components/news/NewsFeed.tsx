@@ -92,7 +92,7 @@ export default function NewsFeed() {
         </select>
       </div>
 
-      <div className="overflow-y-auto flex flex-col gap-0.5 max-h-[690px]" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
+      <div className="overflow-y-auto flex flex-col gap-0.5 max-h-[400px] md:max-h-[690px]" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <span className="font-mono text-[0.72rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
