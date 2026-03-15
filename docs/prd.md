@@ -130,16 +130,17 @@
 
 #### 4.8.6 데이터 수집
 
-- 항공기 위치: 07:00~23:00 **2분 간격**, 23:00~07:00 1시간 간격 (OpenSky OAuth2 Client Credentials, 일 4,000크레딧 내)
+- 항공기 위치: 07:00~23:00 **5분 간격** (bbox 탐색 / icao24 갱신 교대), 23:00~07:00 2시간 간격 (OpenSky OAuth2 Client Credentials, 일 4,000크레딧 내)
 - FlightPosition: icao24 기준 upsert (시계열 아님, 최신 위치만 유지)
 - DXB Flight Status: **10분 간격** (dubaiairports.ae HTML 스크래핑, cheerio 파싱)
 - 공항 상태/항공사: 하루 2회 06:00, 18:00 (AviationStack, Free tier 월 100회 대응)
-- 공항 이벤트 (GDELT): 현재 **비활성화**
+- 공항 이벤트 (GDELT): **4시간마다** (원시 데이터 수집)
+- 공항 타임라인 (Gemini): 4시간마다 (GDELT 수집 30분 후 오프셋)
 - AI 분석: 4시간마다 (Gemini API, 지역별 감성/분석)
 - AI 브리핑: 매일 06:00 (Gemini API, 일간 브리핑 생성)
-- 데이터 보관: 최근 7일간 이벤트 이력 (매일 03:00 자동 정리), 전역 30일 정리 (매일 04:00)
-- 시작 시 잡 실행: 3초 간격 staggered
-- 수집 대상: 공항 운영 상태, 항공기 위치, DXB 출도착 항공편, NOTAM, 항공사 운항 정보, 주변 분쟁/군사 활동 정보
+- 데이터 보관: 최근 7일간 이벤트 이력 (매일 03:00 자동 정리), 전역 30일 정리 (매일 03:30)
+- 시작 시 잡 실행: 3~5초 간격 staggered
+- 수집 대상: 공항 운영 상태, 항공기 위치, DXB 출도착 항공편, 항공사 운항 정보, 주변 분쟁/군사 활동 정보
 
 ### 4.9 대시보드 UI
 
@@ -295,65 +296,88 @@
 ├── app/                          # Next.js App Router
 │   ├── layout.tsx                # 루트 레이아웃 (다크모드, 폰트)
 │   ├── page.tsx                  # 대시보드 메인 페이지
-│   ├── api/                      # API Routes
+│   ├── api/                      # API Routes (12 엔드포인트)
 │   │   ├── news/route.ts
 │   │   ├── markets/route.ts
 │   │   ├── vessels/route.ts
-│   │   ├── issues/route.ts
-│   │   ├── analysis/route.ts
-│   │   ├── airport/route.ts
+│   │   ├── geo-events/route.ts
+│   │   ├── analysis/
+│   │   │   └── briefing/route.ts
+│   │   ├── airport/
+│   │   │   ├── route.ts            # status|flights|events|airlines|routes|dxb
+│   │   │   ├── flights/route.ts
+│   │   │   ├── opensky-flights/route.ts
+│   │   │   ├── dxb-stats/route.ts
+│   │   │   └── assessment/route.ts
 │   │   └── sse/
 │   │       ├── positions/route.ts  # SSE 실시간 위치 스트리밍
 │   │       └── publish/route.ts    # 배치→웹 내부 pub/sub 엔드포인트
+│   ├── hooks/                    # React Query 훅 (10개)
+│   ├── lib/                      # API 클라이언트, 타입, 유틸
 │   ├── i18n/                     # 다국어 번역
+│   │   ├── index.ts              # t() 함수 (중첩 키 지원)
 │   │   ├── ko.json               # 한국어
 │   │   ├── en.json               # 영어
-│   │   ├── ja.json               # 일본어
-│   │   └── useT.ts               # 번역 훅
-│   └── components/               # React 컴포넌트
+│   │   └── ja.json               # 일본어
+│   └── components/               # React 컴포넌트 (24개)
 │       ├── layout/
-│       │   ├── TopBar.tsx
+│       │   ├── TopBar.tsx            # 네비게이션, 테마, 시계, 햄버거 메뉴
 │       │   ├── AlertTicker.tsx
-│       │   └── MarketTickerBar.tsx
+│       │   ├── MarketTickerBar.tsx
+│       │   └── AlertPanel.tsx        # 알림 상세 패널 (필터 포함)
 │       ├── map/
 │       │   ├── WorldMap.tsx
-│       │   └── VesselMap.tsx
+│       │   └── WorldMapInner.tsx
 │       ├── news/
-│       │   └── NewsFeed.tsx
+│       │   ├── NewsFeed.tsx
+│       │   └── ArticleDetailModal.tsx  # 기사 상세 모달
 │       ├── issues/
 │       │   └── IssueTracker.tsx
 │       ├── vessels/
 │       │   ├── VesselTracking.tsx
-│       │   └── PassageStats.tsx
+│       │   ├── VesselMapInner.tsx
+│       │   └── MaritimeEventModal.tsx
 │       ├── airport/
 │       │   ├── AirportMonitor.tsx
-│       │   ├── AirportMap.tsx
-│       │   ├── AirportTimeline.tsx
-│       │   ├── AirlineStatus.tsx
-│       │   └── EmiratesRoutes.tsx
+│       │   ├── AirportMapInner.tsx
+│       │   ├── AirportTimeline.tsx    # AI 생성 타임라인 포함
+│       │   ├── AirlineGrid.tsx
+│       │   ├── FlightStatusPanel.tsx  # DXB 출도착 항공편 테이블
+│       │   └── EKRouteBadges.tsx
 │       ├── markets/
-│       │   ├── MarketSection.tsx
-│       │   ├── IndexCard.tsx
-│       │   └── CommodityTable.tsx
-│       └── analysis/
-│           ├── SentimentGauge.tsx
-│           ├── TrendChart.tsx
-│           └── AIBriefing.tsx
+│       │   └── MarketSection.tsx
+│       ├── analysis/
+│       │   ├── AiAnalysis.tsx         # 감성 분석 + AI 브리핑 (풀스크린 모달)
+│       │   └── TrendChart.tsx
+│       └── ui/                       # 공통 UI 컴포넌트
+│           ├── SectionHeader.tsx
+│           ├── StatusLight.tsx
+│           └── IntraDayChart.tsx
 ├── src/                          # 헥사고날 아키텍처 소스
 │   ├── domain/                   # 엔티티 + 포트 (순수 비즈니스)
+│   │   ├── news/                 # Article 엔티티 + 포트
+│   │   ├── market/               # MarketSnapshot 엔티티 + 포트
+│   │   ├── vessel/               # Vessel, VesselPosition 엔티티 + 포트
+│   │   ├── geopolitics/          # GeoEvent 엔티티 + 포트
+│   │   ├── airport/              # FlightPosition, AirportStatus 등 엔티티 + 포트
+│   │   └── analysis/             # AiAnalysis 엔티티 + 포트
 │   ├── adapters/                 # 포트 구현체
-│   │   ├── collectors/           # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS, DXB)
-│   │   ├── repositories/        # Prisma DB 어댑터
-│   │   └── ai/                  # Gemini API 어댑터
-│   ├── usecases/                 # 도메인 오케스트레이션
-│   ├── infrastructure/           # prisma, gemini, pubsub, publish-sse
+│   │   ├── collectors/           # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS, DXB HTML)
+│   │   ├── repositories/        # Prisma DB 어댑터 (6개)
+│   │   └── ai/                  # Gemini API 어댑터 (번역 + 분석)
+│   ├── usecases/                 # 도메인 오케스트레이션 (12개)
+│   ├── infrastructure/           # prisma, pubsub, publish-sse
 │   ├── batch/                    # 스케줄러 (node-cron + WebSocket)
 │   └── shared/                   # 공통 타입, 분류 유틸
+├── __tests__/                    # Vitest 테스트 (15개)
 ├── prisma/
-│   └── schema.prisma             # DB 스키마 정의
+│   └── schema.prisma             # DB 스키마 정의 (14 모델)
 ├── db/
 │   └── data.sqlite               # SQLite DB 파일
+├── scripts/
+│   └── commit-data.sh            # DB 스냅샷 자동 커밋 스크립트
 ├── ecosystem.config.js           # pm2 설정 파일
+├── vitest.config.ts
 ├── package.json
 └── tsconfig.json
 ```

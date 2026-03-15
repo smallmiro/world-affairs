@@ -4,15 +4,16 @@
 
 ## 기술 스택
 
-- **Frontend + Backend**: Next.js (App Router) + TypeScript
-- **ORM / DB**: Prisma + SQLite
+- **Frontend + Backend**: Next.js 16 (App Router) + TypeScript
+- **ORM / DB**: Prisma 7 + SQLite (@prisma/adapter-libsql)
 - **배치 스케줄러**: node-cron + setInterval (별도 프로세스)
 - **프로세스 관리**: pm2
 - **UI**: Tailwind CSS v4 + inline CSS (Tokyo Night Storm/Day 테마) + react-leaflet + Recharts + react-markdown
 - **i18n**: 커스텀 useT() 훅 + ko.json/en.json/ja.json
-- **데이터 수집**: GDELT, RSS, OpenSky (OAuth2 Client Credentials), AviationStack, AISStream (WebSocket), Yahoo Finance, DXB HTML 스크래핑 (cheerio)
+- **데이터 수집**: GDELT, RSS, OpenSky (OAuth2 Client Credentials), AviationStack, AISStream (WebSocket), Yahoo Finance (yahoo-finance2), DXB HTML 스크래핑 (cheerio)
 - **AI**: Gemini API (번역 EN/KO/JA + 요약/감성/분석/브리핑)
 - **실시간 통신**: SSE (Server-Sent Events) + in-memory PubSub
+- **테스트**: Vitest
 
 ## 설치
 
@@ -64,27 +65,29 @@ npm run dev
 
 | 섹션 | 설명 | 데이터 소스 |
 |------|------|------------|
-| **TopBar** | 실시간 시계, 언어 전환 (KO/EN/JA), 긴급 알림 카운트 | News + GeoEvents |
+| **TopBar** | 실시간 시계, 언어 전환 (KR/EN/JA), 긴급 알림 카운트, 햄버거 메뉴 (모바일) | News + GeoEvents |
 | **Alert Ticker** | 긴급 뉴스/이벤트 스크롤 배너 | critical/high severity 필터 |
-| **Market Ticker** | 주요 지수/원자재/환율 한 줄 표시 | Yahoo Finance |
+| **Market Ticker** | 주요 지수/원자재/환율 한 줄 표시 (호버 시 인트라데이 차트) | Yahoo Finance |
 | **World Map** | 지정학 이벤트 핫스팟 지도 (분쟁 필터) | GDELT GeoEvents |
-| **News Feed** | 카테고리/지역 필터 뉴스 목록 | GDELT + RSS |
+| **News Feed** | 카테고리/지역 필터 뉴스 목록 + 기사 상세 모달 | GDELT + RSS |
 | **Issue Tracker** | 지역별 이슈 심각도 카드 (정렬) | GeoEvents 집계 |
-| **Vessel Tracking** | 중동 해역 선박 추적 지도 (유형 필터) | AISStream WebSocket |
-| **Airport Monitor** | DXB 공항 상태/항공기/이벤트/항공사/노선 + DXB Flight Status | OpenSky + AviationStack + dubaiairports.ae |
+| **Vessel Tracking** | 중동 해역 선박 추적 지도 (유형 필터) + 해상 이벤트 모달 | AISStream WebSocket |
+| **Airport Monitor** | DXB 공항 상태/항공기/AI 타임라인/항공사 그리드/EK 노선/DXB 출도착 현황 | OpenSky + AviationStack + dubaiairports.ae + Gemini |
 | **Market Section** | 주식 지수 카드 + 원자재/환율 테이블 | Yahoo Finance |
-| **AI Analysis** | 지역 감성 분석 + AI 브리핑 (마크다운 렌더링) | Goldstein scale + Gemini |
+| **AI Analysis** | 지역 감성 분석 + AI 브리핑 (마크다운 렌더링, 풀스크린 모달) | Goldstein scale + Gemini |
 
 ### 조작법
 
-- **언어 전환**: TopBar 우측 `KO` 버튼 클릭 → KO → EN → JA 순환
+- **언어 전환**: TopBar 우측 `KR` 버튼 클릭 → KR → EN → JA 순환
 - **다크/라이트 토글**: TopBar 테마 전환 버튼 (Tokyo Night Storm / Tokyo Night Day)
-- **네비게이션**: TopBar 탭 (MAP, VESSELS, MARKETS, ANALYSIS) 클릭 → 해당 섹션 스크롤
+- **네비게이션**: TopBar 탭 (OVERVIEW, MAP, VESSELS, MARKETS, ANALYSIS, BRIEFING) 클릭 → 해당 섹션 스크롤
+- **모바일 네비게이션**: 햄버거 메뉴 (≡) → 탭 목록 드롭다운
 - **뉴스 필터**: 카테고리(외교/군사/경제/인권/환경) + 지역(동아시아/중동/유럽/북미) 필터
 - **기사 상세**: 뉴스 항목 클릭 → 기사 상세 모달 표시
 - **지도 필터**: 긴장도(전체) / 분쟁(conflict+military) 토글 + 긴장 구역 오버레이
 - **선박 필터**: 전체 / 유조선 / LPG|LNG 필터 + 해상 경보 표시
 - **이슈 정렬**: 심각도순 / 최신순 토글
+- **AI 브리핑**: 전체화면 보기 버튼 → 풀스크린 모달 (ESC로 닫기)
 
 ## 개발 모드
 
@@ -138,27 +141,28 @@ pm2 startup                        # 시스템 부팅 시 자동 시작 등록
 
 | Job | 주기 | 데이터 소스 | 시작 시 실행 |
 |-----|------|------------|------------|
-| `collect-news` | 15분마다 | GDELT + RSS | O |
-| `collect-market` | 15분마다 | Yahoo Finance | O |
-| `collect-geo` | 30분마다 | GDELT Events | O |
-| `airport:flights` | 07-23시 2분, 그 외 1시간 | OpenSky (OAuth2) | O |
+| `collect-news` | 15분마다 (`*/15`) | GDELT + RSS | O |
+| `collect-market` | 15분마다 (`*/15`) | Yahoo Finance | O |
+| `collect-geo` | 30분마다 (`7,37`) | GDELT Events | O |
+| `airport:flights` | 07-23시 5분 간격 (bbox/icao24 교대), 그 외 2시간 | OpenSky (OAuth2) | O |
 | `airport:ops` | 하루 2회 (06:00, 18:00) | AviationStack | O |
-| `airport:dxb-flights` | 10분마다 | dubaiairports.ae (HTML 스크래핑) | O |
+| `airport:events` | 4시간마다 (`0 */4`) | GDELT | O |
+| `airport:timeline` | 4시간마다 (`30 */4`, GDELT 30분 후) | Gemini API | O |
+| `airport:dxb-flights` | 10분마다 (`*/10`) | dubaiairports.ae (HTML 스크래핑) | O |
 | `airport:cleanup` | 매일 03:00 | - (7일 보존) | X |
-| `ai:analysis` | 4시간마다 | Gemini API | X |
-| `ai:briefing` | 매일 06:00 | Gemini API | X |
-| `cleanup:global` | 매일 04:00 | - (30일 보존) | X |
+| `ai:analysis` | 4시간마다 (`:10`) | Gemini API | X |
+| `ai:briefing` | 매일 06:00 | Gemini API | O |
+| `cleanup:global` | 매일 03:30 | - (30일 보존) | X |
 | `ais:stream` | **상시 WebSocket** | AISStream.io | O (자동 재연결) |
 
-> **참고:** 시작 시 실행(O) 잡은 3초 간격으로 staggered 실행됩니다. `airport:events` (GDELT) 는 현재 비활성화 상태입니다.
+> **참고:** 시작 시 실행(O) 잡은 3~5초 간격으로 staggered 실행됩니다.
 
 ### 번역
 
 | Job | 주기 | 대상 |
 |-----|------|------|
-| `translate:news` | 15분마다 (수집 5분 후) | Article title/summary → ko/ja |
-| `translate:geo` | 30분마다 (수집 5분 후) | GeoEvent title/desc → ko/ja |
-| `translate:airport` | 4시간마다 (수집 5분 후) | AirportEvent title → ko/ja |
+| `translate:news` | 15분마다 (`5,20,35,50`) | Article title/summary → ko/ja |
+| `translate:geo` | 30분마다 (`5,35`) | GeoEvent title/desc → ko/ja |
 
 ## API 엔드포인트
 
@@ -167,11 +171,11 @@ pm2 startup                        # 시스템 부팅 시 자동 시작 등록
 | Endpoint | Method | 파라미터 |
 |----------|--------|---------|
 | `/api/news` | GET | `lang`, `limit`, `region`, `category` |
-| `/api/markets` | GET | `type` |
+| `/api/markets` | GET | `lang`, `type` |
 | `/api/geo-events` | GET | `lang`, `limit`, `severity`, `eventType` |
-| `/api/vessels` | GET | `type`, `zone` |
-| `/api/airport` | GET | `section` (status\|flights\|events\|airlines\|routes), `limit` |
-| `/api/airport/flights` | GET | DXB 출발/도착 항공편 |
+| `/api/vessels` | GET | `lang` |
+| `/api/airport` | GET | `section` (status\|flights\|events\|airlines\|routes\|dxb), `limit` |
+| `/api/airport/flights` | GET | `limit` |
 | `/api/airport/dxb-stats` | GET | DXB 스크래핑 통계 |
 | `/api/airport/opensky-flights` | GET | OpenSky 항공편 위치 |
 | `/api/airport/assessment` | GET | 공항 리스크 평가 |
@@ -213,17 +217,20 @@ es.addEventListener("flights", (e) => {
 │  │ Market (Yahoo)     │  │  │ /api/markets               │ │
 │  │ Geo (GDELT)        │  │  │ /api/geo-events            │ │
 │  │ Airport (OpenSky)  │  │  │ /api/vessels               │ │
-│  │ Airport (Aviation) │  │  │ /api/airport               │ │
-│  │ Translate (Gemini) │  │  │ /api/sse/positions (SSE)   │ │
-│  └────────────────────┘  │  │ /api/sse/publish (내부)    │ │
-│                          │  └─────────────┬───────────────┘ │
-│  ┌─ WebSocket ────────┐  │                │ pub/sub         │
+│  │ Airport (Aviation) │  │  │ /api/airport/*             │ │
+│  │ Airport (DXB HTML) │  │  │ /api/analysis/briefing     │ │
+│  │ Timeline (Gemini)  │  │  │ /api/sse/positions (SSE)   │ │
+│  │ Translate (Gemini) │  │  │ /api/sse/publish (내부)    │ │
+│  │ AI Analysis        │  │  └─────────────┬───────────────┘ │
+│  └────────────────────┘  │                │ pub/sub         │
+│                          │                │                 │
+│  ┌─ WebSocket ────────┐  │                │                 │
 │  │ AIS (상시 연결)     │──┼── HTTP POST ──→│                 │
 │  └────────────────────┘  │                ↓                 │
 │           │              │          SSE 클라이언트           │
 │           ↓              │                                  │
 │    ┌─ SQLite DB ─────────┼──────────────────────────────┐   │
-│    │ db/data.sqlite      │                              │   │
+│    │ db/data.sqlite      │  (14 모델, Prisma ORM)       │   │
 │    └─────────────────────┼──────────────────────────────┘   │
 └──────────────────────────┴──────────────────────────────────┘
 ```
@@ -232,6 +239,7 @@ es.addEventListener("flights", (e) => {
 
 ```bash
 npm run test        # vitest 실행
+npm run test:watch  # vitest 워치 모드
 npx tsc --noEmit    # 타입 체크
 ```
 
@@ -239,23 +247,35 @@ npx tsc --noEmit    # 타입 체크
 
 ```
 app/                        # Next.js App Router
-  api/                      # REST + SSE API
-  components/               # React 컴포넌트
-  hooks/                    # React Query 훅
-  i18n/                     # 다국어 번역 (ko.json, en.json, ja.json, useT 훅)
-  lib/                      # API 클라이언트, 타입
-src/
-  domain/                   # 엔티티 + 포트 (순수 비즈니스)
+  api/                      # REST + SSE API (12 엔드포인트)
+  components/               # React 컴포넌트 (24개)
+    layout/                 # TopBar, AlertTicker, MarketTickerBar, AlertPanel
+    map/                    # WorldMap, WorldMapInner
+    news/                   # NewsFeed, ArticleDetailModal
+    issues/                 # IssueTracker
+    vessels/                # VesselTracking, VesselMapInner, MaritimeEventModal
+    airport/                # AirportMonitor, AirportMapInner, AirportTimeline,
+                            # AirlineGrid, FlightStatusPanel, EKRouteBadges
+    markets/                # MarketSection
+    analysis/               # AiAnalysis, TrendChart
+    ui/                     # SectionHeader, StatusLight, IntraDayChart
+  hooks/                    # React Query 훅 (10개)
+  i18n/                     # 다국어 번역 (ko.json, en.json, ja.json)
+  lib/                      # API 클라이언트, 타입, 유틸
+src/                        # 헥사고날 아키텍처
+  domain/                   # 엔티티 + 포트 (6 바운디드 컨텍스트)
     news/, market/, vessel/, geopolitics/, airport/, analysis/
   adapters/                 # 포트 구현체
-    collectors/             # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS)
-    repositories/           # Prisma DB 어댑터
-    ai/                     # Gemini 번역기
-  usecases/                 # 도메인 오케스트레이션
-  infrastructure/           # prisma, gemini, pubsub, publish-sse
+    collectors/             # 데이터 수집 (GDELT, RSS, OpenSky, AviationStack, AIS, DXB HTML)
+    repositories/           # Prisma DB 어댑터 (6개)
+    ai/                     # Gemini 번역 + 분석
+  usecases/                 # 도메인 오케스트레이션 (12개)
+  infrastructure/           # prisma, pubsub, publish-sse
   batch/                    # 스케줄러 (node-cron + WebSocket)
   shared/                   # 공통 타입, 분류 유틸
-prisma/                     # DB 스키마 + 마이그레이션
+__tests__/                  # Vitest 테스트 (15개)
+prisma/                     # DB 스키마 + 마이그레이션 (4개)
 db/                         # SQLite DB 파일
+scripts/                    # 운영 스크립트 (commit-data.sh)
 docs/                       # PRD, 프로토타입
 ```
