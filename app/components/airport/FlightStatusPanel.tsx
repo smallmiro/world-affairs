@@ -115,7 +115,7 @@ export default function FlightStatusPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-2">
+      <div className="flex flex-wrap gap-1 mb-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -137,7 +137,7 @@ export default function FlightStatusPanel() {
         const list = activeTab === "departures" ? depList : arrList;
         return (
           <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
-            <table className="w-full border-collapse font-mono text-[0.8rem]">
+            <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
                   <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
@@ -182,7 +182,7 @@ export default function FlightStatusPanel() {
       {/* EK Routes Table */}
       {activeTab === "ek-routes" && (
         <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
-          <table className="w-full border-collapse font-mono text-[0.8rem]">
+          <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
@@ -222,7 +222,7 @@ export default function FlightStatusPanel() {
       {/* Airlines Table */}
       {activeTab === "airlines" && (
         <div className="overflow-x-auto" style={{ maxHeight: 280, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}>
-          <table className="w-full border-collapse font-mono text-[0.8rem]">
+          <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.airline")}</th>
