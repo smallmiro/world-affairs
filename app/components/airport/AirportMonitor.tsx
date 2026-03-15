@@ -153,7 +153,7 @@ export default function AirportMonitor() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "var(--border)" }}>
         {/* Map */}
         <div className="relative" style={{ background: "var(--bg-primary)" }}>
-          <div className="border overflow-hidden" style={{ borderColor: "var(--border)", height: 420 }}>
+          <div className="border overflow-hidden h-[280px] md:h-[350px] lg:h-[420px]" style={{ borderColor: "var(--border)" }}>
             <AirportMapInner mapData={mapData} />
           </div>
           {/* Flight counter */}

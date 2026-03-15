@@ -55,7 +55,7 @@ export default function WorldMap() {
           title={t("map.title")}
           accentColor="var(--accent-cyan)"
           controls={
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {FILTER_BUTTONS.map(({ key, filter, disabled }) => {
                 const isActive = !disabled && filter === activeFilter;
                 return (
@@ -84,7 +84,7 @@ export default function WorldMap() {
       </div>
 
       <div
-        className="relative w-full border overflow-hidden h-[380px] lg:h-[500px]"
+        className="relative w-full border overflow-hidden h-[280px] md:h-[380px] lg:h-[500px]"
         style={{ borderColor: "var(--border)" }}
       >
         {isLoading ? (

@@ -194,8 +194,8 @@ export default function VesselTracking() {
 
       {/* Map */}
       <div
-        className="relative w-full border overflow-hidden"
-        style={{ borderColor: "var(--border)", height: 340 }}
+        className="relative w-full border overflow-hidden h-[250px] md:h-[300px] lg:h-[340px]"
+        style={{ borderColor: "var(--border)" }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full" style={{ background: "var(--map-bg, #1a1b26)" }}>
