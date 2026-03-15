@@ -83,7 +83,7 @@ export default function MarketTickerBar() {
         className="flex items-center px-6 py-2 border-b"
         style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
       >
-        <span className="font-mono text-[0.65rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.75rem] md:text-[0.65rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
           MARKET DATA LOADING...
         </span>
       </div>

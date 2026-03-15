@@ -32,7 +32,7 @@ function StockCard({ item }: { item: MarketSnapshot }) {
       <div className="font-mono text-[1.15rem] font-bold mb-1" style={{ color: "var(--text-primary)" }}>
         {formatPrice(item.price, item.currency)}
       </div>
-      <div className="font-mono text-[0.68rem] font-semibold flex items-center gap-1.5" style={{ color }}>
+      <div className="font-mono text-[0.75rem] md:text-[0.68rem] font-semibold flex items-center gap-1.5" style={{ color }}>
         {arrow} {formatChange(item.change)}{" "}
         <span
           className="px-1 py-px text-[0.8rem]"
@@ -65,7 +65,7 @@ function CommodityRow({ item }: { item: MarketSnapshot }) {
   return (
     <tr className="transition-colors duration-100 hover:bg-[var(--bg-secondary)]">
       <td className="font-mono text-[0.75rem] py-2 px-2.5 border-b" style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}>
-        <span className="text-[0.7rem]" style={{ color: "var(--text-secondary)" }}>{item.name || item.symbol}</span>
+        <span className="text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-secondary)" }}>{item.name || item.symbol}</span>
         <span className="text-[0.75rem] ml-1" style={{ color: "var(--text-muted)" }}>{item.currency}</span>
       </td>
       <td
@@ -119,7 +119,7 @@ export default function MarketSection() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
+            <span className="font-mono text-[0.75rem] md:text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -138,7 +138,7 @@ export default function MarketSection() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <span className="font-mono text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
+            <span className="font-mono text-[0.75rem] md:text-[0.72rem]" style={{ color: "var(--text-muted)" }}>{t("common.loading")}</span>
           </div>
         ) : (
           <div className="overflow-x-auto">

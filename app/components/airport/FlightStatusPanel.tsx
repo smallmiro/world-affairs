@@ -109,7 +109,7 @@ export default function FlightStatusPanel() {
             {t("airport.flightStatus")}
           </span>
         </div>
-        <span className="font-mono text-[0.7rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+        <span className="font-mono text-[0.75rem] md:text-[0.7rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
           dubaiairports.ae · 10min
         </span>
       </div>
@@ -120,7 +120,7 @@ export default function FlightStatusPanel() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className="font-mono text-[0.8rem] tracking-[1px] px-2.5 py-2.5 border rounded-lg cursor-pointer transition-all duration-150"
+            className="font-mono text-[0.8rem] tracking-[1px] px-2.5 py-2.5 min-h-[44px] border rounded-lg cursor-pointer transition-all duration-150"
             style={{
               color: activeTab === tab.key ? "var(--accent-amber)" : "var(--text-muted)",
               borderColor: activeTab === tab.key ? "var(--accent-amber)" : "var(--border)",
@@ -140,11 +140,11 @@ export default function FlightStatusPanel() {
             <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
-                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.destination")}</th>
-                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.scheduled")}</th>
-                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.actual")}</th>
-                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
+                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.flightCode")}</th>
+                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.destination")}</th>
+                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.scheduled")}</th>
+                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.actual")}</th>
+                  <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,7 +166,7 @@ export default function FlightStatusPanel() {
                       <td className="py-1.5 px-2" style={{ color: "var(--text-muted)" }}>{f.scheduled}</td>
                       <td className="py-1.5 px-2" style={{ color: "var(--text-muted)" }}>{f.actual}</td>
                       <td className="py-1.5 px-2">
-                        <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>
+                        <span className="font-mono text-[0.75rem] md:text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>
                           {f.status}
                         </span>
                       </td>
@@ -185,9 +185,9 @@ export default function FlightStatusPanel() {
           <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flightCode")}</th>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.destination")}</th>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.flightCode")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.destination")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -207,7 +207,7 @@ export default function FlightStatusPanel() {
                     <td className="py-1.5 px-2 font-semibold" style={{ color: "var(--accent-amber)" }}>{r.flightCode}</td>
                     <td className="py-1.5 px-2" style={{ color: "var(--text-secondary)" }}>{r.dest}</td>
                     <td className="py-1.5 px-2">
-                      <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color, background: `${color}15` }}>
+                      <span className="font-mono text-[0.75rem] md:text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color, background: `${color}15` }}>
                         {label}
                       </span>
                     </td>
@@ -225,10 +225,10 @@ export default function FlightStatusPanel() {
           <table className="w-full min-w-[500px] border-collapse font-mono text-[0.8rem]">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.airline")}</th>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.flights")}</th>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>ON TIME</th>
-                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase" style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{t("airport.status")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.airline")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.flights")}</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>ON TIME</th>
+                <th className="text-left py-1.5 px-2 tracking-[1px] uppercase text-[0.75rem] md:text-[0.7rem]" style={{ color: "var(--text-muted)" }}>{t("airport.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +248,7 @@ export default function FlightStatusPanel() {
                     <td className="py-1.5 px-2" style={{ color: "var(--text-secondary)" }}>{a.flights}{t("airport.flights")}</td>
                     <td className="py-1.5 px-2" style={{ color: statusColor }}>{a.onTime}%</td>
                     <td className="py-1.5 px-2">
-                      <span className="font-mono text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>
+                      <span className="font-mono text-[0.75rem] md:text-[0.7rem] font-bold tracking-[0.5px] px-1.5 py-0.5 rounded" style={{ color: statusColor, background: `${statusColor}15` }}>
                         {a.status.toUpperCase()}
                       </span>
                     </td>
