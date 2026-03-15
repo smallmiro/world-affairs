@@ -115,14 +115,14 @@ export default function TopBar() {
           >
             SIGINT
           </span>
-          <span className="hidden md:inline w-px h-5" style={{ background: "var(--border-active)" }} />
-          <span className="hidden md:inline text-[0.95rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
+          <span className="hidden lg:inline w-px h-5" style={{ background: "var(--border-active)" }} />
+          <span className="hidden lg:inline text-[0.95rem] tracking-[1px]" style={{ color: "var(--text-muted)" }}>
             {t("topbar.subtitle")}
           </span>
         </div>
 
-        {/* Nav — desktop */}
-        <nav className="hidden md:flex gap-0.5">
+        {/* Nav — desktop (lg+) */}
+        <nav className="hidden lg:flex gap-0.5">
           {NAV_TABS.map((tab, idx) => (
             <button
               key={tab}
@@ -146,9 +146,9 @@ export default function TopBar() {
             LIVE
           </div>
           <span className="hidden md:inline font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
-            UPD {time || "--:--:--"} KST
+            UPD {time || "--:--:--"} UTC
           </span>
-          <span className="hidden md:inline font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
+          <span className="hidden lg:inline font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
             SRC: 24 FEEDS
           </span>
         </div>
@@ -160,7 +160,7 @@ export default function TopBar() {
             aria-label="메뉴 열기"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((v) => !v)}
-            className="md:hidden w-11 h-11 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
+            className="lg:hidden w-11 h-11 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)]"
             style={{
               background: isMenuOpen ? "var(--bg-card)" : "transparent",
               borderColor: isMenuOpen ? "var(--accent-cyan)" : "var(--border)",
@@ -232,7 +232,7 @@ export default function TopBar() {
       {/* Mobile drawer overlay */}
       {isMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 top-[52px] z-[999]"
+          className="lg:hidden fixed inset-0 top-[52px] z-[999]"
           onClick={() => setIsMenuOpen(false)}
           style={{ background: "rgba(0,0,0,0.5)" }}
         />
@@ -241,7 +241,7 @@ export default function TopBar() {
       {/* Mobile drawer menu */}
       <div
         ref={menuRef}
-        className="md:hidden fixed left-0 right-0 top-[52px] z-[1000] overflow-hidden transition-all duration-200 border-b"
+        className="lg:hidden fixed left-0 right-0 top-[52px] z-[1000] overflow-hidden transition-all duration-200 border-b"
         style={{
           maxHeight: isMenuOpen ? `${NAV_TABS.length * 48 + 16}px` : "0px",
           opacity: isMenuOpen ? 1 : 0,
