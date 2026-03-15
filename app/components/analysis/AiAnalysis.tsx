@@ -195,8 +195,8 @@ export default function AiAnalysis() {
         <TrendChart data={trendData} />
       </div>
 
-      {/* AI Briefing */}
-      <div className="p-4">
+      {/* AI Briefing — md에서 2col일 때 전체 폭 사용 */}
+      <div className="p-4 md:col-span-2 lg:col-span-1">
         <h3 className="font-mono text-[0.95rem] tracking-[2px] uppercase mb-3.5 flex items-center gap-1.5" style={{ color: "var(--accent-purple)" }}>
           <span
             className="w-1.5 h-1.5"
