@@ -62,8 +62,13 @@ export default function TopBar() {
   };
 
   useEffect(() => {
-    const update = () =>
-      setTime(new Date().toLocaleTimeString("ko-KR", { hour12: false }));
+    const update = () => {
+      const now = new Date();
+      const h = String(now.getUTCHours()).padStart(2, "0");
+      const m = String(now.getUTCMinutes()).padStart(2, "0");
+      const s = String(now.getUTCSeconds()).padStart(2, "0");
+      setTime(`${h}시 ${m}분 ${s}초`);
+    };
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);

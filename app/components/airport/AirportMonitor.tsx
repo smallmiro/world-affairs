@@ -161,7 +161,7 @@ export default function AirportMonitor() {
             className="absolute top-2 left-2 z-[600] px-2 py-1 font-mono text-[0.8rem] border"
             style={{ background: "rgba(26,27,38,0.85)", borderColor: "var(--border)" }}
           >
-            <span style={{ color: "var(--accent-cyan)" }}>✈ {mapData.aircraft.length}</span>
+            <span style={{ color: "var(--accent-cyan)" }}>✈︎ {mapData.aircraft.length}</span>
             <span className="mx-1" style={{ color: "var(--text-muted)" }}>TRACKED</span>
             <span style={{ color: "var(--accent-amber)" }}>EK {mapData.aircraft.filter((a) => a.cls === "ek").length}</span>
             <span className="ml-1" style={{ color: "var(--text-muted)" }}>

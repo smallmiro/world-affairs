@@ -67,7 +67,7 @@ function aircraftIcon(callsign: string, heading: number): L.DivIcon {
   const color = AIRLINE_COLORS[prefix] ?? "#64748b";
   return L.divIcon({
     className: "",
-    html: `<div style="font-size:16px;color:${color};transform:rotate(${heading}deg);filter:drop-shadow(0 0 4px ${color}80);line-height:1">✈</div>`,
+    html: `<div style="font-size:16px;color:${color};transform:rotate(${heading}deg);filter:drop-shadow(0 0 4px ${color}80);line-height:1">✈︎</div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   });
@@ -209,7 +209,7 @@ export default function WorldMapInner({ events, flights = [] }: WorldMapInnerPro
               <Popup>
                 <div style={{ fontFamily: "monospace", fontSize: "0.7rem", background: popupBg, padding: 6, minWidth: 120 }}>
                   <div style={{ fontWeight: "bold", color, marginBottom: 3, fontSize: "0.8rem" }}>
-                    ✈ {f.callsign.trim()}
+                    ✈︎ {f.callsign.trim()}
                   </div>
                   <div style={{ fontSize: "0.8rem", color: popupText, marginBottom: 2 }}>
                     {airlineName}

@@ -1,6 +1,7 @@
 import type { GeoCollectorPort } from "../../domain/geopolitics/ports";
 import type { RawGeoEvent } from "../../domain/geopolitics/entities";
 import type { CollectionResult, GeoEventType } from "../../shared/types";
+import { fetchWithRetry } from "../../shared/fetch-with-retry";
 
 const GDELT_GKG_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
@@ -115,9 +116,9 @@ export class GdeltGeoCollector implements GeoCollectorPort {
     const params = new URLSearchParams(GDELT_EVENT_PARAMS);
     const url = `${GDELT_GKG_URL}?${params.toString()}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithRetry(url);
     if (response.status === 429) {
-      console.warn("[GDELT Geo] Rate limited (429). Returning empty result.");
+      console.warn("[GDELT Geo] Rate limited after retries. Returning empty result.");
       return { data: [], collectedAt: new Date(), source: "gdelt-geo" };
     }
     if (!response.ok) {

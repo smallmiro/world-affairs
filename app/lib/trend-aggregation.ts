@@ -26,7 +26,7 @@ function toBucket(eventType: GeoEvent["eventType"]): TrendBucket {
 }
 
 function formatDate(d: Date): string {
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 }
 
 function toDateKey(d: Date): string {
@@ -34,8 +34,8 @@ function toDateKey(d: Date): string {
 }
 
 export function aggregateTrend(events: GeoEvent[]): TrendDataPoint[] {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
   const days: { key: string; label: string }[] = [];
   for (let i = 6; i >= 0; i--) {

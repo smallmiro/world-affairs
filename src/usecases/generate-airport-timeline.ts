@@ -31,8 +31,9 @@ interface GeneratedTimelineEntry {
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
 
 const SYSTEM_PROMPT = `You are an aviation operations analyst for Dubai International Airport (DXB).
-Generate a concise 7-day timeline combining ALL provided intelligence sources.
+Generate a concise 7-day PAST timeline (today and 6 days before) combining ALL provided intelligence sources.
 Each day should have 1-3 entries summarizing the MOST SIGNIFICANT events affecting DXB.
+IMPORTANT: Do NOT generate entries for future dates. Only use dates from today and the past 6 days.
 
 Data sources you will receive:
 1. DXB Flight Status — actual delays, cancellations from dubaiairports.ae

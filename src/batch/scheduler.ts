@@ -278,14 +278,14 @@ async function runGlobalCleanup() {
 
 // ─── Schedule ──────────────────────────────────────────────────
 
-// News: GDELT + RSS every 15 minutes
+// News: GDELT + RSS every 15 minutes (at :00, :15, :30, :45)
 cron.schedule("*/15 * * * *", runCollectNews);
 
 // Market data: Yahoo Finance every 15 minutes
 cron.schedule("*/15 * * * *", runCollectMarket);
 
-// Geopolitics: GDELT events every 30 minutes
-cron.schedule("*/30 * * * *", runCollectGeoEvents);
+// Geopolitics: GDELT events every 30 minutes (at :07, :37 — offset to avoid GDELT rate limit clash with news)
+cron.schedule("7,37 * * * *", runCollectGeoEvents);
 
 // Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every 5 minutes
 // OpenSky free tier ~400-500 req/day → 5min interval ≈ 192 req/day
