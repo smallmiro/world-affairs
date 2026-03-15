@@ -103,14 +103,16 @@
   },
   "analysis": {
     "sentiment": "감성 분석",
-    "trend": "이슈 트렌드 (7일)",
+    "trend": "이슈 트렌드 (7일, UTC)",
     "briefing": "AI 브리핑",
     "tensionIndex": "긴장도 지수 (0~100) — 지역 내 이벤트 유형 기반 산출",
     "danger": "60+ 위험",
     "caution": "40-59 경계",
     "watch": "20-39 주의",
     "stable": "0-19 안정",
-    "noBriefing": "브리핑 데이터가 없습니다"
+    "noBriefing": "브리핑 데이터가 없습니다",
+    "fullscreen": "전체 화면 보기",
+    "close": "닫기"
   },
   "footer": {
     "system": "SIGINT v0.1.0 — World Affairs Monitoring System",

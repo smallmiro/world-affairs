@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useGeoEvents } from "../../hooks/use-geo-events";
 import { useBriefing } from "../../hooks/use-briefing";
 import { useLanguage } from "../../lib/language-context";
@@ -17,11 +18,92 @@ const SENTIMENT_COLORS = {
   positive: { gradient: "linear-gradient(90deg,var(--accent-green),var(--accent-cyan))", color: "var(--accent-green)" },
 } as const;
 
+function BriefingFullscreen({ text, onClose, closeLabel }: { text: string; onClose: () => void; closeLabel: string }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex flex-col overflow-hidden"
+      style={{ background: "var(--bg-primary)", animation: "fade-in-up 0.15s ease-out" }}
+    >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-6 md:px-10 py-4 border-b shrink-0"
+          style={{ borderColor: "var(--border)", background: "var(--bg-secondary)" }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2"
+              style={{
+                background: "var(--accent-purple)",
+                clipPath: "polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
+              }}
+            />
+            <span
+              className="font-mono text-[0.85rem] md:text-[1rem] font-bold tracking-[2px] uppercase"
+              style={{ color: "var(--accent-purple)" }}
+            >
+              AI DAILY BRIEFING
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label={closeLabel}
+            className="w-9 h-9 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-purple)]"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--text-muted)",
+              background: "transparent",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-purple)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* Body */}
+        <div
+          className="flex-1 overflow-y-auto px-6 md:px-10 py-8"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "var(--border-active) transparent",
+          }}
+        >
+          <div className="max-w-3xl mx-auto">
+            <div
+              className="briefing-markdown font-mono text-[1rem] md:text-[1.15rem] leading-[2] md:leading-[2.2]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              <ReactMarkdown>{text}</ReactMarkdown>
+            </div>
+          </div>
+        </div>
+        {/* Footer accent line */}
+        <div className="h-[2px] shrink-0" style={{ background: "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-purple))" }} />
+    </div>
+  );
+}
+
 export default function AiAnalysis() {
   const { lang } = useLanguage();
   const t = useT();
   const { data: events } = useGeoEvents({ limit: 1000 });
   const { data: briefing } = useBriefing();
+  const [fullscreen, setFullscreen] = useState(false);
+  const closeFullscreen = useCallback(() => setFullscreen(false), []);
 
   const sentimentRows = useMemo(
     () => computeRegionSentiment(events ?? []).slice(0, 6),
@@ -124,6 +206,27 @@ export default function AiAnalysis() {
             }}
           />
           {t("analysis.briefing")}
+          {briefingText && (
+            <button
+              onClick={() => setFullscreen(true)}
+              aria-label={t("analysis.fullscreen")}
+              className="ml-auto w-8 h-8 grid place-items-center border rounded cursor-pointer transition-all duration-200 hover:border-[var(--accent-purple)]"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--text-muted)",
+                background: "transparent",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-purple)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            </button>
+          )}
         </h3>
         {briefingText ? (
           <div
@@ -149,6 +252,16 @@ export default function AiAnalysis() {
           </div>
         )}
       </div>
+
+      {/* Fullscreen Briefing Modal — portal to body */}
+      {fullscreen && briefingText && createPortal(
+        <BriefingFullscreen
+          text={briefingText}
+          onClose={closeFullscreen}
+          closeLabel={t("analysis.close")}
+        />,
+        document.body,
+      )}
     </section>
   );
 }

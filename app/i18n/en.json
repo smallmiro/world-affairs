@@ -103,14 +103,16 @@
   },
   "analysis": {
     "sentiment": "Sentiment Analysis",
-    "trend": "Issue Trend (7D)",
+    "trend": "Issue Trend (7D, UTC)",
     "briefing": "AI Briefing",
     "tensionIndex": "Tension Index (0~100) — based on event types in region",
     "danger": "60+ Danger",
     "caution": "40-59 Caution",
     "watch": "20-39 Watch",
     "stable": "0-19 Stable",
-    "noBriefing": "No briefing data available"
+    "noBriefing": "No briefing data available",
+    "fullscreen": "Fullscreen View",
+    "close": "Close"
   },
   "footer": {
     "system": "SIGINT v0.1.0 — World Affairs Monitoring System",

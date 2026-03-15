@@ -103,14 +103,16 @@
   },
   "analysis": {
     "sentiment": "感性分析",
-    "trend": "イシュートレンド (7日)",
+    "trend": "イシュートレンド (7日, UTC)",
     "briefing": "AIブリーフィング",
     "tensionIndex": "緊張度指数 (0~100) — 地域内イベント種別に基づく",
     "danger": "60+ 危険",
     "caution": "40-59 警戒",
     "watch": "20-39 注意",
     "stable": "0-19 安定",
-    "noBriefing": "ブリーフィングデータがありません"
+    "noBriefing": "ブリーフィングデータがありません",
+    "fullscreen": "フルスクリーン表示",
+    "close": "閉じる"
   },
   "footer": {
     "system": "SIGINT v0.1.0 — World Affairs Monitoring System",
