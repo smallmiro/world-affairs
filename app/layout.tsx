@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "./lib/language-context";
@@ -19,6 +19,11 @@ const notoSansKR = Noto_Sans_KR({
 export const metadata: Metadata = {
   title: "SIGINT // 국제 정세 모니터링",
   description: "국제 정세 모니터링 대시보드 — World Affairs Dashboard",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

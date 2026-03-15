@@ -82,8 +82,8 @@ export default function AlertPanel({ open, onClose }: AlertPanelProps) {
       className="fixed z-[2000] border overflow-hidden"
       style={{
         top: 52,
-        right: 24,
-        width: 420,
+        right: "clamp(16px, 24px, 5vw)",
+        width: "min(420px, calc(100vw - 32px))",
         maxHeight: "calc(100vh - 70px)",
         background: "var(--bg-card)",
         borderColor: "var(--border-active)",
@@ -123,7 +123,7 @@ export default function AlertPanel({ open, onClose }: AlertPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 grid place-items-center cursor-pointer transition-colors duration-150"
+          className="w-7 h-7 grid place-items-center rounded cursor-pointer transition-colors duration-150"
           style={{ color: "var(--text-muted)" }}
           aria-label="Close"
         >

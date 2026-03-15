@@ -77,17 +77,22 @@ export function toMapData(flights: FlightPositionResponse[]): AirportMapData {
 }
 
 export function toTimelineEvents(events: AirportEventResponse[], lang: string): TimelineEvent[] {
+  const now = new Date();
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+  // Filter out future events
+  const filtered = events.filter((e) => new Date(e.eventDate) <= todayStart);
+
   const grouped = new Map<string, AirportEventResponse[]>();
-  for (const e of events) {
+  for (const e of filtered) {
     const date = new Date(e.eventDate);
-    const key = `${date.getMonth() + 1}/${date.getDate()}`;
+    const key = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
     const arr = grouped.get(key) ?? [];
     arr.push(e);
     grouped.set(key, arr);
   }
 
-  const today = new Date();
-  const todayKey = `${today.getMonth() + 1}/${today.getDate()}`;
+  const todayKey = `${now.getUTCMonth() + 1}/${now.getUTCDate()}`;
   const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   return Array.from(grouped.entries()).map(([dateKey, evts]) => {
@@ -96,7 +101,7 @@ export function toTimelineEvents(events: AirportEventResponse[], lang: string): 
     const dotType = evts[0].eventType as TimelineEvent["dotType"];
     return {
       date: dateKey,
-      dayLabel: isToday ? "TODAY" : dayNames[firstDate.getDay()],
+      dayLabel: isToday ? "TODAY" : dayNames[firstDate.getUTCDay()],
       isToday,
       dotType,
       entries: evts.map((e) => ({

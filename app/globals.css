@@ -374,3 +374,29 @@ body::after {
     display: none !important;
   }
 }
+
+/* Tablet — md (768px) */
+@media (max-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+
+  .card {
+    padding: 0.5rem;
+  }
+}
+
+/* Mobile — sm (640px) */
+@media (max-width: 640px) {
+  html {
+    font-size: 16px;
+  }
+
+  .card-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .card-body {
+    padding: 0.5rem 0.75rem;
+  }
+}

@@ -8,7 +8,7 @@ const repo = new GeoRepository(prisma);
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const lang = (searchParams.get("lang") ?? "ko") as Language;
-  const limit = Math.min(Number(searchParams.get("limit") ?? "50"), 100);
+  const limit = Math.min(Number(searchParams.get("limit") ?? "50"), 1000);
   const severity = searchParams.get("severity") as Severity | null;
   const eventType = searchParams.get("eventType") as GeoEventType | null;
 

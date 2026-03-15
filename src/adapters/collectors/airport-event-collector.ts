@@ -2,6 +2,7 @@ import type { AirportEventCollectorPort } from "../../domain/airport/ports";
 import type { RawAirportEvent } from "../../domain/airport/entities";
 import type { CollectionResult, AirportEventType } from "../../shared/types";
 import { hashString } from "../../shared/classify";
+import { fetchWithRetry } from "../../shared/fetch-with-retry";
 
 const GDELT_GKG_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
@@ -99,9 +100,9 @@ export class GdeltAirportEventCollector implements AirportEventCollectorPort {
     const params = new URLSearchParams(GDELT_AIRPORT_PARAMS);
     const url = `${GDELT_GKG_URL}?${params.toString()}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithRetry(url);
     if (response.status === 429) {
-      console.warn("[GDELT Airport] Rate limited (429). Returning empty result.");
+      console.warn("[GDELT Airport] Rate limited after retries. Returning empty result.");
       return { data: [], collectedAt: new Date(), source: "gdelt-airport" };
     }
     if (!response.ok) {

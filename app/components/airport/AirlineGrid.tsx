@@ -27,7 +27,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
       <div className="font-mono text-[0.8rem] tracking-[1.5px] uppercase mb-1.5" style={{ color: "var(--text-muted)" }}>
         {t("airport.airlines")}
       </div>
-      <div className="grid grid-cols-3 gap-1 max-lg:grid-cols-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
         {airlines.map((a) => (
           <div
             key={a.code}
@@ -35,7 +35,7 @@ export default function AirlineGrid({ airlines }: AirlineGridProps) {
             style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
           >
             <StatusLight color={STATUS_TO_LIGHT[a.status] ?? "green"} size={5} pulse={false} glow={false} />
-            <span className="font-mono text-[0.8rem] flex-1" style={{ color: "var(--text-secondary)" }}>
+            <span className="font-mono text-[0.8rem] flex-1 truncate" style={{ color: "var(--text-secondary)" }}>
               {a.name}
             </span>
             <span className="font-mono text-[0.65rem] font-semibold" style={{ color: "var(--text-primary)" }}>

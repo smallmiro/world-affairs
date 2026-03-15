@@ -25,7 +25,7 @@ interface TrendChartProps {
 export default function TrendChart({ data }: TrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
         <CartesianGrid
           strokeDasharray="3 3"
           stroke="var(--border)"
@@ -44,12 +44,13 @@ export default function TrendChart({ data }: TrendChartProps) {
         <YAxis
           tick={{
             fontFamily: "monospace",
-            fontSize: "0.75rem",
+            fontSize: "0.8rem",
             fill: "var(--text-muted)",
           }}
           axisLine={false}
           tickLine={false}
           allowDecimals={false}
+          width={40}
         />
         <Tooltip
           contentStyle={{
@@ -75,8 +76,9 @@ export default function TrendChart({ data }: TrendChartProps) {
             dataKey={line.key}
             stroke={line.color}
             strokeWidth={1.5}
-            dot={false}
-            activeDot={{ r: 3, strokeWidth: 0 }}
+            dot={{ r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, strokeWidth: 0 }}
+            label={{ position: "top", fontSize: "0.7rem", fill: "var(--text-muted)", fontFamily: "monospace" }}
           />
         ))}
       </LineChart>

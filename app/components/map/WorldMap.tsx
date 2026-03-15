@@ -55,14 +55,14 @@ export default function WorldMap() {
           title={t("map.title")}
           accentColor="var(--accent-cyan)"
           controls={
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {FILTER_BUTTONS.map(({ key, filter, disabled }) => {
                 const isActive = !disabled && filter === activeFilter;
                 return (
                   <button
                     key={key}
                     onClick={disabled ? undefined : () => setActiveFilter(filter!)}
-                    className={`font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border transition-all duration-150 ${
+                    className={`font-mono text-[0.85rem] tracking-[0.5px] px-3 py-2 border rounded transition-all duration-150 ${
                       disabled
                         ? "cursor-not-allowed opacity-50"
                         : "cursor-pointer"
@@ -84,8 +84,8 @@ export default function WorldMap() {
       </div>
 
       <div
-        className="relative w-full border overflow-hidden"
-        style={{ borderColor: "var(--border)", height: 500 }}
+        className="relative w-full border overflow-hidden h-[280px] md:h-[380px] lg:h-[500px]"
+        style={{ borderColor: "var(--border)" }}
       >
         {isLoading ? (
           <div

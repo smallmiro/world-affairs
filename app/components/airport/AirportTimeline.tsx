@@ -32,18 +32,18 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
         {t("airport.timeline")}
       </div>
       <div
-        className="overflow-y-auto py-1"
-        style={{ maxHeight: 420, scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}
+        className="overflow-y-auto py-1 max-h-[280px] md:max-h-[420px]"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "var(--border-active) transparent" }}
       >
         {events.map((event, i) => (
           <div
             key={event.date}
             className="grid items-start relative"
-            style={{ gridTemplateColumns: "52px 20px 1fr", minHeight: 52 }}
+            style={{ gridTemplateColumns: "clamp(40px, 10vw, 52px) clamp(16px, 4vw, 20px) 1fr", minHeight: 52 }}
           >
             {/* Date */}
             <div
-              className="text-right pr-2 pt-1.5 font-mono text-[0.8rem] leading-tight"
+              className="text-right pr-2 pt-1.5 font-mono text-[0.72rem] md:text-[0.8rem] leading-tight"
               style={{ color: event.isToday ? "var(--accent-cyan)" : "var(--text-muted)" }}
             >
               {event.date}
@@ -82,7 +82,7 @@ export default function AirportTimeline({ events }: AirportTimelineProps) {
               }}
             >
               {event.entries.map((entry, j) => (
-                <div key={j} className={j > 0 ? "mt-1" : ""}>
+                <div key={j} className={`flex flex-wrap items-baseline gap-y-0.5${j > 0 ? " mt-1" : ""}`}>
                   {entry.tags.map((tag, k) => {
                     const s = TAG_STYLES[tag.type];
                     return (

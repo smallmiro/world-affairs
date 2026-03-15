@@ -43,14 +43,15 @@ export async function GET() {
       .sort((a, b) => b.flights - a.flights);
 
     // EK routes
-    const ekFlights = flights.filter((f) => f.flightCode.startsWith("EK"));
+    const ekFlights = flights.filter((f) => f.flightCode.startsWith("EK") && f.direction === "departure");
     const routeMap = new Map<string, { dest: string; flightCode: string; status: string }>();
     for (const f of ekFlights) {
       const dest = f.destination.split(" ")[0]; // First word = airport code
       if (!routeMap.has(dest)) {
         let routeStatus = "open";
         if (f.status === "Cancelled") routeStatus = "suspended";
-        else if (f.status === "Delayed" || f.status === "New Time") routeStatus = "diverted";
+        else if (f.status === "Delayed") routeStatus = "diverted";
+        // "New Time", "Scheduled", "Gate Closed", "Boarding", "Departed" → open
         routeMap.set(dest, { dest, flightCode: f.flightCode, status: routeStatus });
       }
     }

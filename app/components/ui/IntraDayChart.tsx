@@ -6,7 +6,7 @@ interface IntraDayChartProps {
   low: number;
   price: number;
   direction: "up" | "down" | "flat";
-  width?: number;
+  width?: number | string;
   height?: number;
 }
 
@@ -27,8 +27,8 @@ export default function IntraDayChart({
   low,
   price,
   direction,
-  width = 160,
-  height = 72,
+  width = "100%",
+  height = 36,
 }: IntraDayChartProps) {
   const color = COLORS[direction];
 
@@ -49,7 +49,7 @@ export default function IntraDayChart({
   const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(" ");
   const areaPoints = `${polylinePoints} 160,${yMax} 0,${yMax}`;
 
-  const gradientId = `intraday-grad-${direction}-${width}-${height}`;
+  const gradientId = `intraday-grad-${direction}-${height}`;
 
   return (
     <svg
@@ -57,7 +57,7 @@ export default function IntraDayChart({
       height={height}
       viewBox="0 0 160 72"
       preserveAspectRatio="none"
-      style={{ display: "block" }}
+      style={{ display: "block", maxWidth: "100%", overflow: "visible" }}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

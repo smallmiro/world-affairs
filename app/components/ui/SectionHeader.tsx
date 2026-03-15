@@ -8,7 +8,7 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({ title, accentColor = "var(--accent-cyan)", controls }: SectionHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between flex-wrap gap-2">
       <div className="flex items-center gap-2">
         <div
           className="w-2 h-2"

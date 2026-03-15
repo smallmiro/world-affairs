@@ -53,7 +53,7 @@ export default function AlertTicker() {
       }}
     >
       <span
-        className="font-mono text-[0.65rem] font-bold tracking-[2px] uppercase whitespace-nowrap"
+        className="font-mono text-[0.75rem] md:text-[0.65rem] font-bold tracking-[2px] uppercase whitespace-nowrap"
         style={{
           color: alerts.length > 0 ? "var(--accent-red)" : "var(--text-muted)",
           animation: alerts.length > 0 ? "blink-label 1s step-end infinite" : undefined,
@@ -67,7 +67,7 @@ export default function AlertTicker() {
           style={{ animation: "scroll-ticker 30s linear infinite" }}
         >
           {doubled.map((alert, i) => (
-            <span key={i} className="font-mono text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
+            <span key={i} className="font-mono text-[0.75rem] md:text-[0.72rem]" style={{ color: "var(--text-secondary)" }}>
               <strong style={{ color: "var(--accent-red)", fontWeight: 600 }}>[{alert.level}]</strong>{" "}
               {alert.text}
             </span>

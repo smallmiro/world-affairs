@@ -9,7 +9,9 @@ import { useLanguage } from "../../lib/language-context";
 import { useT } from "../../hooks/use-t";
 import { getTranslatedText, formatTime } from "../../lib/display-mappers";
 import SectionHeader from "../ui/SectionHeader";
+import MaritimeEventModal from "./MaritimeEventModal";
 import type { VesselWithPosition, GeoEvent } from "../../lib/types";
+import type { GeoEvent as DomainGeoEvent } from "../../../src/domain/geopolitics/entities";
 
 const VesselMapInner = dynamic(() => import("./VesselMapInner"), { ssr: false });
 
@@ -117,6 +119,7 @@ function mergeSSEPositions(
 
 export default function VesselTracking() {
   const [activeFilter, setActiveFilter] = useState<VesselFilter>("all");
+  const [selectedEvent, setSelectedEvent] = useState<GeoEvent | null>(null);
   const { data: vessels, isLoading } = useVessels({ refetchInterval: 300_000 });
   const { vessels: sseVessels, connected: sseConnected } = useSSEPositions();
   const { data: geoEvents } = useGeoEvents({ limit: 100 });
@@ -172,12 +175,12 @@ export default function VesselTracking() {
       />
 
       {/* Type filter */}
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1 sm:gap-1">
         {FILTER_BUTTONS.map((btn) => (
           <button
             key={btn.key}
             onClick={() => setActiveFilter(btn.key)}
-            className="font-mono text-[0.65rem] tracking-[1px] px-3 py-2.5 border cursor-pointer transition-all duration-200"
+            className="font-mono text-[0.65rem] tracking-[1px] px-2 py-2 sm:px-3 sm:py-2.5 border rounded cursor-pointer transition-all duration-200"
             style={{
               color: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--border)",
@@ -191,8 +194,8 @@ export default function VesselTracking() {
 
       {/* Map */}
       <div
-        className="relative w-full border overflow-hidden"
-        style={{ borderColor: "var(--border)", height: 340 }}
+        className="relative w-full border overflow-hidden h-[250px] md:h-[300px] lg:h-[340px]"
+        style={{ borderColor: "var(--border)" }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full" style={{ background: "var(--map-bg, #1a1b26)" }}>
@@ -206,7 +209,7 @@ export default function VesselTracking() {
       </div>
 
       {/* Passage Stats (left) + Anomaly Alerts (right) */}
-      <div className="grid grid-cols-2 gap-2 max-lg:grid-cols-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Passage stats */}
         <div>
           <h3 className="font-mono text-[0.75rem] tracking-[1.5px] uppercase mb-1" style={{ color: "var(--text-muted)" }}>
@@ -286,8 +289,9 @@ export default function VesselTracking() {
               return (
                 <div
                   key={event.id}
-                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem]"
+                  className="flex items-start gap-2 px-2 py-1.5 border text-[0.68rem] cursor-pointer transition-colors duration-150 hover:border-[var(--accent-cyan)]"
                   style={{ background: "var(--bg-secondary)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
+                  onClick={() => setSelectedEvent(event)}
                 >
                   <span
                     className="font-mono text-[0.7rem] font-bold tracking-[0.5px] shrink-0 mt-0.5 px-1 py-px"
@@ -315,6 +319,13 @@ export default function VesselTracking() {
           </div>
         </div>
       </div>
+      {selectedEvent && (
+        <MaritimeEventModal
+          event={selectedEvent as unknown as DomainGeoEvent}
+          lang={lang}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   );
 }

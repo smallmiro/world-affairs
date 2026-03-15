@@ -2,6 +2,7 @@ import type { NewsCollectorPort } from "../../domain/news/ports";
 import type { RawArticle } from "../../domain/news/entities";
 import type { CollectionResult } from "../../shared/types";
 import { classifyCategory, classifyRegionFromText, hashString } from "../../shared/classify";
+import { fetchWithRetry } from "../../shared/fetch-with-retry";
 
 const GDELT_API_URL = "https://api.gdeltproject.org/api/v2/doc/doc";
 
@@ -44,9 +45,9 @@ export class GdeltCollector implements NewsCollectorPort {
     const params = new URLSearchParams(GDELT_QUERY_PARAMS);
     const url = `${GDELT_API_URL}?${params.toString()}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithRetry(url);
     if (response.status === 429) {
-      console.warn("[GDELT News] Rate limited (429). Returning empty result.");
+      console.warn("[GDELT News] Rate limited after retries. Returning empty result.");
       return { data: [], collectedAt: new Date(), source: "gdelt" };
     }
     if (!response.ok) {

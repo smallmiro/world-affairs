@@ -1,49 +1,137 @@
 {
-  "nav": { "overview": "OVERVIEW", "map": "MAP", "vessels": "VESSELS", "markets": "MARKETS", "analysis": "ANALYSIS", "briefing": "BRIEFING" },
-  "common": { "loading": "LOADING...", "noData": "NO DATA", "all": "All", "live": "LIVE", "loadingMap": "LOADING MAP..." },
-  "topbar": { "subtitle": "World Affairs Monitoring System" },
-  "alert": { "urgent": "URGENT", "breaking": "BREAKING", "caution": "CAUTION", "noAlert": "No active alerts at this time" },
+  "nav": {
+    "overview": "OVERVIEW",
+    "map": "MAP",
+    "vessels": "VESSELS",
+    "markets": "MARKETS",
+    "analysis": "ANALYSIS",
+    "briefing": "BRIEFING"
+  },
+  "common": {
+    "loading": "LOADING...",
+    "noData": "NO DATA",
+    "all": "All",
+    "live": "LIVE",
+    "loadingMap": "LOADING MAP..."
+  },
+  "topbar": {
+    "subtitle": "World Affairs Monitoring System"
+  },
+  "alert": {
+    "urgent": "URGENT",
+    "breaking": "BREAKING",
+    "caution": "CAUTION",
+    "noAlert": "No active alerts at this time"
+  },
   "news": {
     "title": "SIGINT FEED",
-    "diplomacy": "Diplomacy", "military": "Military", "economy": "Economy", "environment": "Environment", "human_rights": "Human Rights",
-    "eastAsia": "East Asia", "middleEast": "Middle East", "europe": "Europe", "northAmerica": "North America",
-    "summary": "Summary", "multilingual": "Multilingual", "viewOriginal": "View Original →",
+    "diplomacy": "Diplomacy",
+    "military": "Military",
+    "economy": "Economy",
+    "environment": "Environment",
+    "human_rights": "Human Rights",
+    "eastAsia": "East Asia",
+    "middleEast": "Middle East",
+    "europe": "Europe",
+    "northAmerica": "North America",
+    "summary": "Summary",
+    "multilingual": "Multilingual",
+    "viewOriginal": "View Original →",
     "loadError": "Failed to load data"
   },
   "map": {
     "title": "Global Tension Map",
-    "tension": "Tension", "alliance": "Alliance", "trade": "Trade", "conflict": "Conflict",
-    "conflictZone": "Conflict Zone", "cautionZone": "Caution Zone", "safeZone": "Safe"
+    "tension": "Tension",
+    "alliance": "Alliance",
+    "trade": "Trade",
+    "conflict": "Conflict",
+    "conflictZone": "Conflict Zone",
+    "cautionZone": "Caution Zone",
+    "safeZone": "Safe"
   },
-  "issues": { "title": "Issue Tracker", "bySeverity": "By Severity", "byLatest": "By Latest" },
+  "issues": {
+    "title": "Issue Tracker",
+    "bySeverity": "By Severity",
+    "byLatest": "By Latest"
+  },
   "vessels": {
     "title": "Middle East Vessel Tracking",
-    "tanker": "Tanker", "lpgLng": "LPG|LNG", "cargo": "Cargo", "passenger": "Passenger",
-    "passageStats": "Passage Stats (24H)", "ships": "ships",
-    "maritimeAlerts": "Maritime Alerts", "noAnomalies": "No anomalies detected",
-    "hormuz": "Strait of Hormuz", "babElMandeb": "Bab el-Mandeb", "suez": "Suez Canal",
-    "persianGulf": "Persian Gulf", "redSea": "Red Sea", "gulfOfAden": "Gulf of Aden"
+    "tanker": "Tanker",
+    "lpgLng": "LPG|LNG",
+    "cargo": "Cargo",
+    "passenger": "Passenger",
+    "passageStats": "Passage Stats (24H)",
+    "ships": "ships",
+    "maritimeAlerts": "Maritime Alerts",
+    "noAnomalies": "No anomalies detected",
+    "hormuz": "Strait of Hormuz",
+    "babElMandeb": "Bab el-Mandeb",
+    "suez": "Suez Canal",
+    "persianGulf": "Persian Gulf",
+    "redSea": "Red Sea",
+    "gulfOfAden": "Gulf of Aden"
   },
   "airport": {
-    "title": "DUBAI INTL (DXB) — Airport Monitor", "cycle": "1H CYCLE · LAST 7D",
+    "title": "DUBAI INTL (DXB) — Airport Monitor",
+    "cycle": "1H CYCLE · LAST 7D",
     "timeline": "7-Day Timeline",
-    "airlines": "Airlines (24H)", "flights": "flights",
+    "airlines": "Airlines (24H)",
+    "flights": "flights",
     "ekRoutes": "EK Route Status",
-    "flightStatus": "DXB FLIGHT STATUS", "departures": "DEPARTURES", "arrivals": "ARRIVALS",
-    "flightCode": "Flight", "airline": "Airline", "destination": "Destination", "origin": "Origin",
-    "scheduled": "Sched.", "actual": "Actual", "terminal": "Term.", "status": "Status",
-    "dataLoading": "Loading data..."
+    "flightStatus": "DXB FLIGHT STATUS",
+    "departures": "DEPARTURES",
+    "arrivals": "ARRIVALS",
+    "flightCode": "Flight",
+    "airline": "Airline",
+    "destination": "Destination",
+    "origin": "Origin",
+    "scheduled": "Sched.",
+    "actual": "Actual",
+    "terminal": "Term.",
+    "status": "Status",
+    "dataLoading": "Loading data...",
+    "limitExceeded": "daily limit exceeded",
+    "viewFallback": "tab available"
   },
   "markets": {
-    "stocks": "Stock Market", "commodities": "Commodities & Forex",
-    "symbol": "Symbol", "price": "Price", "change": "Change", "changePct": "Change %"
+    "stocks": "Stock Market",
+    "commodities": "Commodities & Forex",
+    "symbol": "Symbol",
+    "price": "Price",
+    "change": "Change",
+    "changePct": "Change %"
   },
   "analysis": {
-    "sentiment": "Sentiment Analysis", "trend": "Issue Trend (7D)", "briefing": "AI Briefing",
+    "sentiment": "Sentiment Analysis",
+    "trend": "Issue Trend (7D, UTC)",
+    "briefing": "AI Briefing",
     "tensionIndex": "Tension Index (0~100) — based on event types in region",
-    "danger": "60+ Danger", "caution": "40-59 Caution", "watch": "20-39 Watch", "stable": "0-19 Stable",
-    "noBriefing": "No briefing data available"
+    "danger": "60+ Danger",
+    "caution": "40-59 Caution",
+    "watch": "20-39 Watch",
+    "stable": "0-19 Stable",
+    "noBriefing": "No briefing data available",
+    "fullscreen": "Fullscreen View",
+    "close": "Close"
   },
-  "footer": { "system": "SIGINT v0.1.0 — World Affairs Monitoring System", "sources": "DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI" },
-  "regions": { "east-asia": "East Asia", "southeast-asia": "SE Asia", "south-asia": "South Asia", "central-asia": "Central Asia", "middle-east": "Middle East", "europe": "Europe", "north-america": "North America", "south-america": "South America", "africa": "Africa", "oceania": "Oceania" }
+  "footer": {
+    "system": "SIGINT v0.1.0 — World Affairs Monitoring System",
+    "sources": "DATA SOURCES: GDELT · ACLED · AISStream · Yahoo Finance · Gemini AI"
+  },
+  "regions": {
+    "east-asia": "East Asia",
+    "southeast-asia": "SE Asia",
+    "south-asia": "South Asia",
+    "central-asia": "Central Asia",
+    "middle-east": "Middle East",
+    "europe": "Europe",
+    "north-america": "North America",
+    "south-america": "South America",
+    "africa": "Africa",
+    "oceania": "Oceania"
+  },
+  "maritime": {
+    "location": "Location",
+    "description": "Description"
+  }
 }

@@ -22,6 +22,8 @@ import { GdeltAirportEventCollector } from "../adapters/collectors/airport-event
 import { AisStreamCollector } from "../adapters/collectors/ais-collector";
 import { processVesselMessage } from "../usecases/process-vessel";
 import { collectDxbHtmlFlights } from "../adapters/collectors/dxb-html-collector";
+import { generateAirportTimeline } from "../usecases/generate-airport-timeline";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { publishToSSE } from "../infrastructure/publish-sse";
 import { NewsRepository } from "../adapters/repositories/news-repository";
 import { MarketRepository } from "../adapters/repositories/market-repository";
@@ -37,6 +39,8 @@ const vesselRepo = new VesselRepository(prisma);
 const analysisRepo = new AnalysisRepository(prisma);
 let analyzer: GeminiAnalyzer | null = null;
 try { analyzer = new GeminiAnalyzer(); } catch { console.warn("[analyze] GEMINI_API_KEY not set."); }
+let genAI: GoogleGenerativeAI | null = null;
+if (process.env.GEMINI_API_KEY) { genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); }
 
 async function runCollectNews() {
   const label = "collect-news";
@@ -143,6 +147,21 @@ async function runCollectAirportEvents() {
     );
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ${label}: error`, error);
+  }
+}
+
+async function runGenerateTimeline() {
+  const label = "airport:timeline";
+  console.log(`[${new Date().toISOString()}] ${label}: starting`);
+  try {
+    if (!genAI) {
+      console.warn(`[${new Date().toISOString()}] ${label}: GEMINI_API_KEY not set. Skipping.`);
+      return;
+    }
+    const result = await generateAirportTimeline(genAI, prisma, airportRepo);
+    console.log(`[${new Date().toISOString()}] ${label}: generated=${result.generated}`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] ${label}: error`, error instanceof Error ? error.message : error);
   }
 }
 
@@ -259,16 +278,17 @@ async function runGlobalCleanup() {
 
 // ─── Schedule ──────────────────────────────────────────────────
 
-// News: GDELT + RSS every 15 minutes
+// News: GDELT + RSS every 15 minutes (at :00, :15, :30, :45)
 cron.schedule("*/15 * * * *", runCollectNews);
 
 // Market data: Yahoo Finance every 15 minutes
 cron.schedule("*/15 * * * *", runCollectMarket);
 
-// Geopolitics: GDELT events every 30 minutes
-cron.schedule("*/30 * * * *", runCollectGeoEvents);
+// Geopolitics: GDELT events every 30 minutes (at :07, :37 — offset to avoid GDELT rate limit clash with news)
+cron.schedule("7,37 * * * *", runCollectGeoEvents);
 
-// Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every minute
+// Airport: flights — 07:00~23:00 alternating bbox discovery + icao24 refresh every 5 minutes
+// OpenSky free tier ~400-500 req/day → 5min interval ≈ 192 req/day
 let flightTick = 0;
 setInterval(() => {
   const hour = new Date().getHours();
@@ -280,15 +300,18 @@ setInterval(() => {
     }
     flightTick++;
   }
-}, 60 * 1000); // every 1 minute
-// Off-peak: every hour
-cron.schedule("0 0,1,2,3,4,5,6,23 * * *", runCollectAirportFlights);
+}, 5 * 60 * 1000); // every 5 minutes
+// Off-peak: every 2 hours
+cron.schedule("0 0,2,4,6 * * *", runCollectAirportFlights);
 
 // Airport: ops twice daily (06:00, 18:00)
 cron.schedule("0 6,18 * * *", runCollectAirportOps);
 
-// Airport: GDELT events disabled — timeline uses dubaiairports.ae data only
-// cron.schedule("0 */4 * * *", runCollectAirportEvents);
+// Airport: GDELT events every 4 hours (raw data for timeline)
+cron.schedule("0 */4 * * *", runCollectAirportEvents);
+
+// Airport: Gemini timeline generation every 4 hours (offset 30min from GDELT)
+cron.schedule("30 */4 * * *", runGenerateTimeline);
 
 // Airport: cleanup daily at 03:00
 cron.schedule("0 3 * * *", runAirportCleanup);
@@ -299,8 +322,6 @@ cron.schedule("*/10 * * * *", runCollectDxbFlights);
 // Translation: run after each collection cycle (5 min offset to allow collection to finish)
 cron.schedule("5,20,35,50 * * * *", runTranslateNews);
 cron.schedule("5,35 * * * *", runTranslateGeoEvents);
-// Airport event translation disabled — GDELT airport events collection is disabled
-// cron.schedule("5 */4 * * *", runTranslateAirportEvents);
 
 // AI analysis: every 4 hours at :10
 cron.schedule("10 */4 * * *", runAnalyzeNews);
@@ -380,8 +401,10 @@ console.log("Schedules:");
 console.log("  */15 * * * *     News collection (GDELT + RSS)");
 console.log("  */15 * * * *     Market data (Yahoo Finance)");
 console.log("  */30 * * * *     Geopolitics events (GDELT)");
-console.log("  */1min 07-23h    Airport flights (bbox + icao24 refresh alternating)");
+console.log("  */5min 07-23h    Airport flights (bbox + icao24 refresh alternating)");
 console.log("  0 6,18 * * *     Airport ops (AviationStack)");
+console.log("  0 */4 * * *      Airport GDELT events");
+console.log("  30 */4 * * *     Airport timeline (Gemini)");
 console.log("  */10 * * * *     DXB flight status (scraping)");
 console.log("  0 3 * * *        Airport cleanup (7-day retention)");
 console.log("  10 */4 * * *     AI news analysis (summarize + sentiment)");
@@ -405,6 +428,10 @@ const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
   runCollectAirportOps();
   await delay(3000);
   runCollectDxbFlights();
+  await delay(3000);
+  runCollectAirportEvents();
+  await delay(5000);
+  runGenerateTimeline();
   await delay(5000);
   startAisStream();
   await delay(5000);

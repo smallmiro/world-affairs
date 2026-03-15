@@ -12,60 +12,118 @@ interface ParsedFlight {
   status: string;
 }
 
-function parseFlightsFromHtml(html: string): ParsedFlight[] {
+const AIRLINE_MAP: Record<string, string> = {
+  EK: "Emirates", FZ: "flydubai", EY: "Etihad", QR: "Qatar Airways",
+  SV: "Saudia", G9: "Air Arabia", IX: "Air India Express", AI: "Air India",
+  "6E": "IndiGo", SG: "SpiceJet", PK: "PIA", BS: "US-Bangla",
+  HY: "Uzbekistan Airways", C6: "My Freighter", WY: "Oman Air",
+  MS: "EgyptAir", RJ: "Royal Jordanian", TK: "Turkish Airlines",
+  LH: "Lufthansa", BA: "British Airways", KE: "Korean Air",
+  QF: "Qantas", AC: "Air Canada", UA: "United", PA: "AirBlue",
+  MK: "Air Mauritius", T8: "Rotana Jet",
+};
+
+const STATUS_KEYWORDS = [
+  "Arrived early", "Delayed", "Cancelled", "Gate Closed", "Final Call",
+  "Boarding", "Departed", "Landed", "Arrived", "On Time", "New Time",
+  "New time", "In Flight", "Scheduled",
+];
+
+function normalizeStatus(raw: string): string {
+  if (raw.includes("Arrived early")) return "Landed";
+  if (raw.includes("Arrived")) return "Landed";
+  if (raw.includes("New time") || raw.includes("New Time")) return "New Time";
+  for (const kw of STATUS_KEYWORDS) {
+    if (raw.includes(kw)) return kw;
+  }
+  return "Scheduled";
+}
+
+/**
+ * Parse flights from dubaiairports.ae HTML.
+ * Actual structure (2026-03):
+ * <a href="/flight-details?Id=...&type=departure" class="flight ...">
+ *   <div role="row">
+ *     <span col-start-1 role="cell"><span>15:40</span></span>   ← scheduled
+ *     <span col-start-2 role="cell">15:40</span>                ← actual
+ *     <span col-start-3 role="cell">
+ *       Mumbai (BOM)
+ *       <span>EK 508</span>                                     ← destination + flight code in same cell
+ *     </span>
+ *     <span col-start-4><img alt="Emirates" /></span>            ← airline logo
+ *     <span col-start-5>T3</span>                                ← terminal
+ *     ...
+ *     <span>Gate Closed</span>                                   ← status
+ *   </div>
+ * </a>
+ */
+function parseFlightsFromHtml(html: string, direction: "departure" | "arrival"): ParsedFlight[] {
   const flights: ParsedFlight[] = [];
 
-  // Split by role="row" to get individual flight blocks
-  const blocks = html.split('role="row"');
+  // Match each flight link block
+  const pattern = new RegExp(
+    `<a[^>]+href="/flight-details\\?[^"]*type=${direction}"[^>]*>([\\s\\S]*?)<\\/a>`,
+    "gi",
+  );
 
-  for (let i = 1; i < blocks.length; i++) {
-    const row = blocks[i];
-    // Extract flight code: pattern like "EK 328" or "FZ 1449"
-    const flightMatch = row.match(/([A-Z0-9]{2}\s\d{2,4})\s*<\/span>/);
-    if (!flightMatch) continue;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) {
+    const block = match[1];
 
-    const flightCode = flightMatch[1].trim();
+    // Strip all HTML tags to get plain text, then split by whitespace
+    const plainText = block.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
-    // Extract destination/origin: pattern like "Shenzhen (SZX)"
-    const destMatch = row.match(/col-start-3[^>]*>[^<]*?([A-Za-z\s]+\([A-Z]{3}\))/);
-    const destination = destMatch ? destMatch[1].trim() : "";
+    // Extract fields using regex on the full block HTML
 
-    // Extract scheduled time: pattern like "13:30"
-    const times = row.match(/\d{2}:\d{2}/g) || [];
-    const scheduled = times[0] || "";
-    const actual = times[1] || times[0] || "";
+    // Times: HH:MM pattern
+    const times = plainText.match(/\b\d{2}:\d{2}\b/g) ?? [];
 
-    // Extract terminal: "T1", "T2", "T3"
-    const termMatch = row.match(/T[123]/);
+    // Destination: "City Name (CODE)" — from col-start-3 cell
+    const col3Match = block.match(/col-start-3[^>]*>([\s\S]*?)<\/span>\s*<span/i);
+    let destination = "";
+    if (col3Match) {
+      // Get text before the nested <span> (which contains flight code)
+      const col3Text = col3Match[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const destMatch = col3Text.match(/([A-Za-z\s.'-]+\([A-Z]{3}\))/);
+      destination = destMatch ? destMatch[1].trim() : "";
+    }
+    // Fallback: search entire block
+    if (!destination) {
+      const destFallback = plainText.match(/([A-Za-z\s.'-]+\([A-Z]{3}\))/);
+      destination = destFallback ? destFallback[1].trim() : "";
+    }
+
+    // Flight code: "EK 508", "FZ 376", "6E 1463" — must have at least one letter
+    const codeMatch = plainText.match(/\b([A-Z][A-Z0-9]\s\d{1,4}|[0-9][A-Z]\s\d{1,4})\b/);
+    const flightCode = codeMatch ? codeMatch[1] : "";
+    if (!flightCode) continue;
+
+    // Airline: from img alt
+    const imgAlt = block.match(/<img[^>]+alt="([^"]+)"/i);
+    const prefix = flightCode.split(" ")[0];
+    const airline = imgAlt ? imgAlt[1].trim() : (AIRLINE_MAP[prefix] || prefix);
+
+    // Terminal: T1/T2/T3
+    const termMatch = plainText.match(/\bT[123]\b/);
     const terminal = termMatch ? termMatch[0] : "";
 
-    // Extract gate: pattern like gate/carousel info
-    const gateMatch = row.match(/(?:Gate|gate|carousel)\s*[:\s]*([A-Z]?\d+)/i);
-    const gate = gateMatch ? gateMatch[1] : "";
+    // Gate: alphanumeric like A13, B15, F8, or just number for carousel
+    const gateMatch = block.match(/col-start-[67][^>]*>[\s\S]*?([A-Z]\d{1,2}|\d{1,2})[\s\S]*?<\/span>/i);
+    const gate = gateMatch ? gateMatch[1].trim() : "";
 
-    // Extract status
-    let status = "Scheduled";
-    if (row.includes("Delayed")) status = "Delayed";
-    else if (row.includes("Cancelled")) status = "Cancelled";
-    else if (row.includes("Gate Closed")) status = "Gate Closed";
-    else if (row.includes("Final Call")) status = "Final Call";
-    else if (row.includes("Boarding")) status = "Boarding";
-    else if (row.includes("Departed")) status = "Departed";
-    else if (row.includes("Landed") || row.includes("Arrived")) status = "Landed";
-    else if (row.includes("On Time")) status = "On Time";
-    else if (row.includes("New Time") || row.includes("New time")) status = "New Time";
+    // Status: last significant text
+    const status = normalizeStatus(plainText);
 
-    // Determine airline from flight code prefix
-    const prefix = flightCode.split(" ")[0];
-    const airlineMap: Record<string, string> = {
-      EK: "Emirates", FZ: "flydubai", EY: "Etihad", QR: "Qatar Airways",
-      SV: "Saudia", G9: "Air Arabia", IX: "Air India Express", AI: "Air India",
-      "6E": "IndiGo", SG: "SpiceJet", PK: "PIA", BS: "US-Bangla",
-      HY: "Uzbekistan Airways", C6: "My Freighter", WY: "Oman Air",
-    };
-    const airline = airlineMap[prefix] || prefix;
-
-    flights.push({ flightCode, airline, destination, scheduled, actual, terminal, gate, status });
+    flights.push({
+      flightCode,
+      airline,
+      destination,
+      scheduled: times[0] ?? "",
+      actual: times[1] ?? times[0] ?? "",
+      terminal,
+      gate,
+      status,
+    });
   }
 
   return flights;
@@ -77,13 +135,14 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
 
   let depCount = 0;
   let arrCount = 0;
+  const batchTime = new Date();
 
   try {
     // Fetch departures
     const depRes = await fetch(`https://dubaiairports.ae/flight-status?type=departures&from=${today}`, { headers });
     if (depRes.ok) {
       const depHtml = await depRes.text();
-      const depFlights = parseFlightsFromHtml(depHtml);
+      const depFlights = parseFlightsFromHtml(depHtml, "departure");
       if (depFlights.length > 0) {
         await prisma.$transaction(
           depFlights.map((f) =>
@@ -99,6 +158,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
                 gate: f.gate,
                 status: f.status,
                 direction: "departure",
+                collectedAt: batchTime,
               },
             }),
           ),
@@ -111,7 +171,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
     const arrRes = await fetch(`https://dubaiairports.ae/flight-status?type=arrivals&from=${today}`, { headers });
     if (arrRes.ok) {
       const arrHtml = await arrRes.text();
-      const arrFlights = parseFlightsFromHtml(arrHtml);
+      const arrFlights = parseFlightsFromHtml(arrHtml, "arrival");
       if (arrFlights.length > 0) {
         await prisma.$transaction(
           arrFlights.map((f) =>
@@ -127,6 +187,7 @@ export async function collectDxbHtmlFlights(prisma: PrismaClient): Promise<{ dep
                 gate: f.gate,
                 status: f.status,
                 direction: "arrival",
+                collectedAt: batchTime,
               },
             }),
           ),

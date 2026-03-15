@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바이브 코딩 가이드 — 비개발자가 6시간 만에 풀스택 대시보드를 만든 방법</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+  :root {
+    --bg:#1a1b26;--bg-surface:#24283b;--bg-card:#1f2335;--border:#3b4261;
+    --text:#c0caf5;--text-dim:#565f89;--text-bright:#e0e6ff;
+    --accent-blue:#7aa2f7;--accent-purple:#bb9af7;--accent-green:#9ece6a;
+    --accent-orange:#ff9e64;--accent-red:#f7768e;--accent-cyan:#7dcfff;--accent-teal:#73daca;
+    --glow:rgba(122,162,247,0.15);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;line-height:1.7;overflow-x:hidden;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  /* HERO */
+  .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,var(--glow) 0%,transparent 50%);animation:pulse-bg 8s ease-in-out infinite;}
+  @keyframes pulse-bg{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.1)}}
+  .hero-badge{display:inline-block;padding:.4rem 1.2rem;border:1px solid var(--accent-purple);border-radius:100px;color:var(--accent-purple);font-size:.85rem;font-weight:500;letter-spacing:.05em;margin-bottom:1.5rem;position:relative;z-index:1;}
+  .hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;color:var(--text-bright);line-height:1.3;margin-bottom:1rem;position:relative;z-index:1;}
+  .hero h1 span{color:var(--accent-blue);}
+  .hero p{font-size:1.1rem;color:var(--text-dim);max-width:600px;position:relative;z-index:1;}
+  .hero-stats{display:flex;gap:3rem;margin-top:3rem;position:relative;z-index:1;}
+  .hero-stat .num{font-size:2.5rem;font-weight:900;display:block;}
+  .hero-stat .label{font-size:.85rem;color:var(--text-dim);}
+  .scroll-hint{position:absolute;bottom:2rem;animation:bounce 2s infinite;color:var(--text-dim);font-size:.85rem;z-index:1;cursor:pointer;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+  /* SECTIONS */
+  .section{max-width:1100px;margin:0 auto;padding:5rem 2rem;}
+  .section-label{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-cyan);margin-bottom:.5rem;}
+  .section h2{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;color:var(--text-bright);margin-bottom:1.5rem;}
+
+  /* TIMELINE */
+  .timeline{position:relative;padding-left:3rem;}
+  .timeline::before{content:'';position:absolute;left:.75rem;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent-blue),var(--accent-purple),var(--accent-green),var(--accent-orange));}
+  .tl-item{position:relative;margin-bottom:2.5rem;opacity:0;transform:translateY(30px);transition:all .6s ease;}
+  .tl-item.visible{opacity:1;transform:translateY(0);}
+  .tl-dot{position:absolute;left:-2.55rem;top:.3rem;width:14px;height:14px;border-radius:50%;border:3px solid var(--accent-blue);background:var(--bg);z-index:2;}
+  .tl-time{font-size:.8rem;color:var(--text-dim);margin-bottom:.3rem;}
+  .tl-time .mono{color:var(--accent-cyan);}
+  .tl-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color .3s,box-shadow .3s;}
+  .tl-card:hover{border-color:var(--accent-blue);box-shadow:0 0 30px var(--glow);}
+  .tl-card h3{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:.5rem;}
+  .tl-card p{font-size:.95rem;color:var(--text);margin-bottom:.5rem;}
+  .tl-tag{display:inline-block;padding:.2rem .7rem;border-radius:100px;font-size:.75rem;font-weight:600;margin-right:.4rem;margin-bottom:.3rem;}
+  .tag-idea{background:rgba(187,154,247,.15);color:var(--accent-purple);}
+  .tag-design{background:rgba(125,207,255,.15);color:var(--accent-cyan);}
+  .tag-build{background:rgba(158,206,106,.15);color:var(--accent-green);}
+  .tag-debug{background:rgba(247,118,142,.15);color:var(--accent-red);}
+  .tag-manage{background:rgba(255,158,100,.15);color:var(--accent-orange);}
+  .tag-ops{background:rgba(115,218,202,.15);color:var(--accent-teal);}
+  .tag-agent{background:rgba(122,162,247,.15);color:var(--accent-blue);}
+
+  /* CHAT */
+  .chat-block{margin:.8rem 0;display:flex;flex-direction:column;gap:.5rem;}
+  .chat-msg{padding:.7rem 1rem;border-radius:12px;font-size:.9rem;max-width:85%;line-height:1.6;}
+  .chat-user{background:rgba(122,162,247,.12);border:1px solid rgba(122,162,247,.25);color:var(--accent-blue);align-self:flex-end;border-bottom-right-radius:4px;}
+  .chat-ai{background:rgba(158,206,106,.08);border:1px solid rgba(158,206,106,.2);color:var(--accent-green);align-self:flex-start;border-bottom-left-radius:4px;font-size:.85rem;}
+  .chat-label{font-size:.7rem;font-weight:700;letter-spacing:.05em;margin-bottom:-.3rem;}
+  .chat-label.user-label{color:var(--accent-blue);text-align:right;}
+  .chat-label.ai-label{color:var(--accent-green);}
+
+  /* CARDS */
+  .roles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:2rem;}
+  .role-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+  .role-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px;}
+  .role-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3);border-color:var(--accent-blue);}
+  .role-card .role-icon{font-size:2rem;margin-bottom:.8rem;display:block;}
+  .role-card h3{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:.4rem;}
+  .role-card .role-desc{font-size:.9rem;color:var(--text);margin-bottom:.8rem;}
+  .role-card .role-example{font-size:.82rem;color:var(--text-dim);padding:.6rem .8rem;background:var(--bg-card);border-radius:8px;border-left:3px solid var(--accent-blue);}
+  .rc-planner::before{background:var(--accent-purple);} .rc-architect::before{background:var(--accent-blue);}
+  .rc-pm::before{background:var(--accent-orange);} .rc-designer::before{background:var(--accent-cyan);}
+  .rc-data::before{background:var(--accent-teal);} .rc-qa::before{background:var(--accent-red);}
+  .rc-ops::before{background:var(--accent-green);}
+
+  /* WORKFLOW */
+  .workflow-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin:1.5rem 0;}
+  .wf-step{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;position:relative;}
+  .wf-step .step-num{font-size:1.8rem;font-weight:900;display:block;margin-bottom:.3rem;}
+  .wf-step h4{font-size:.95rem;font-weight:700;color:var(--text-bright);margin-bottom:.3rem;}
+  .wf-step p{font-size:.82rem;color:var(--text-dim);}
+  .wf-arrow{display:none;}
+  @media(min-width:900px){.wf-arrow{display:flex;align-items:center;font-size:1.5rem;color:var(--text-dim);}}
+
+  /* PATTERN */
+  .pattern-block{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:2rem;margin-bottom:2rem;}
+  .pattern-block h3{font-size:1.15rem;font-weight:700;color:var(--accent-orange);margin-bottom:.8rem;}
+  .pattern-block p{font-size:.95rem;color:var(--text);}
+  .flow-diagram{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:1rem 0;}
+  .flow-step{padding:.5rem 1rem;border-radius:8px;font-size:.85rem;font-weight:600;white-space:nowrap;}
+  .flow-arrow{color:var(--text-dim);font-size:1.2rem;}
+
+  /* STATS */
+  .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem;margin:3rem 0;padding:2rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;}
+  .stat-item{text-align:center;}
+  .stat-item .stat-num{font-size:2.2rem;font-weight:900;display:block;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .stat-item .stat-label{font-size:.85rem;color:var(--text-dim);}
+
+  /* AGENT TABLE */
+  .agent-table{width:100%;border-collapse:collapse;margin:1rem 0;}
+  .agent-table th{background:var(--bg-card);color:var(--accent-cyan);font-size:.8rem;font-weight:700;padding:.6rem .8rem;text-align:left;border-bottom:1px solid var(--border);}
+  .agent-table td{padding:.6rem .8rem;font-size:.85rem;border-bottom:1px solid var(--border);color:var(--text);}
+  .agent-table tr:hover td{background:rgba(122,162,247,.05);}
+
+  /* MILESTONE TRACK */
+  .milestone-track{display:flex;gap:0;margin:2rem 0;border-radius:10px;overflow:hidden;height:48px;}
+  .ms-seg{display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;cursor:pointer;position:relative;}
+  .ms-seg:hover{filter:brightness(1.2);}
+  .ms-seg .ms-tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--border);padding:.5rem .8rem;border-radius:8px;font-size:.8rem;color:var(--text);white-space:nowrap;z-index:10;font-weight:400;}
+  .ms-seg:hover .ms-tooltip{display:block;}
+
+  /* TAB */
+  .tab-nav{display:flex;gap:.5rem;margin-bottom:2rem;flex-wrap:wrap;}
+  .tab-btn{padding:.6rem 1.2rem;border:1px solid var(--border);border-radius:100px;background:transparent;color:var(--text-dim);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;}
+  .tab-btn.active,.tab-btn:hover{background:var(--accent-blue);color:var(--bg);border-color:var(--accent-blue);}
+  .tab-content{display:none;}.tab-content.active{display:block;}
+
+  .divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:4rem 0;}
+  .footer{text-align:center;padding:4rem 2rem;color:var(--text-dim);font-size:.85rem;border-top:1px solid var(--border);}
+  .callout{background:var(--bg-card);border-left:3px solid var(--accent-orange);padding:.8rem 1rem;border-radius:0 8px 8px 0;margin:.8rem 0;font-size:.9rem;color:var(--accent-orange);}
+
+  @media(max-width:640px){.hero-stats{flex-direction:column;gap:1.5rem;}.roles-grid{grid-template-columns:1fr;}.milestone-track{flex-direction:column;height:auto;}.ms-seg{height:40px;}}
+.lang-switcher{position:fixed;top:1rem;right:1rem;z-index:999;display:flex;gap:.3rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:100px;padding:.3rem .5rem;}
+.lang-btn{background:none;border:none;padding:.3rem .6rem;border-radius:100px;cursor:pointer;font-size:.85rem;color:var(--text-dim);transition:all .2s;font-family:inherit;}
+.lang-btn.active,.lang-btn:hover{background:var(--accent-blue);color:var(--bg);}
+</style>
+</head>
+<body>
+<div class="lang-switcher">
+  <button class="lang-btn active" onclick="setLang('ko')">KO</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" onclick="setLang('de')">DE</button>
+  <button class="lang-btn" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" onclick="setLang('ja')">JA</button>
+</div>
+
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-badge" data-i18n="hero.badge">Case Study</span>
+  <h1 data-i18n-html="hero.title">비개발자가 <span>6시간</span> 만에<br>풀스택 대시보드를 만든 방법</h1>
+  <p data-i18n="hero.subtitle">Claude Code 전문 에이전트 팀과의 실제 대화 기록을 분석한 바이브 코딩 실전 가이드</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num" style="color:var(--accent-blue)" data-i18n="hero.stat1.num">~6h</span><span class="label" data-i18n="hero.stat1.label">사람 실제 투입 시간</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--accent-purple)" data-i18n="hero.stat2.num">7</span><span class="label" data-i18n="hero.stat2.label">마일스톤</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--accent-green)" data-i18n="hero.stat3.num">60+</span><span class="label" data-i18n="hero.stat3.label">GitHub 이슈</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--accent-orange)" data-i18n="hero.stat4.num">8+</span><span class="label" data-i18n="hero.stat4.label">전문 에이전트</span></div>
+  </div>
+  <div class="scroll-hint" data-i18n="hero.scroll">아래로 스크롤하세요 ↓</div>
+</section>
+
+<!-- PROJECT OVERVIEW -->
+<section class="section">
+  <span class="section-label" data-i18n="section.overview.label">프로젝트 소개</span>
+  <h2 data-i18n="section.overview.title">국제 정세 모니터링 대시보드 "SIGINT"</h2>
+  <p style="margin-bottom:2rem;" data-i18n="section.overview.desc">뉴스 수집, 금융 시장, 중동 해역 선박 추적, 두바이 공항 실시간 모니터링, AI 감성 분석까지 — Next.js + Prisma + SQLite 기반의 풀스택 앱을 비개발자가 Claude Code 전문 에이전트 팀으로 구축한 과정입니다.</p>
+
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num">9</span><span class="stat-label" data-i18n="overview.stat1">React 컴포넌트</span></div>
+    <div class="stat-item"><span class="stat-num">7</span><span class="stat-label" data-i18n="overview.stat2">데이터 수집기</span></div>
+    <div class="stat-item"><span class="stat-num">3</span><span class="stat-label" data-i18n="overview.stat3">지원 언어 (KO/EN/JA)</span></div>
+    <div class="stat-item"><span class="stat-num">10+</span><span class="stat-label" data-i18n="overview.stat4">외부 API 연동</span></div>
+    <div class="stat-item"><span class="stat-num">~6h</span><span class="stat-label" data-i18n="overview.stat5">사람 실제 투입</span></div>
+  </div>
+
+  <h3 style="font-size:1rem;color:var(--text-dim);margin-bottom:.8rem;" data-i18n="section.overview.milestone">마일스톤 진행 흐름</h3>
+  <div class="milestone-track">
+    <div class="ms-seg" style="flex:1.5;background:var(--accent-purple)"><span data-i18n="ms.prd">PRD</span><span class="ms-tooltip" data-i18n="ms.prd.tip">PRD + UI 프로토타입 + CLAUDE.md</span></div>
+    <div class="ms-seg" style="flex:3;background:var(--accent-blue)"><span data-i18n="ms.m1">M1 수집</span><span class="ms-tooltip" data-i18n="ms.m1.tip">뉴스, 시장, 선박, 지정학 수집 파이프라인</span></div>
+    <div class="ms-seg" style="flex:2;background:var(--accent-cyan)"><span data-i18n="ms.m2">M2 통합</span><span class="ms-tooltip" data-i18n="ms.m2.tip">프론트엔드 API 연동 + React Query</span></div>
+    <div class="ms-seg" style="flex:2;background:var(--accent-teal)"><span data-i18n="ms.m3">M3 공항</span><span class="ms-tooltip" data-i18n="ms.m3.tip">두바이 공항 데이터 수집 배치</span></div>
+    <div class="ms-seg" style="flex:2;background:var(--accent-green)"><span data-i18n="ms.m45">M4-5 UI</span><span class="ms-tooltip" data-i18n="ms.m45.tip">에이전트 팀 병렬 UI 개발</span></div>
+    <div class="ms-seg" style="flex:1.5;background:var(--accent-orange)"><span data-i18n="ms.m67">M6-7 UX</span><span class="ms-tooltip" data-i18n="ms.m67.tip">Tokyo Night 테마 + i18n</span></div>
+    <div class="ms-seg" style="flex:1;background:var(--accent-red)"><span data-i18n="ms.qa">QA</span><span class="ms-tooltip" data-i18n="ms.qa.tip">데이터 품질 + 버그 수정</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WORKFLOW: 이슈 기반 개발 -->
+<section class="section">
+  <span class="section-label" data-i18n="section.workflow.label">워크플로우</span>
+  <h2 data-i18n="section.workflow.title">이슈 기반 개발 — 계획을 세우고 이슈로 관리한다</h2>
+  <p style="margin-bottom:1.5rem;" data-i18n="section.workflow.desc">이 프로젝트의 핵심 워크플로우는 "GitHub 이슈"를 중심으로 돌아갑니다. 모든 작업은 이슈를 먼저 만들고, 이슈 단위로 개발하고, 이슈 단위로 리뷰/머지합니다.</p>
+
+  <div class="workflow-steps">
+    <div class="wf-step"><span class="step-num" style="color:var(--accent-purple)">1</span><h4 data-i18n="workflow.step1.title">마일스톤 계획</h4><p data-i18n="workflow.step1.desc">큰 목표를 마일스톤으로 나누고 순서를 정한다</p></div>
+    <div class="wf-step"><span class="step-num" style="color:var(--accent-blue)">2</span><h4 data-i18n="workflow.step2.title">이슈 생성</h4><p data-i18n="workflow.step2.desc">Tidy First 기준으로 구조/기능 이슈를 분리 생성</p></div>
+    <div class="wf-step"><span class="step-num" style="color:var(--accent-green)">3</span><h4 data-i18n="workflow.step3.title">에이전트 개발</h4><p data-i18n="workflow.step3.desc">전문 에이전트가 이슈별로 브랜치 생성 후 개발</p></div>
+    <div class="wf-step"><span class="step-num" style="color:var(--accent-red)">4</span><h4 data-i18n="workflow.step4.title">PR + 코드 리뷰</h4><p data-i18n="workflow.step4.desc">code-reviewer 에이전트가 자동 리뷰 후 머지</p></div>
+  </div>
+
+  <div class="pattern-block" style="margin-top:2rem;">
+    <h3 style="color:var(--accent-cyan);" data-i18n="workflow.pattern1.title">이슈에 담기는 정보</h3>
+    <p data-i18n="workflow.pattern1.desc">이슈는 단순한 "할 일 목록"이 아닙니다. 각 이슈에는 다음 정보가 포함됩니다:</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;"><strong style="color:var(--accent-blue);" data-i18n="issue.card1.title">PRD 참조</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="issue.card1.desc">docs/prd.md 섹션 번호</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;"><strong style="color:var(--accent-green);" data-i18n="issue.card2.title">담당 에이전트</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="issue.card2.desc">feature-dev, code-architect 등</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;"><strong style="color:var(--accent-orange);" data-i18n="issue.card3.title">상세 설계</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="issue.card3.desc">영향 파일, API, DB 스키마</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;"><strong style="color:var(--accent-red);" data-i18n="issue.card4.title">테스트 계획</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="issue.card4.desc">Red → Green → Refactor</span></div>
+    </div>
+  </div>
+
+  <div class="pattern-block">
+    <h3 style="color:var(--accent-blue);" data-i18n="workflow.pattern2.title">전문 에이전트 팀 구성</h3>
+    <p style="margin-bottom:1rem;" data-i18n="workflow.pattern2.desc">단일 AI가 아닌, 역할별 전문 에이전트를 팀처럼 구성하여 병렬 작업을 수행합니다. 각 에이전트는 Git Worktree를 사용해 독립된 브랜치에서 동시에 작업합니다.</p>
+    <table class="agent-table">
+      <tr><th data-i18n="agent.header.name">에이전트</th><th data-i18n="agent.header.role">역할</th><th data-i18n="agent.header.usage">사용 시점</th></tr>
+      <tr><td style="color:var(--accent-blue);font-weight:700" data-i18n="agent.name.architect">code-architect</td><td data-i18n="agent.role.architect">아키텍처 설계</td><td data-i18n="agent.usage.architect">모듈 설계, 인터페이스 정의, 이슈 계획</td></tr>
+      <tr><td style="color:var(--accent-green);font-weight:700" data-i18n="agent.name.feature">feature-dev</td><td data-i18n="agent.role.feature">기능 개발</td><td data-i18n="agent.usage.feature">새 기능 구현, 유스케이스 작성</td></tr>
+      <tr><td style="color:var(--accent-red);font-weight:700" data-i18n="agent.name.reviewer">code-reviewer</td><td data-i18n="agent.role.reviewer">코드 리뷰</td><td data-i18n="agent.usage.reviewer">PR 리뷰, 품질 검증, 개선 지시</td></tr>
+      <tr><td style="color:var(--accent-cyan);font-weight:700" data-i18n="agent.name.explorer">code-explorer</td><td data-i18n="agent.role.explorer">코드 분석</td><td data-i18n="agent.usage.explorer">기존 코드 파악, 실행 경로 추적</td></tr>
+      <tr><td style="color:var(--accent-orange);font-weight:700" data-i18n="agent.name.simplifier">code-simplifier</td><td data-i18n="agent.role.simplifier">코드 정리</td><td data-i18n="agent.usage.simplifier">Tidy First 구조적 변경</td></tr>
+      <tr><td style="color:var(--accent-purple);font-weight:700" data-i18n="agent.name.design">frontend-design</td><td data-i18n="agent.role.design">UI/UX 설계</td><td data-i18n="agent.usage.design">프로토타입, 레이아웃, 테마 적용</td></tr>
+    </table>
+    <div class="callout" style="margin-top:1rem;" data-i18n-html="workflow.callout">실제 사례: M4-5 단계에서 5개 에이전트가 Worktree로 동시 작업 → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChart를 병렬 개발</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRD 설명 + PRD→이슈→AI 루프 -->
+<section class="section">
+  <span class="section-label" data-i18n="section.prd.label">핵심 도구</span>
+  <h2 data-i18n="section.prd.title">PRD란 무엇인가 — AI에게 주는 프로젝트 설계도</h2>
+  <p style="margin-bottom:1.5rem;" data-i18n="section.prd.desc">PRD(Product Requirements Document)는 "무엇을 만들 것인가"를 정의하는 문서입니다. 비개발자가 바이브 코딩을 할 때 가장 중요한 산출물이며, AI가 이 문서를 기준으로 모든 작업을 수행합니다.</p>
+
+  <div class="pattern-block">
+    <h3 style="color:var(--accent-blue);" data-i18n="prd.structure.title">PRD의 구성 — 이 프로젝트의 실제 구조</h3>
+    <p style="margin-bottom:1rem;" data-i18n="prd.structure.desc">PRD는 다음과 같은 섹션으로 구성됩니다. 처음부터 완벽하게 쓸 필요 없이, 대화하면서 점진적으로 채워갑니다.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-purple);"><strong style="color:var(--accent-purple);" data-i18n="prd.card1.title">1. 프로젝트 개요</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card1.desc">목적, 배경, 타겟 사용자</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-blue);"><strong style="color:var(--accent-blue);" data-i18n="prd.card2.title">2. 기술 스택</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card2.desc">사용할 프레임워크, DB, API 목록</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-green);"><strong style="color:var(--accent-green);" data-i18n="prd.card3.title">3. 핵심 기능 정의</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card3.desc">각 기능별 상세 요구사항 (뉴스, 시장, 선박, 공항...)</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-orange);"><strong style="color:var(--accent-orange);" data-i18n="prd.card4.title">4. UI/UX 요구사항</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card4.desc">레이아웃, 컴포넌트, 반응형 설계</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-red);"><strong style="color:var(--accent-red);" data-i18n="prd.card5.title">5. 마일스톤 계획</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card5.desc">M1~M7 단계별 목표와 우선순위</span></div>
+      <div style="background:var(--bg-card);padding:.8rem;border-radius:8px;border-left:3px solid var(--accent-teal);"><strong style="color:var(--accent-teal);" data-i18n="prd.card6.title">부록: 데이터 소스</strong><br><span style="font-size:.85rem;color:var(--text-dim)" data-i18n="prd.card6.desc">각 API의 URL, 인증 방식, 제한 사항</span></div>
+    </div>
+  </div>
+
+  <div class="pattern-block" style="margin-top:2rem;">
+    <h3 style="color:var(--accent-orange);" data-i18n="prd.loop.title">PRD → 이슈 → AI 개발 루프</h3>
+    <p style="margin-bottom:1rem;" data-i18n="prd.loop.desc">PRD를 한 번 쓰고 끝이 아닙니다. PRD를 기반으로 이슈를 생성하고, 이슈 단위로 AI에게 일을 시키는 순환 구조가 핵심입니다.</p>
+    <div class="flow-diagram">
+      <span class="flow-step" style="background:rgba(187,154,247,.2);color:var(--accent-purple)"><span data-i18n="flow.step1">PRD 작성</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(122,162,247,.2);color:var(--accent-blue)"><span data-i18n="flow.step2">마일스톤 분리</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(255,158,100,.2);color:var(--accent-orange)"><span data-i18n="flow.step3">GitHub 이슈 생성</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(158,206,106,.2);color:var(--accent-green)"><span data-i18n="flow.step4">에이전트 개발</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(247,118,142,.2);color:var(--accent-red)"><span data-i18n="flow.step5">리뷰 + 머지</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(187,154,247,.2);color:var(--accent-purple)"><span data-i18n="flow.step6">PRD 갱신</span></span><span class="flow-arrow">⟳</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+      <div style="background:var(--bg-card);padding:1.2rem;border-radius:8px;">
+        <strong style="color:var(--accent-blue);font-size:.95rem;" data-i18n="prd.step1.title">Step 1: PRD → 이슈 리스트 자동 생성</strong>
+        <p style="font-size:.85rem;color:var(--text-dim);margin-top:.5rem;" data-i18n="prd.step1.desc">사용자가 "M1 데이터 수집 이슈를 만들어주세요"라고 하면, code-architect 에이전트가 PRD를 분석하여 이슈 #3~#10을 자동 생성합니다. 각 이슈에는 PRD 섹션 참조, 담당 에이전트, 상세 설계가 포함됩니다.</p>
+      </div>
+      <div style="background:var(--bg-card);padding:1.2rem;border-radius:8px;">
+        <strong style="color:var(--accent-green);font-size:.95rem;" data-i18n="prd.step2.title">Step 2: 이슈 → 에이전트에게 작업 지시</strong>
+        <p style="font-size:.85rem;color:var(--text-dim);margin-top:.5rem;" data-i18n="prd.step2.desc">이슈가 생성되면 "이슈 #4를 구현하세요"라고 지시합니다. feature-dev 에이전트가 이슈 내용을 읽고 브랜치 생성 → TDD 개발 → PR 생성까지 자율적으로 수행합니다.</p>
+      </div>
+      <div style="background:var(--bg-card);padding:1.2rem;border-radius:8px;">
+        <strong style="color:var(--accent-red);font-size:.95rem;" data-i18n="prd.step3.title">Step 3: 리뷰 + 새 이슈 발견</strong>
+        <p style="font-size:.85rem;color:var(--text-dim);margin-top:.5rem;" data-i18n="prd.step3.desc">code-reviewer가 PR을 리뷰하면서 개선점이나 누락된 요구사항을 발견합니다. 이것이 새 이슈로 등록되고, 다시 개발 사이클이 반복됩니다.</p>
+      </div>
+      <div style="background:var(--bg-card);padding:1.2rem;border-radius:8px;">
+        <strong style="color:var(--accent-purple);font-size:.95rem;" data-i18n="prd.step4.title">Step 4: PRD 갱신 → 루프 반복</strong>
+        <p style="font-size:.85rem;color:var(--text-dim);margin-top:.5rem;" data-i18n="prd.step4.desc">개발 중 새 요구사항(예: 두바이 공항)이 추가되면 PRD를 갱신합니다. 갱신된 PRD를 AI에게 참조시키면, AI가 변경사항을 인지하고 새 이슈를 제안합니다.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1rem;" data-i18n-html="prd.callout">실제 사례: 두바이 공항 요구사항 추가 → PRD 섹션 4.8 신규 작성 → code-architect가 이슈 #27~#34 자동 생성 → 3개 에이전트 Worktree 병렬 개발 → 약 2시간 만에 완성</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 7 ROLES -->
+<section class="section">
+  <span class="section-label" data-i18n="section.roles.label">핵심 인사이트</span>
+  <h2 data-i18n="section.roles.title">비개발자의 7가지 역할</h2>
+  <p style="margin-bottom:1rem;" data-i18n="section.roles.desc">바이브 코딩에서 사람은 코드를 쓰지 않지만, 7가지 역할을 수행합니다.</p>
+  <div class="roles-grid">
+    <div class="role-card rc-planner"><span class="role-icon">💡</span><h3><span data-i18n="role.1.title">역할 1: 기획자</span></h3><div class="role-desc"><span data-i18n="role.1.desc">"뭘 만들 건지 말하기" — 한 문장에서 시작해 대화하며 기획을 키운다</span></div><div class="role-example"><span data-i18n="role.1.example">"국제 정세 대시보드를 만들고 싶어요" → "중동 유조선도" → "주식도" → "두바이 공항도"</span></div></div>
+    <div class="role-card rc-architect"><span class="role-icon">📐</span><h3><span data-i18n="role.2.title">역할 2: 설계자</span></h3><div class="role-desc"><span data-i18n="role.2.desc">"AI의 작업 규칙 정하기" — CLAUDE.md로 일관된 품질 유지</span></div><div class="role-example"><span data-i18n="role.2.example">TDD, Git-Flow, Tidy First, 전문 에이전트 목록까지 정의 → AI가 매번 같은 수준으로 작업</span></div></div>
+    <div class="role-card rc-pm"><span class="role-icon">📋</span><h3><span data-i18n="role.3.title">역할 3: PM</span></h3><div class="role-desc"><span data-i18n="role.3.desc">"이슈를 만들고 순서 정하기" — 마크다운 계획서로 Phase/이슈 관리</span></div><div class="role-example"><span data-i18n="role.3.example">"Phase 1(순차) → Phase 2(병렬 3개 worktree) → Phase 3(순차 통합)"</span></div></div>
+    <div class="role-card rc-designer"><span class="role-icon">🎨</span><h3><span data-i18n="role.4.title">역할 4: 디자인 디렉터</span></h3><div class="role-desc"><span data-i18n="role.4.desc">"눈으로 보고 피드백" — 픽셀 단위까지 조정 가능</span></div><div class="role-example"><span data-i18n="role.4.example">"뉴스 높이 640px" → "650px" → "670px" → "690px" / "Tokyo Night 풍으로"</span></div></div>
+    <div class="role-card rc-data"><span class="role-icon">🔑</span><h3><span data-i18n="role.5.title">역할 5: 데이터 관리자</span></h3><div class="role-desc"><span data-i18n="role.5.desc">"외부 서비스 연결" — API 키 발급, 가입은 사람의 몫</span></div><div class="role-example"><span data-i18n="role.5.example">OpenSky, AISStream, Gemini, ACLED 등 10개+ 키 직접 발급 및 .env 설정</span></div></div>
+    <div class="role-card rc-qa"><span class="role-icon">🔍</span><h3><span data-i18n="role.6.title">역할 6: QA 테스터</span></h3><div class="role-desc"><span data-i18n="role.6.desc">"안 되는 걸 찾기" — AI의 '완료' 보고를 검증</span></div><div class="role-example"><span data-i18n="role.6.example">"EK 비행기가 없는데요" / "INSERT가 아니라 UPDATE여야" / "선박이 두 개뿐"</span></div></div>
+    <div class="role-card rc-ops"><span class="role-icon">🖥️</span><h3><span data-i18n="role.7.title">역할 7: 운영자</span></h3><div class="role-desc"><span data-i18n="role.7.desc">"시스템을 띄우고 관리" — 명령어 몇 개로 서버 관리</span></div><div class="role-example"><span data-i18n="role.7.example">"pm2 start ecosystem.config.js" / "pm2 재시작" / "캐시 다 날리고"</span></div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DETAILED TIMELINE -->
+<section class="section">
+  <span class="section-label" data-i18n="section.timeline.label">실제 대화 기록 분석</span>
+  <h2 data-i18n="section.timeline.title">6시간 개발 타임라인 — 단계별 상세</h2>
+  <p style="margin-bottom:.5rem;" data-i18n="section.timeline.desc1">4개 세션에서 추출한 실제 대화를 시간순으로 재구성했습니다. 탭을 눌러 각 단계를 확인하세요.</p>
+  <p style="margin-bottom:1.5rem;font-size:.85rem;color:var(--text-dim);" data-i18n="section.timeline.desc2">벽시계 기준 ~21시간 중, 사용자의 실제 입력/판단/리뷰에 소요된 시간은 약 6시간입니다. 나머지는 AI 에이전트의 자율 작업 시간.</p>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="step1" data-i18n="tab.step1">Step 1. 아이디어→PRD</button>
+    <button class="tab-btn" data-tab="step2" data-i18n="tab.step2">Step 2. 설계 + 이슈</button>
+    <button class="tab-btn" data-tab="step3" data-i18n="tab.step3">Step 3. M1 데이터 수집</button>
+    <button class="tab-btn" data-tab="step4" data-i18n="tab.step4">Step 4. M2-3 통합+공항</button>
+    <button class="tab-btn" data-tab="step5" data-i18n="tab.step5">Step 5. M4-7 UI 개발</button>
+    <button class="tab-btn" data-tab="step6" data-i18n="tab.step6">Step 6. QA + 마무리</button>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="tab-content active" id="step1">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-purple)"></div>
+        <div class="tl-time"><span class="mono">3/13 11:36</span> — <span data-i18n="tl.s1.i1.time">첫 대화</span></div>
+        <div class="tl-card">
+          <h3><span data-i18n="timeline.step1.item1.subtitle">한 문장으로 시작</span></h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="timeline.chat.user.7329">국제 정세 시국을 모니터링하는 대시보드를 만들고 싶네요</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai">Claude</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s1.i1.chat.ai1">PRD 초안을 작성하겠습니다. 카테고리별 분류, 지역별 필터링, 타임라인 표시를 포함합니다...</span></div>
+          </div>
+          <span class="tl-tag tag-idea" data-i18n="tag.idea">기획</span>
+          <p><span data-i18n="timeline.step1.item1.note">처음부터 완벽한 기획서가 필요 없다. 한 문장에서 시작.</span></p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-purple)"></div>
+        <div class="tl-time"><span class="mono">3/13 11:37~11:54</span> — <span data-i18n="tl.s1.i2.time">요구사항 점진 확장</span></div>
+        <div class="tl-card">
+          <h3><span data-i18n="timeline.step1.item2.subtitle">대화하며 PRD를 키워간다</span></h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user.serial">사용자 (연속 요청)</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="timeline.chat.user.443">중동 유조선이나 LPG선도 모니터링 추가해주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="timeline.chat.user.5969">국내/미국 주식, 유가, 금 현물 정보도 추가해주세요</span></div>
+          </div>
+          <span class="tl-tag tag-idea" data-i18n="tag.idea">기획</span>
+          <p><span data-i18n="timeline.step1.item2.note">대화를 통해 자연스럽게 PRD가 확장됩니다.</span></p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-cyan)"></div>
+        <div class="tl-time"><span class="mono">3/13 11:45</span> — <span data-i18n="tl.s1.i3.time">UI 프로토타입</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s1.i3.title">frontend-design 에이전트로 화면 설계</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s1.i3.chat.user1">@frontend-design 가 UX를 그려봐주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s1.i3.chat.user2">지도를 실제 지도로 그려주세요</span></div>
+          </div>
+          <span class="tl-tag tag-design" data-i18n="tag.design">디자인</span><span class="tl-tag tag-agent" data-i18n="tl.s1.i3.agent">frontend-design 에이전트</span>
+          <p data-i18n="tl.s1.i3.note">/frontend-design 스킬이 HTML 프로토타입(index.html)을 생성. 코드를 몰라도 결과물을 보며 피드백.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-blue)"></div>
+        <div class="tl-time"><span class="mono">3/13 12:02~12:09</span> — <span data-i18n="tl.s1.i4.time">상세 요구사항</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s1.i4.title">상단 시장 티커 바 + 데이터 소스 조사</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s1.i4.chat.user1">상단 DOW 지표에 마우스를 가면 전체가 확장되면서 라인 그래프가 보이게, 아웃하면 줄여주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s1.i4.chat.user2">PRD에 데이터 수집 원천을 심층 조사해서 리스트를 작성해주세요. Economist, Yahoo Finance, CNN, NBC는 꼭 넣어주세요</span></div>
+          </div>
+          <span class="tl-tag tag-idea" data-i18n="tag.idea">기획</span><span class="tl-tag tag-design" data-i18n="tag.design">디자인</span>
+          <p data-i18n="tl.s1.i4.note">사용자가 원하는 특정 사이트를 직접 지정하고, AI가 그 외 소스를 심층 조사.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="tab-content" id="step2">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-blue)"></div>
+        <div class="tl-time"><span class="mono">3/13 12:21</span> — <span data-i18n="tl.s2.i1.time">CLAUDE.md 생성</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s2.i1.title">AI 작업 규칙 + 아키텍처 결정</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s2.i1.chat.user1">CLAUDE.md 파일을 만들어 넣어주세요. DDD, TDD(red→green→refactor), 헥사고날, 클린 아키텍처, Tidy First...</span></div>
+          </div>
+          <span class="tl-tag tag-manage" data-i18n="tag.design">설계</span>
+          <p data-i18n="tl.s2.i1.note"><strong>CLAUDE.md</strong> = AI에게 주는 "사원 핸드북". 기술 스택, 개발 원칙, 워크플로우를 모두 정의.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-orange)"></div>
+        <div class="tl-time"><span class="mono">3/13 12:31</span> — <span data-i18n="tl.s2.i2.time">워크플로우 정의</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s2.i2.title">Git-Flow + 이슈 기반 작업 관리</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s2.i2.chat.user1">워크플로우를 정의하겠습니다. git-flow 정책으로 브랜치를 관리합니다. 모든 작업은 깃헙 이슈를 만들어 작업합니다. 이슈를 만드는 기준도 tidy first입니다. 해당 업무를 할 전문 에이전트를 명시하라고 하세요</span></div>
+          </div>
+          <span class="tl-tag tag-manage" data-i18n="tag.manage">PM</span>
+          <p data-i18n="tl.s2.i2.note">핵심 결정: 모든 작업 = GitHub 이슈. 이슈에 담당 에이전트 명시.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-green)"></div>
+        <div class="tl-time"><span class="mono">3/13 12:33</span> — <span data-i18n="tl.s2.i3.time">첫 마일스톤 이슈 생성</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s2.i3.title">M1 데이터 수집 — 이슈 #3~#10 자동 생성</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s2.i3.chat.user1">첫 마일스톤을 작업합시다. 데이터 수집과 AI분석 이슈를 심층 분석해서 마일스톤과 깃헙 이슈를 만들어주세요</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.agent">Claude (code-architect)</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s2.i3.chat.ai1">M1 마일스톤에 8개 이슈를 생성합니다: #3 Prisma 스키마, #4 뉴스 수집기, #5 Playwright 스크래핑, #6 시장 데이터, #7 선박 AIS, #8 지정학 리스크, #9 번역 파이프라인, #10 AI 분석...</span></div>
+          </div>
+          <span class="tl-tag tag-manage" data-i18n="tag.manage">PM</span><span class="tl-tag tag-agent" data-i18n="tl.s2.i3.agent">code-architect 에이전트</span>
+          <p data-i18n="tl.s2.i3.note">code-architect 에이전트가 PRD를 분석해서 이슈를 자동 생성. 각 이슈에 상세 설계 정보 포함.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-teal)"></div>
+        <div class="tl-time"><span class="mono">3/13 12:45~12:57</span> — <span data-i18n="tl.s2.i4.time">API 키 가이드</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s2.i4.title">필요한 외부 서비스 가입 안내</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s2.i4.chat.user1">필요한 앱 키 리스트와 가이드 해주세요</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai">Claude</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s2.i4.chat.ai1">GDELT(인증 불요), AISStream(무료, GitHub 가입), ACLED(학술/연구용), Gemini API(Google Cloud)...</span></div>
+          </div>
+          <span class="tl-tag tag-ops" data-i18n="tag.ops">운영</span>
+          <p data-i18n="tl.s2.i4.note">사용자가 직접 가입하고 키를 발급. AI가 가이드를 제공하고 .env.example을 생성.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="tab-content" id="step3">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-green)"></div>
+        <div class="tl-time"><span class="mono">3/13 13:11~13:14</span> — <span data-i18n="tl.s3.i1.time">에이전트 팀 병렬 개발</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s3.i1.title">Worktree로 3개 수집기 동시 개발</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s3.i1.chat.user1">업무 계획을 잡아주세요. 팀 구성해도 됩니다. 업무마다 전문 에이전트 명시해주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s3.i1.chat.user2">작업 시작하세요. git worktree 사용해도 되고, 끝날 때마다 PR → code-review → 머지</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai">Claude</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s3.i1.chat.ai1">3개 에이전트를 worktree 병렬로 동시 투입합니다. Agent 1: 뉴스 수집기(#4), Agent 2: 시장 데이터(#6), Agent 3: 선박+지정학(#7,#8)...</span></div>
+          </div>
+          <span class="tl-tag tag-build" data-i18n="tag.build">개발</span><span class="tl-tag tag-agent" data-i18n="tl.s3.i1.agent">3개 feature-dev 병렬</span>
+          <p data-i18n="tl.s3.i1.note">"병렬로 해도 돼"라고 허락하면 AI가 여러 에이전트를 동시에 돌려 작업 속도를 극대화.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-red)"></div>
+        <div class="tl-time"><span class="mono">3/13 13:52~14:30</span> — <span data-i18n="tl.s3.i2.time">자동 리뷰 루프</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s3.i2.title">PR → code-reviewer → 개선 → 머지 반복</h3>
+          <div class="chat-block">
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.agent">code-reviewer 에이전트</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s3.i2.chat.ai1">PR #17 Review: rate limit 미구현, import 경로 오류 발견...</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.agent">feature-dev 에이전트</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s3.i2.chat.ai2">리뷰 피드백 반영 완료. Rate limiter 추가, import 수정...</span></div>
+          </div>
+          <span class="tl-tag tag-build" data-i18n="tag.build">개발</span><span class="tl-tag tag-agent" data-i18n="tl.s3.i2.agent">code-reviewer 에이전트</span>
+          <p data-i18n="tl.s3.i2.note">AI가 만든 코드를 다른 AI가 리뷰 → 문제 발견 → 스스로 수정. PR #17, #19, #20, #21 순차 리뷰+머지.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="tab-content" id="step4">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-cyan)"></div>
+        <div class="tl-time"><span class="mono">3/13 21:43</span> — <span data-i18n="tl.s4.i1.time">M2 프론트엔드 통합</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s4.i1.title">구조화된 계획서로 지시 — "Implement the following plan"</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user.plan">사용자 (마크다운 계획서 직접 작성)</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i1.chat.user1">Implement the following plan:<br>M2: 프론트엔드 API 통합<br>기술 결정: @tanstack/react-query (서버 상태 관리)<br>이슈 #13~#20: 컴포넌트별 API 연동</span></div>
+          </div>
+          <span class="tl-tag tag-manage" data-i18n="tag.manage">PM</span><span class="tl-tag tag-build" data-i18n="tag.build">개발</span>
+          <p data-i18n="tl.s4.i1.note">숙련된 바이브 코딩: "다음 거 해줘"가 아니라 기술 결정, 이슈 범위까지 명시.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-purple)"></div>
+        <div class="tl-time"><span class="mono">3/13 22:01</span> — <span data-i18n="tl.s4.i2.time">두바이 공항 요구사항 추가</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s4.i2.title">새 요구사항 → PRD 갱신 → 이슈 생성</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i2.chat.user1">두바이 공항 운항 상태, 에미레이트항공 취항 목적지, 주변 전쟁 폭격 상태, 7일 타임라인, 실시간 항공기 위치도 보여주세요</span></div>
+          </div>
+          <span class="tl-tag tag-idea" data-i18n="tag.idea">기획</span><span class="tl-tag tag-design" data-i18n="tag.design">디자인</span>
+          <p data-i18n="tl.s4.i2.note">"대화 → 문서 → 대화" 루프: 새 아이디어 → PRD 섹션 4.8 추가 → 이슈 #27~#34 생성.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-teal)"></div>
+        <div class="tl-time"><span class="mono">3/13 23:31</span> — <span data-i18n="tl.s4.i3.time">M3 공항 배치 Phase 계획</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s4.i3.title">3개 수집기 Worktree 병렬 개발</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user.phase">사용자 (상세 Phase 지시)</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i3.chat.user1">Implement the following plan:<br>Phase 1 (순차): #27 → #28 (구조적 기반)<br>Phase 2 (병렬): #29, #30, #31 (3개 수집기 — worktree 병렬)<br>Phase 3 (순차): #32 → #33 → #34 (통합)</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.report">Claude — 3개 에이전트 동시 완료 보고</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s4.i3.chat.ai1">Agent "OpenSky collector (#29)" completed ✓<br>Agent "AviationStack collector (#30)" completed ✓<br>Agent "Airport event collector (#31)" completed ✓</span></div>
+          </div>
+          <span class="tl-tag tag-build" data-i18n="tag.build">개발</span><span class="tl-tag tag-agent" data-i18n="tl.s4.i3.agent">3개 에이전트 병렬</span>
+          <p data-i18n="tl.s4.i3.note">3개 에이전트가 각각 독립 브랜치에서 동시에 수집기를 구현. 약 5분 만에 모두 완료.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-red)"></div>
+        <div class="tl-time"><span class="mono">3/14 00:04~00:49</span> — <span data-i18n="tl.s4.i4.time">트러블슈팅</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s4.i4.title">번역 누락 + OpenSky 인증 + AIS 키 변경</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i4.chat.user1">왜 DB에 kr/jp 번역이 안되어있나요?</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i4.chat.user2">.env 파일 ID/PW 정확한데요. https://openskynetwork.github.io/opensky-api/rest.html 확인해보세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s4.i4.chat.user3">AIS 키 변경했습니다</span></div>
+          </div>
+          <span class="tl-tag tag-debug" data-i18n="tag.debug">디버그</span><span class="tl-tag tag-ops" data-i18n="tag.ops">운영</span>
+          <p data-i18n="tl.s4.i4.note">Gemini API 쿼터 한도, OpenSky OAuth2 인증, AISStream 키 갱신 — 외부 서비스 트러블슈팅은 사람이 직접 확인.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="tab-content" id="step5">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-green)"></div>
+        <div class="tl-time"><span class="mono">3/14 03:16~03:31</span> — <span data-i18n="tl.s5.i1.time">에이전트 팀 대규모 UI 개발</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s5.i1.title">5개 에이전트 동시 투입 — M4-5 UI 완성</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i1.chat.user1">이제 UI를 개발합시다. code-architect가 코드베이스와 문서를 읽어서 frontend 개발을 시작해야 합니다. 전문 에이전트와 스킬을 사용하도록 명시해주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i1.chat.user2">필요하면 전문에이전트들로 팀을 구성해서 병행 작업하세요. worktree 활용. 이슈 분석 → 개발 → Test → PR → code-review → 개선 → 머지</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.report">Claude — 동시 완료 보고 (5개)</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s5.i1.chat.ai1">Agent "M5 #45 NewsFeed improvements" completed ✓<br>Agent "M5 #46 IssueTracker + WorldMap" completed ✓<br>Agent "M5 #47 AirportMonitor bug fixes" completed ✓<br>Agent "M5 #48 TopBar nav + Vessel filter" completed ✓<br>Agent "M5 #49 Map visual effects" completed ✓</span></div>
+          </div>
+          <span class="tl-tag tag-build" data-i18n="tag.build">개발</span><span class="tl-tag tag-agent" data-i18n="tl.s5.i1.agent">5개 에이전트 병렬</span>
+          <p data-i18n="tl.s5.i1.note">5개 에이전트가 각각 worktree에서 독립 개발 → code-reviewer가 PR 리뷰 → 머지. 사람은 "팀 구성해서 병행 작업하세요"라고 한마디.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-purple)"></div>
+        <div class="tl-time"><span class="mono">3/14 06:53~07:01</span> — <span data-i18n="tl.s5.i2.time">다국어(i18n) 적용</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s5.i2.title">전체 UI 한국어/영어/일본어 대응</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i2.chat.user1">feat: 전체 UI i18n 다국어 적용 (KO/EN/JA) #60 이거 개발합시다</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.completed">Agent "Implement full i18n system #60" completed</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s5.i2.chat.ai1">ko.json, en.json, ja.json 생성 + LanguageContext 연동 + 전체 컴포넌트 적용 완료</span></div>
+          </div>
+          <span class="tl-tag tag-build" data-i18n="tag.build">개발</span><span class="tl-tag tag-agent" data-i18n="tl.s5.i2.agent">feature-dev 에이전트</span>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-cyan)"></div>
+        <div class="tl-time"><span class="mono">3/14 07:12~07:21</span> — <span data-i18n="tl.s5.i3.time">Tokyo Night 테마</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s5.i3.title">전체 디자인 + 태블릿 터치 UI 재설계</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i3.chat.user1">화면 전체적으로 너무 작아요. 태블릿 터치 UI로 재설계. 컬러는 Tokyo Night 풍으로</span></div>
+            <span class="chat-label ai-label" data-i18n="chat.label.ai.completed">Agent "Apply Tokyo Night + tablet UI #61" completed</span>
+            <div class="chat-msg chat-ai"><span data-i18n-html="tl.s5.i3.chat.ai1">20개 파일의 CSS 변수 교체 + 폰트 크기 확대 + 카드 레이아웃 재설계 완료</span></div>
+          </div>
+          <span class="tl-tag tag-design" data-i18n="tag.design">디자인</span><span class="tl-tag tag-agent" data-i18n="tl.s5.i3.agent">frontend-design 에이전트</span>
+          <p data-i18n="tl.s5.i3.note">"Tokyo Night"이라는 한마디로 20개 파일의 CSS를 일괄 교체.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-orange)"></div>
+        <div class="tl-time"><span class="mono">3/14 07:39~08:48</span> — <span data-i18n="tl.s5.i4.time">미세 조정 연속</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s5.i4.title">픽셀 단위 피드백 — 디자인 디렉터 역할</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user.feedback">사용자 (연속 피드백)</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i4.chat.user1">이슈 트래커 높이 줄이고 뉴스를 옆으로 옮겨주세요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i4.chat.user2">해더 글꼴 너무 작아요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i4.chat.user3">뉴스: 690px 고정</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i4.chat.user4">너무 혼자만 칼라풀한데요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s5.i4.chat.user5">GLOBAL TENSION MAP와 이슈 트래커 높이와 실시간 뉴스 높이를 맞추세요</span></div>
+          </div>
+          <span class="tl-tag tag-design" data-i18n="tag.design">디자인</span>
+          <p data-i18n="tl.s5.i4.note">이 단계에서 가장 많은 사람 시간이 소요됩니다. 짧고 직관적인 피드백이 효과적.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="tab-content" id="step6">
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-red)"></div>
+        <div class="tl-time"><span class="mono">3/14 07:35~07:41</span> — <span data-i18n="tl.s6.i1.time">데이터 로직 버그 발견</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s6.i1.title">INSERT vs UPDATE — 핵심 로직 오류</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i1.chat.user1">업데이트가 아니라 매번 새 행(INSERT)을 추가하는 방식이면 안돼요. 항공기 정보를 보고 업데이트가 되어야죠</span></div>
+          </div>
+          <span class="tl-tag tag-debug" data-i18n="tag.debug">디버그</span>
+          <p data-i18n="tl.s6.i1.note">AI가 놓친 핵심 버그를 사용자가 DB 데이터를 확인하여 발견. "데이터가 계속 쌓이는 게 이상하다"는 직관.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-red)"></div>
+        <div class="tl-time"><span class="mono">3/14 04:04~06:21</span> — <span data-i18n="tl.s6.i2.time">데이터 누락 연속 발견</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s6.i2.title">"완료" 보고 vs 실제 화면 검증</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user.verify">사용자 (연속 검증)</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i2.chat.user1">선박데이터와 비행기 데이터도 없고 GLOBAL TENSION MAP도 비어있습니다</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i2.chat.user2">EK 비행기가 없는데요. 두바이 공항 근처 비행기가 없나요??</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i2.chat.user3">선박은 여전히 두 개뿐이구요</span></div>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i2.chat.user4">주요 항공사에 empty 1편 100% 라고 나오는데요</span></div>
+          </div>
+          <span class="tl-tag tag-debug" data-i18n="tag.debug">디버그</span><span class="tl-tag tag-ops" data-i18n="tag.ops">운영</span>
+          <p data-i18n="tl.s6.i2.note">AI가 "완료"라고 해도 실제 데이터를 눈으로 확인해야 합니다. 외부 API 장애, 수집 로직 오류 등은 사람만이 발견 가능.</p>
+        </div>
+      </div>
+      <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent-green)"></div>
+        <div class="tl-time"><span class="mono">3/14 08:50</span> — <span data-i18n="tl.s6.i3.time">문서 현행화 + 완료</span></div>
+        <div class="tl-card">
+          <h3 data-i18n="tl.s6.i3.title">PRD, CLAUDE.md, README 모두 갱신</h3>
+          <div class="chat-block">
+            <span class="chat-label user-label" data-i18n="chat.label.user">사용자</span>
+            <div class="chat-msg chat-user"><span data-i18n-html="tl.s6.i3.chat.user1">prd.md, index.html, README.md, CLAUDE.md 문서 모두 변경된 내용을 깃헙 이슈와 코드베이스를 면밀히 분석해서 현행화하세요</span></div>
+          </div>
+          <span class="tl-tag tag-manage" data-i18n="tag.manage">PM</span>
+          <p data-i18n="tl.s6.i3.note">마지막: 코드뿐 아니라 문서도 최신 상태로. 다음 세션에서 AI가 정확한 맥락을 갖도록.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PATTERNS -->
+<section class="section">
+  <span class="section-label" data-i18n="section.patterns.label">발견된 패턴</span>
+  <h2 data-i18n="section.patterns.title">바이브 코딩 3대 핵심 패턴</h2>
+
+  <div class="pattern-block">
+    <h3 data-i18n="pattern.a.title">패턴 A: 대화 → 문서 → 대화 루프</h3>
+    <p data-i18n="pattern.a.desc">PRD를 한 번 쓰고 끝이 아닙니다. 개발 중 새 요구사항이 생기면 PRD를 갱신하고, 갱신된 PRD를 다시 AI에게 참조시킵니다.</p>
+    <div class="flow-diagram">
+      <span class="flow-step" style="background:rgba(187,154,247,.2);color:var(--accent-purple)"><span data-i18n="flow.idea">아이디어</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(122,162,247,.2);color:var(--accent-blue)"><span data-i18n="flow.step1">PRD 작성</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(255,158,100,.2);color:var(--accent-orange)"><span data-i18n="flow.step2">이슈 생성</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(158,206,106,.2);color:var(--accent-green)"><span data-i18n="flow.step4">에이전트 개발</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(247,118,142,.2);color:var(--accent-red)"><span data-i18n="flow.step5">리뷰+머지</span></span><span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(122,162,247,.2);color:var(--accent-blue)"><span data-i18n="flow.step6">PRD 갱신</span></span><span class="flow-arrow">⟳</span>
+    </div>
+  </div>
+
+  <div class="pattern-block">
+    <h3 data-i18n="pattern.b.title">패턴 B: 구조화된 지시서 — "Implement the following plan"</h3>
+    <p data-i18n="pattern.b.desc">숙련도가 올라가면 "해줘" 대신, Phase별 순서, 이슈 번호, 순차/병렬 구분, 브랜치명까지 마크다운으로 작성해서 전달합니다.</p>
+  </div>
+
+  <div class="pattern-block">
+    <h3 data-i18n="pattern.c.title">패턴 C: 에이전트 팀 운영 + Worktree 병렬</h3>
+    <p data-i18n="pattern.c.desc">역할별 전문 에이전트를 팀처럼 구성 → Git Worktree로 독립 브랜치에서 동시 작업 → code-reviewer가 리뷰 → 머지.</p>
+    <div class="flow-diagram">
+      <span class="flow-step" style="background:rgba(255,158,100,.2);color:var(--accent-orange)"><span data-i18n="flow.architect">Architect</span></span>
+      <span class="flow-step" style="background:rgba(158,206,106,.2);color:var(--accent-green)"><span data-i18n="flow.dev">Dev #1</span></span>
+      <span class="flow-step" style="background:rgba(158,206,106,.2);color:var(--accent-green)"><span data-i18n="flow.dev">Dev #2</span></span>
+      <span class="flow-step" style="background:rgba(158,206,106,.2);color:var(--accent-green)"><span data-i18n="flow.dev">Dev #3</span></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(247,118,142,.2);color:var(--accent-red)"><span data-i18n="flow.reviewer">Reviewer</span></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step" style="background:rgba(122,162,247,.2);color:var(--accent-blue)"><span data-i18n="flow.merge">Merge</span></span>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <p data-i18n="footer.desc">이 가이드는 실제 Claude Code 대화 히스토리 4세션(~10,000 라인 JSONL)을 분석하여 작성되었습니다.</p>
+  <p style="margin-top:.5rem;">World Affairs Dashboard — 2026.03.13~14</p>
+</footer>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active');setTimeout(()=>observeTimeline(),100);});});
+function observeTimeline(){const o=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('visible');});},{threshold:.15});document.querySelectorAll('.tl-item').forEach(i=>o.observe(i));}
+observeTimeline();
+document.querySelector('.scroll-hint')?.addEventListener('click',()=>{document.querySelector('.section').scrollIntoView({behavior:'smooth'});});
+
+// ===== i18n TRANSLATIONS =====
+const T={
+ko:{
+"hero.badge":"Case Study",
+"hero.title":"비개발자가 <span>6시간</span> 만에<br>풀스택 대시보드를 만든 방법",
+"hero.subtitle":"Claude Code 전문 에이전트 팀과의 실제 대화 기록을 분석한 바이브 코딩 실전 가이드",
+"hero.stat1.num":"~6h",
+"hero.stat1.label":"사람 실제 투입 시간",
+"hero.stat2.num":"7",
+"hero.stat2.label":"마일스톤",
+"hero.stat3.num":"60+",
+"hero.stat3.label":"GitHub 이슈",
+"hero.stat4.num":"8+",
+"hero.stat4.label":"전문 에이전트",
+"hero.scroll":"아래로 스크롤하세요 ↓",
+"section.overview.label":"프로젝트 소개",
+"section.overview.title":'국제 정세 모니터링 대시보드 "SIGINT"',
+"section.overview.desc":"뉴스 수집, 금융 시장, 중동 해역 선박 추적, 두바이 공항 실시간 모니터링, AI 감성 분석까지 — Next.js + Prisma + SQLite 기반의 풀스택 앱을 비개발자가 Claude Code 전문 에이전트 팀으로 구축한 과정입니다.",
+"overview.stat1":"React 컴포넌트",
+"overview.stat2":"데이터 수집기",
+"overview.stat3":"지원 언어 (KO/EN/JA)",
+"overview.stat4":"외부 API 연동",
+"overview.stat5":"사람 실제 투입",
+"section.overview.milestone":"마일스톤 진행 흐름",
+"section.workflow.label":"워크플로우",
+"section.workflow.title":"이슈 기반 개발 — 계획을 세우고 이슈로 관리한다",
+"section.workflow.desc":'이 프로젝트의 핵심 워크플로우는 "GitHub 이슈"를 중심으로 돌아갑니다. 모든 작업은 이슈를 먼저 만들고, 이슈 단위로 개발하고, 이슈 단위로 리뷰/머지합니다.',
+"workflow.step1.title":"마일스톤 계획",
+"workflow.step1.desc":"큰 목표를 마일스톤으로 나누고 순서를 정한다",
+"workflow.step2.title":"이슈 생성",
+"workflow.step2.desc":"Tidy First 기준으로 구조/기능 이슈를 분리 생성",
+"workflow.step3.title":"에이전트 개발",
+"workflow.step3.desc":"전문 에이전트가 이슈별로 브랜치 생성 후 개발",
+"workflow.step4.title":"PR + 코드 리뷰",
+"workflow.step4.desc":"code-reviewer 에이전트가 자동 리뷰 후 머지",
+"workflow.pattern1.title":"이슈에 담기는 정보",
+"workflow.pattern1.desc":'이슈는 단순한 "할 일 목록"이 아닙니다. 각 이슈에는 다음 정보가 포함됩니다:',
+"workflow.pattern2.title":"전문 에이전트 팀 구성",
+"workflow.pattern2.desc":"단일 AI가 아닌, 역할별 전문 에이전트를 팀처럼 구성하여 병렬 작업을 수행합니다. 각 에이전트는 Git Worktree를 사용해 독립된 브랜치에서 동시에 작업합니다.",
+"workflow.callout":"실제 사례: M4-5 단계에서 5개 에이전트가 Worktree로 동시 작업 → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChart를 병렬 개발",
+"agent.header.name":"에이전트",
+"agent.header.role":"역할",
+"agent.header.usage":"사용 시점",
+"agent.role.architect":"아키텍처 설계",
+"agent.usage.architect":"모듈 설계, 인터페이스 정의, 이슈 계획",
+"agent.role.feature":"기능 개발",
+"agent.usage.feature":"새 기능 구현, 유스케이스 작성",
+"agent.role.reviewer":"코드 리뷰",
+"agent.usage.reviewer":"PR 리뷰, 품질 검증, 개선 지시",
+"agent.role.explorer":"코드 분석",
+"agent.usage.explorer":"기존 코드 파악, 실행 경로 추적",
+"agent.role.simplifier":"코드 정리",
+"agent.usage.simplifier":"Tidy First 구조적 변경",
+"agent.role.design":"UI/UX 설계",
+"agent.usage.design":"프로토타입, 레이아웃, 테마 적용",
+"section.prd.label":"핵심 도구",
+"section.prd.title":"PRD란 무엇인가 — AI에게 주는 프로젝트 설계도",
+"section.prd.desc":'PRD(Product Requirements Document)는 "무엇을 만들 것인가"를 정의하는 문서입니다. 비개발자가 바이브 코딩을 할 때 가장 중요한 산출물이며, AI가 이 문서를 기준으로 모든 작업을 수행합니다.',
+"prd.structure.title":"PRD의 구성 — 이 프로젝트의 실제 구조",
+"prd.structure.desc":"PRD는 다음과 같은 섹션으로 구성됩니다. 처음부터 완벽하게 쓸 필요 없이, 대화하면서 점진적으로 채워갑니다.",
+"prd.loop.title":"PRD → 이슈 → AI 개발 루프",
+"prd.loop.desc":"PRD를 한 번 쓰고 끝이 아닙니다. PRD를 기반으로 이슈를 생성하고, 이슈 단위로 AI에게 일을 시키는 순환 구조가 핵심입니다.",
+"prd.step1.title":"Step 1: PRD → 이슈 리스트 자동 생성",
+"prd.step1.desc":'사용자가 "M1 데이터 수집 이슈를 만들어주세요"라고 하면, code-architect 에이전트가 PRD를 분석하여 이슈 #3~#10을 자동 생성합니다.',
+"prd.step2.title":"Step 2: 이슈 → 에이전트에게 작업 지시",
+"prd.step2.desc":'이슈가 생성되면 "이슈 #4를 구현하세요"라고 지시합니다. feature-dev 에이전트가 브랜치 생성 → TDD 개발 → PR 생성까지 자율적으로 수행합니다.',
+"prd.step3.title":"Step 3: 리뷰 + 새 이슈 발견",
+"prd.step3.desc":"code-reviewer가 PR을 리뷰하면서 개선점이나 누락된 요구사항을 발견합니다. 이것이 새 이슈로 등록됩니다.",
+"prd.step4.title":"Step 4: PRD 갱신 → 루프 반복",
+"prd.step4.desc":"개발 중 새 요구사항이 추가되면 PRD를 갱신합니다. 갱신된 PRD를 AI에게 참조시키면, AI가 변경사항을 인지합니다.",
+"prd.callout":"실제 사례: 두바이 공항 요구사항 추가 → PRD 섹션 4.8 신규 작성 → code-architect가 이슈 #27~#34 자동 생성 → 3개 에이전트 Worktree 병렬 개발 → 약 2시간 만에 완성",
+"section.roles.label":"핵심 인사이트",
+"section.roles.title":"비개발자의 7가지 역할",
+"section.roles.desc":"바이브 코딩에서 사람은 코드를 쓰지 않지만, 7가지 역할을 수행합니다.",
+"role.1.title":"역할 1: 기획자",
+"role.1.desc":'"뭘 만들 건지 말하기" — 한 문장에서 시작해 대화하며 기획을 키운다',
+"role.1.example":'"국제 정세 대시보드를 만들고 싶어요" → "중동 유조선도" → "주식도" → "두바이 공항도"',
+"role.2.title":"역할 2: 설계자",
+"role.2.desc":'"AI의 작업 규칙 정하기" — CLAUDE.md로 일관된 품질 유지',
+"role.2.example":"TDD, Git-Flow, Tidy First, 전문 에이전트 목록까지 정의 → AI가 매번 같은 수준으로 작업",
+"role.3.title":"역할 3: PM",
+"role.3.desc":'"이슈를 만들고 순서 정하기" — 마크다운 계획서로 Phase/이슈 관리',
+"role.3.example":'"Phase 1(순차) → Phase 2(병렬 3개 worktree) → Phase 3(순차 통합)"',
+"role.4.title":"역할 4: 디자인 디렉터",
+"role.4.desc":'"눈으로 보고 피드백" — 픽셀 단위까지 조정 가능',
+"role.4.example":'"뉴스 높이 640px" → "650px" → "670px" → "690px" / "Tokyo Night 풍으로"',
+"role.5.title":"역할 5: 데이터 관리자",
+"role.5.desc":'"외부 서비스 연결" — API 키 발급, 가입은 사람의 몫',
+"role.5.example":"OpenSky, AISStream, Gemini, ACLED 등 10개+ 키 직접 발급 및 .env 설정",
+"role.6.title":"역할 6: QA 테스터",
+"role.6.desc":"\"안 되는 걸 찾기\" — AI의 '완료' 보고를 검증",
+"role.6.example":'"EK 비행기가 없는데요" / "INSERT가 아니라 UPDATE여야" / "선박이 두 개뿐"',
+"role.7.title":"역할 7: 운영자",
+"role.7.desc":'"시스템을 띄우고 관리" — 명령어 몇 개로 서버 관리',
+"role.7.example":'"pm2 start ecosystem.config.js" / "pm2 재시작" / "캐시 다 날리고"',
+"section.timeline.label":"실제 대화 기록 분석",
+"section.timeline.title":"6시간 개발 타임라인 — 단계별 상세",
+"section.timeline.desc1":"4개 세션에서 추출한 실제 대화를 시간순으로 재구성했습니다. 탭을 눌러 각 단계를 확인하세요.",
+"section.timeline.desc2":"벽시계 기준 ~21시간 중, 사용자의 실제 입력/판단/리뷰에 소요된 시간은 약 6시간입니다. 나머지는 AI 에이전트의 자율 작업 시간.",
+"tab.step1":"Step 1. 아이디어→PRD",
+"tab.step2":"Step 2. 설계 + 이슈",
+"tab.step3":"Step 3. M1 데이터 수집",
+"tab.step4":"Step 4. M2-3 통합+공항",
+"tab.step5":"Step 5. M4-7 UI 개발",
+"tab.step6":"Step 6. QA + 마무리",
+"section.patterns.label":"발견된 패턴",
+"section.patterns.title":"바이브 코딩 3대 핵심 패턴",
+"pattern.a.title":"패턴 A: 대화 → 문서 → 대화 루프",
+"pattern.a.desc":"PRD를 한 번 쓰고 끝이 아닙니다. 개발 중 새 요구사항이 생기면 PRD를 갱신하고, 갱신된 PRD를 다시 AI에게 참조시킵니다.",
+"pattern.b.title":'패턴 B: 구조화된 지시서 — "Implement the following plan"',
+"pattern.b.desc":'숙련도가 올라가면 "해줘" 대신, Phase별 순서, 이슈 번호, 순차/병렬 구분, 브랜치명까지 마크다운으로 작성해서 전달합니다.',
+"pattern.c.title":"패턴 C: 에이전트 팀 운영 + Worktree 병렬",
+"pattern.c.desc":"역할별 전문 에이전트를 팀처럼 구성 → Git Worktree로 독립 브랜치에서 동시 작업 → code-reviewer가 리뷰 → 머지.",
+"flow.step1":"PRD 작성",
+"flow.step2":"이슈 생성",
+"flow.step3":"에이전트 개발",
+"flow.step4":"에이전트 개발",
+"flow.step5":"리뷰+머지",
+"flow.step6":"PRD 갱신",
+"footer.desc":"이 가이드는 실제 Claude Code 대화 히스토리 4세션(~10,000 라인 JSONL)을 분석하여 작성되었습니다.",
+"ms.prd":"PRD",
+"ms.prd.tip":"PRD + UI 프로토타입 + CLAUDE.md",
+"ms.m1":"M1 수집",
+"ms.m1.tip":"뉴스, 시장, 선박, 지정학 수집 파이프라인",
+"ms.m2":"M2 통합",
+"ms.m2.tip":"프론트엔드 API 연동 + React Query",
+"ms.m3":"M3 공항",
+"ms.m3.tip":"두바이 공항 데이터 수집 배치",
+"ms.m45":"M4-5 UI",
+"ms.m45.tip":"에이전트 팀 병렬 UI 개발",
+"ms.m67":"M6-7 UX",
+"ms.m67.tip":"Tokyo Night 테마 + i18n",
+"ms.qa":"QA",
+"ms.qa.tip":"데이터 품질 + 버그 수정",
+"issue.card1.title":"PRD 참조",
+"issue.card1.desc":"docs/prd.md 섹션 번호",
+"issue.card2.title":"담당 에이전트",
+"issue.card2.desc":"feature-dev, code-architect 등",
+"issue.card3.title":"상세 설계",
+"issue.card3.desc":"영향 파일, API, DB 스키마",
+"issue.card4.title":"테스트 계획",
+"issue.card4.desc":"Red → Green → Refactor",
+"agent.name.architect":"code-architect",
+"agent.name.feature":"feature-dev",
+"agent.name.reviewer":"code-reviewer",
+"agent.name.explorer":"code-explorer",
+"agent.name.simplifier":"code-simplifier",
+"agent.name.design":"frontend-design",
+"prd.card1.title":"1. 프로젝트 개요",
+"prd.card1.desc":"목적, 배경, 타겟 사용자",
+"prd.card2.title":"2. 기술 스택",
+"prd.card2.desc":"사용할 프레임워크, DB, API 목록",
+"prd.card3.title":"3. 핵심 기능 정의",
+"prd.card3.desc":"각 기능별 상세 요구사항 (뉴스, 시장, 선박, 공항...)",
+"prd.card4.title":"4. UI/UX 요구사항",
+"prd.card4.desc":"레이아웃, 컴포넌트, 반응형 설계",
+"prd.card5.title":"5. 마일스톤 계획",
+"prd.card5.desc":"M1~M7 단계별 목표와 우선순위",
+"prd.card6.title":"부록: 데이터 소스",
+"prd.card6.desc":"각 API의 URL, 인증 방식, 제한 사항",
+"tl.s1.i1.time":"첫 대화",
+"timeline.step1.item1.subtitle":"한 문장으로 시작",
+"chat.label.user":"사용자",
+"timeline.chat.user.7329":"국제 정세 시국을 모니터링하는 대시보드를 만들고 싶네요",
+"chat.label.ai":"Claude",
+"tl.s1.i1.chat.ai1":"PRD 초안을 작성하겠습니다. 카테고리별 분류, 지역별 필터링, 타임라인 표시를 포함합니다...",
+"tag.idea":"기획",
+"timeline.step1.item1.note":"처음부터 완벽한 기획서가 필요 없다. 한 문장에서 시작.",
+"tl.s1.i2.time":"요구사항 점진 확장",
+"timeline.step1.item2.subtitle":"대화하며 PRD를 키워간다",
+"chat.label.user.serial":"사용자 (연속 요청)",
+"timeline.chat.user.443":"중동 유조선이나 LPG선도 모니터링 추가해주세요",
+"timeline.chat.user.5969":"국내/미국 주식, 유가, 금 현물 정보도 추가해주세요",
+"timeline.step1.item2.note":"대화를 통해 자연스럽게 PRD가 확장됩니다.",
+"tl.s1.i3.time":"UI 프로토타입",
+"tl.s1.i3.title":"frontend-design 에이전트로 화면 설계",
+"tl.s1.i3.chat.user1":"@frontend-design 가 UX를 그려봐주세요",
+"tl.s1.i3.chat.user2":"지도를 실제 지도로 그려주세요",
+"tag.design":"디자인",
+"tl.s1.i3.agent":"frontend-design 에이전트",
+"tl.s1.i3.note":"/frontend-design 스킬이 HTML 프로토타입(index.html)을 생성. 코드를 몰라도 결과물을 보며 피드백.",
+"tl.s1.i4.time":"상세 요구사항",
+"tl.s1.i4.title":"상단 시장 티커 바 + 데이터 소스 조사",
+"tl.s1.i4.chat.user1":"상단 DOW 지표에 마우스를 가면 전체가 확장되면서 라인 그래프가 보이게, 아웃하면 줄여주세요",
+"tl.s1.i4.chat.user2":"PRD에 데이터 수집 원천을 심층 조사해서 리스트를 작성해주세요. Economist, Yahoo Finance, CNN, NBC는 꼭 넣어주세요",
+"tl.s1.i4.note":"사용자가 원하는 특정 사이트를 직접 지정하고, AI가 그 외 소스를 심층 조사.",
+"tl.s2.i1.time":"CLAUDE.md 생성",
+"tl.s2.i1.title":"AI 작업 규칙 + 아키텍처 결정",
+"tl.s2.i1.chat.user1":"CLAUDE.md 파일을 만들어 넣어주세요. DDD, TDD(red→green→refactor), 헥사고날, 클린 아키텍처, Tidy First...",
+"tl.s2.i1.note":"CLAUDE.md = AI에게 주는 사원 핸드북. 기술 스택, 개발 원칙, 워크플로우를 모두 정의.",
+"tl.s2.i2.time":"워크플로우 정의",
+"tl.s2.i2.title":"Git-Flow + 이슈 기반 작업 관리",
+"tl.s2.i2.chat.user1":"워크플로우를 정의하겠습니다. git-flow 정책으로 브랜치를 관리합니다. 모든 작업은 깃헙 이슈를 만들어 작업합니다.",
+"tag.manage":"PM",
+"tl.s2.i2.note":"핵심 결정: 모든 작업 = GitHub 이슈. 이슈에 담당 에이전트 명시.",
+"tl.s2.i3.time":"첫 마일스톤 이슈 생성",
+"tl.s2.i3.title":"M1 데이터 수집 — 이슈 #3~#10 자동 생성",
+"tl.s2.i3.chat.user1":"첫 마일스톤을 작업합시다. 데이터 수집과 AI분석 이슈를 심층 분석해서 마일스톤과 깃헙 이슈를 만들어주세요",
+"chat.label.ai.agent":"Claude (code-architect)",
+"tl.s2.i3.chat.ai1":"M1 마일스톤에 8개 이슈를 생성합니다: #3 Prisma 스키마, #4 뉴스 수집기, #5 Playwright 스크래핑...",
+"tl.s2.i3.agent":"code-architect 에이전트",
+"tl.s2.i3.note":"code-architect 에이전트가 PRD를 분석해서 이슈를 자동 생성. 각 이슈에 상세 설계 정보 포함.",
+"tl.s2.i4.time":"API 키 가이드",
+"tl.s2.i4.title":"필요한 외부 서비스 가입 안내",
+"tl.s2.i4.chat.user1":"필요한 앱 키 리스트와 가이드 해주세요",
+"tl.s2.i4.chat.ai1":"GDELT(인증 불요), AISStream(무료, GitHub 가입), ACLED(학술/연구용), Gemini API(Google Cloud)...",
+"tag.ops":"운영",
+"tl.s2.i4.note":"사용자가 직접 가입하고 키를 발급. AI가 가이드를 제공하고 .env.example을 생성.",
+"tl.s3.i1.time":"에이전트 팀 병렬 개발",
+"tl.s3.i1.title":"Worktree로 3개 수집기 동시 개발",
+"tl.s3.i1.chat.user1":"업무 계획을 잡아주세요. 팀 구성해도 됩니다. 업무마다 전문 에이전트 명시해주세요",
+"tl.s3.i1.chat.user2":"작업 시작하세요. git worktree 사용해도 되고, 끝날 때마다 PR → code-review → 머지",
+"tl.s3.i1.chat.ai1":"3개 에이전트를 worktree 병렬로 동시 투입합니다...",
+"tag.build":"개발",
+"tl.s3.i1.agent":"3개 feature-dev 병렬",
+"tl.s3.i1.note":"병렬로 해도 돼라고 허락하면 AI가 여러 에이전트를 동시에 돌려 작업 속도를 극대화.",
+"tl.s3.i2.time":"자동 리뷰 루프",
+"tl.s3.i2.title":"PR → code-reviewer → 개선 → 머지 반복",
+"tl.s3.i2.chat.ai1":"PR #17 Review: rate limit 미구현, import 경로 오류 발견...",
+"tl.s3.i2.chat.ai2":"리뷰 피드백 반영 완료. Rate limiter 추가, import 수정...",
+"tl.s3.i2.agent":"code-reviewer 에이전트",
+"tl.s3.i2.note":"AI가 만든 코드를 다른 AI가 리뷰 → 문제 발견 → 스스로 수정.",
+"tl.s4.i1.time":"M2 프론트엔드 통합",
+"tl.s4.i1.title":"구조화된 계획서로 지시",
+"chat.label.user.plan":"사용자 (마크다운 계획서 직접 작성)",
+"tl.s4.i1.chat.user1":"Implement the following plan:",
+"tl.s4.i1.note":"숙련된 바이브 코딩: 다음 거 해줘가 아니라 기술 결정, 이슈 범위까지 명시.",
+"tl.s4.i2.time":"두바이 공항 요구사항 추가",
+"tl.s4.i2.title":"새 요구사항 → PRD 갱신 → 이슈 생성",
+"tl.s4.i2.chat.user1":"두바이 공항 운항 상태, 에미레이트항공 취항 목적지, 주변 전쟁 폭격 상태 등 보여주세요",
+"tl.s4.i2.note":"대화 → 문서 → 대화 루프: 새 아이디어 → PRD 섹션 4.8 추가 → 이슈 #27~#34 생성.",
+"tl.s4.i3.time":"M3 공항 배치 Phase 계획",
+"tl.s4.i3.title":"3개 수집기 Worktree 병렬 개발",
+"chat.label.user.phase":"사용자 (상세 Phase 지시)",
+"chat.label.ai.report":"Claude — 3개 에이전트 동시 완료 보고",
+"tl.s4.i3.chat.ai1":"Agent OpenSky collector (#29) completed ✓ / AviationStack (#30) ✓ / Airport events (#31) ✓",
+"tl.s4.i3.agent":"3개 에이전트 병렬",
+"tl.s4.i3.note":"3개 에이전트가 각각 독립 브랜치에서 동시에 수집기를 구현. 약 5분 만에 모두 완료.",
+"tl.s4.i4.time":"트러블슈팅",
+"tl.s4.i4.title":"번역 누락 + OpenSky 인증 + AIS 키 변경",
+"tl.s4.i4.chat.user1":"왜 DB에 kr/jp 번역이 안되어있나요?",
+"tl.s4.i4.chat.user2":".env 파일 ID/PW 정확한데요.",
+"tl.s4.i4.chat.user3":"AIS 키 변경했습니다",
+"tag.debug":"디버그",
+"tl.s4.i4.note":"외부 서비스 트러블슈팅은 사람이 직접 확인.",
+"tl.s5.i1.time":"에이전트 팀 대규모 UI 개발",
+"tl.s5.i1.title":"5개 에이전트 동시 투입 — M4-5 UI 완성",
+"tl.s5.i1.chat.user1":"UI를 개발합시다. code-architect가 코드베이스와 문서를 읽어서 frontend 개발을 시작합니다",
+"tl.s5.i1.chat.user2":"필요하면 전문에이전트들로 팀을 구성해서 병행 작업하세요",
+"tl.s5.i1.chat.ai1":"Agent M5 #45~#49 completed ✓ (5개 동시 완료)",
+"tl.s5.i1.agent":"5개 에이전트 병렬",
+"tl.s5.i1.note":"5개 에이전트가 worktree에서 독립 개발. 사람은 팀 구성해서 병행 작업하세요라고 한마디.",
+"tl.s5.i2.time":"다국어(i18n) 적용",
+"tl.s5.i2.title":"전체 UI 한국어/영어/일본어 대응",
+"tl.s5.i2.chat.user1":"feat: 전체 UI i18n 다국어 적용 (KO/EN/JA) #60 이거 개발합시다",
+"chat.label.ai.completed":"Agent completed",
+"tl.s5.i2.chat.ai1":"ko.json, en.json, ja.json 생성 + LanguageContext 연동 완료",
+"tl.s5.i2.agent":"feature-dev 에이전트",
+"tl.s5.i3.time":"Tokyo Night 테마",
+"tl.s5.i3.title":"전체 디자인 + 태블릿 터치 UI 재설계",
+"tl.s5.i3.chat.user1":"화면 전체적으로 너무 작아요. 태블릿 터치 UI로 재설계. 컬러는 Tokyo Night 풍으로",
+"tl.s5.i3.chat.ai1":"20개 파일의 CSS 변수 교체 + 폰트 크기 확대 완료",
+"tl.s5.i3.agent":"frontend-design 에이전트",
+"tl.s5.i3.note":"Tokyo Night이라는 한마디로 20개 파일의 CSS를 일괄 교체.",
+"tl.s5.i4.time":"미세 조정 연속",
+"tl.s5.i4.title":"픽셀 단위 피드백 — 디자인 디렉터 역할",
+"chat.label.user.feedback":"사용자 (연속 피드백)",
+"tl.s5.i4.chat.user1":"이슈 트래커 높이 줄이고 뉴스를 옆으로 옮겨주세요",
+"tl.s5.i4.chat.user2":"해더 글꼴 너무 작아요",
+"tl.s5.i4.chat.user3":"뉴스: 690px 고정",
+"tl.s5.i4.chat.user4":"너무 혼자만 칼라풀한데요",
+"tl.s5.i4.chat.user5":"GLOBAL TENSION MAP과 이슈 트래커 높이를 맞추세요",
+"tl.s5.i4.note":"이 단계에서 가장 많은 사람 시간이 소요됩니다. 짧고 직관적인 피드백이 효과적.",
+"tl.s6.i1.time":"데이터 로직 버그 발견",
+"tl.s6.i1.title":"INSERT vs UPDATE — 핵심 로직 오류",
+"tl.s6.i1.chat.user1":"업데이트가 아니라 매번 새 행(INSERT)을 추가하는 방식이면 안돼요",
+"tl.s6.i1.note":"AI가 놓친 핵심 버그를 사용자가 DB 데이터를 확인하여 발견.",
+"tl.s6.i2.time":"데이터 누락 연속 발견",
+"tl.s6.i2.title":"완료 보고 vs 실제 화면 검증",
+"chat.label.user.verify":"사용자 (연속 검증)",
+"tl.s6.i2.chat.user1":"선박데이터와 비행기 데이터도 없고 GLOBAL TENSION MAP도 비어있습니다",
+"tl.s6.i2.chat.user2":"EK 비행기가 없는데요?",
+"tl.s6.i2.chat.user3":"선박은 여전히 두 개뿐이구요",
+"tl.s6.i2.chat.user4":"주요 항공사에 empty 1편 100%라고 나오는데요",
+"tl.s6.i2.note":"AI가 완료라고 해도 실제 데이터를 눈으로 확인해야 합니다.",
+"tl.s6.i3.time":"문서 현행화 + 완료",
+"tl.s6.i3.title":"PRD, CLAUDE.md, README 모두 갱신",
+"tl.s6.i3.chat.user1":"문서 모두 변경된 내용을 분석해서 현행화하세요",
+"tl.s6.i3.note":"마지막: 코드뿐 아니라 문서도 최신 상태로.",
+"flow.idea":"아이디어",
+"flow.architect":"Architect",
+"flow.dev":"Dev",
+"flow.reviewer":"Reviewer",
+"flow.merge":"Merge",
+"tl.s4.i3.chat.user1":"Implement the following plan:<br>Phase 1 (순차): #27 → #28 (구조적 기반)<br>Phase 2 (병렬): #29, #30, #31 (3개 수집기 — worktree 병렬)<br>Phase 3 (순차): #32 → #33 → #34 (통합)"
+},
+en:{
+"hero.badge":"Case Study",
+"hero.title":"How a Non-Developer Built a<br><span>Full-Stack Dashboard</span> in 6 Hours",
+"hero.subtitle":"A practical vibe coding guide based on real conversation logs with Claude Code's specialized agent team",
+"hero.stat1.num":"~6h",
+"hero.stat1.label":"Actual Human Time",
+"hero.stat2.num":"7",
+"hero.stat2.label":"Milestones",
+"hero.stat3.num":"60+",
+"hero.stat3.label":"GitHub Issues",
+"hero.stat4.num":"8+",
+"hero.stat4.label":"Specialized Agents",
+"hero.scroll":"Scroll down ↓",
+"section.overview.label":"Project Overview",
+"section.overview.title":'World Affairs Monitoring Dashboard "SIGINT"',
+"section.overview.desc":"News aggregation, financial markets, Middle East vessel tracking, Dubai airport real-time monitoring, and AI sentiment analysis — a full-stack Next.js + Prisma + SQLite app built by a non-developer using Claude Code's specialized agent team.",
+"overview.stat1":"React Components",
+"overview.stat2":"Data Collectors",
+"overview.stat3":"Languages (KO/EN/JA)",
+"overview.stat4":"External APIs",
+"overview.stat5":"Human Active Time",
+"section.overview.milestone":"Milestone Progress Flow",
+"section.workflow.label":"Workflow",
+"section.workflow.title":"Issue-Based Development — Plan First, Manage with Issues",
+"section.workflow.desc":"The core workflow revolves around GitHub Issues. Every task starts with creating an issue, development happens per issue, and review/merge happens per issue.",
+"workflow.step1.title":"Milestone Planning",
+"workflow.step1.desc":"Break goals into milestones and define order",
+"workflow.step2.title":"Issue Creation",
+"workflow.step2.desc":"Separate structural/feature issues using Tidy First",
+"workflow.step3.title":"Agent Development",
+"workflow.step3.desc":"Specialized agents create branches and develop per issue",
+"workflow.step4.title":"PR + Code Review",
+"workflow.step4.desc":"code-reviewer agent auto-reviews then merges",
+"workflow.pattern1.title":"What Each Issue Contains",
+"workflow.pattern1.desc":"Issues aren't just a \"to-do list.\" Each issue contains the following information:",
+"workflow.pattern2.title":"Specialized Agent Team",
+"workflow.pattern2.desc":"Instead of a single AI, specialized agents are organized into a team for parallel work. Each agent uses Git Worktree to work simultaneously on independent branches.",
+"workflow.callout":"Real example: In M4-5, 5 agents worked simultaneously via Worktree → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChart developed in parallel",
+"agent.header.name":"Agent",
+"agent.header.role":"Role",
+"agent.header.usage":"When Used",
+"agent.role.architect":"Architecture Design",
+"agent.usage.architect":"Module design, interface definition, issue planning",
+"agent.role.feature":"Feature Development",
+"agent.usage.feature":"New feature implementation, use case writing",
+"agent.role.reviewer":"Code Review",
+"agent.usage.reviewer":"PR review, quality assurance, improvement directives",
+"agent.role.explorer":"Code Analysis",
+"agent.usage.explorer":"Codebase exploration, execution path tracing",
+"agent.role.simplifier":"Code Cleanup",
+"agent.usage.simplifier":"Tidy First structural changes",
+"agent.role.design":"UI/UX Design",
+"agent.usage.design":"Prototyping, layout, theme application",
+"section.prd.label":"Key Tool",
+"section.prd.title":"What is a PRD — The Blueprint for AI",
+"section.prd.desc":"A PRD (Product Requirements Document) defines \"what to build.\" It's the most important deliverable for non-developers doing vibe coding — AI uses this document as the basis for all work.",
+"prd.structure.title":"PRD Structure — Actual Project Layout",
+"prd.structure.desc":"The PRD consists of these sections. You don't need to write it perfectly from the start — fill it in progressively through conversation.",
+"prd.loop.title":"PRD → Issue → AI Development Loop",
+"prd.loop.desc":"You don't write the PRD once and forget it. The core is a cycle: create issues from the PRD, assign work to AI per issue.",
+"prd.step1.title":"Step 1: PRD → Auto-Generate Issue List",
+"prd.step1.desc":'When the user says "Create M1 data collection issues," the code-architect agent analyzes the PRD and auto-generates issues #3-#10.',
+"prd.step2.title":"Step 2: Issue → Assign to Agent",
+"prd.step2.desc":'Once issues are created, you say "Implement issue #4." The feature-dev agent autonomously creates a branch → TDD development → PR creation.',
+"prd.step3.title":"Step 3: Review + Discover New Issues",
+"prd.step3.desc":"code-reviewer reviews the PR and discovers improvements or missing requirements, which become new issues.",
+"prd.step4.title":"Step 4: Update PRD → Repeat Loop",
+"prd.step4.desc":"When new requirements emerge during development, update the PRD. When you reference the updated PRD to AI, it recognizes the changes.",
+"prd.callout":"Real example: Dubai airport requirement added → PRD section 4.8 created → code-architect auto-generated issues #27-#34 → 3 agents developed in parallel via Worktree → completed in ~2 hours",
+"section.roles.label":"Core Insight",
+"section.roles.title":"7 Roles of a Non-Developer",
+"section.roles.desc":"In vibe coding, the human doesn't write code, but performs 7 distinct roles.",
+"role.1.title":"Role 1: Planner",
+"role.1.desc":'"Say what to build" — Start with one sentence and grow through conversation',
+"role.1.example":'"I want a world affairs dashboard" → "Add Middle East tankers" → "Add stocks" → "Add Dubai airport"',
+"role.2.title":"Role 2: Architect",
+"role.2.desc":'"Set AI work rules" — Maintain consistent quality via CLAUDE.md',
+"role.2.example":"TDD, Git-Flow, Tidy First, agent list defined → AI works at the same level every time",
+"role.3.title":"Role 3: PM",
+"role.3.desc":'"Create issues and set priorities" — Manage phases/issues with markdown plans',
+"role.3.example":'"Phase 1 (sequential) → Phase 2 (parallel, 3 worktrees) → Phase 3 (sequential integration)"',
+"role.4.title":"Role 4: Design Director",
+"role.4.desc":'"Visual feedback" — Pixel-level adjustments possible',
+"role.4.example":'"News height 640px" → "650px" → "670px" → "690px" / "Make it Tokyo Night style"',
+"role.5.title":"Role 5: Data Manager",
+"role.5.desc":"\"Connect external services\" — API keys and signups are the human's job",
+"role.5.example":"OpenSky, AISStream, Gemini, ACLED — 10+ keys manually issued and .env configured",
+"role.6.title":"Role 6: QA Tester",
+"role.6.desc":"\"Find what's broken\" — Verify AI's 'done' reports",
+"role.6.example":"\"Emirates flights aren't showing\" / \"Should be UPDATE not INSERT\" / \"Only 2 vessels\"",
+"role.7.title":"Role 7: Operator",
+"role.7.desc":'"Launch and manage systems" — Server management with a few commands',
+"role.7.example":'"pm2 start ecosystem.config.js" / "Restart pm2" / "Clear all cache"',
+"section.timeline.label":"Conversation Log Analysis",
+"section.timeline.title":"6-Hour Development Timeline — Step by Step",
+"section.timeline.desc1":"Real conversations from 4 sessions, reconstructed chronologically. Click tabs to explore each phase.",
+"section.timeline.desc2":"Out of ~21 wall-clock hours, the user's actual input/judgment/review time was approximately 6 hours. The rest was autonomous AI agent work.",
+"tab.step1":"Step 1. Idea→PRD",
+"tab.step2":"Step 2. Design + Issues",
+"tab.step3":"Step 3. M1 Data Collection",
+"tab.step4":"Step 4. M2-3 Integration",
+"tab.step5":"Step 5. M4-7 UI Development",
+"tab.step6":"Step 6. QA + Wrap-up",
+"section.patterns.label":"Discovered Patterns",
+"section.patterns.title":"3 Core Vibe Coding Patterns",
+"pattern.a.title":"Pattern A: Conversation → Document → Conversation Loop",
+"pattern.a.desc":"You don't write the PRD once and stop. When new requirements emerge during development, update the PRD and reference it back to AI.",
+"pattern.b.title":'Pattern B: Structured Instructions — "Implement the following plan"',
+"pattern.b.desc":'As proficiency grows, instead of "do it," you write markdown with Phase order, issue numbers, sequential/parallel distinctions, and branch names.',
+"pattern.c.title":"Pattern C: Agent Team Operation + Worktree Parallel",
+"pattern.c.desc":"Organize specialized agents into a team → simultaneous work on independent branches via Git Worktree → code-reviewer reviews → merge.",
+"flow.step1":"Write PRD",
+"flow.step2":"Create Issues",
+"flow.step3":"Agent Dev",
+"flow.step4":"Agent Dev",
+"flow.step5":"Review+Merge",
+"flow.step6":"Update PRD",
+"footer.desc":"This guide was created by analyzing actual Claude Code conversation history from 4 sessions (~10,000 lines of JSONL).",
+"ms.prd":"PRD",
+"ms.prd.tip":"PRD + UI Prototype + CLAUDE.md",
+"ms.m1":"M1 Collection",
+"ms.m1.tip":"News, Market, Shipping, Geopolitics Collection Pipeline",
+"ms.m2":"M2 Integration",
+"ms.m2.tip":"Frontend API Integration + React Query",
+"ms.m3":"M3 Airport",
+"ms.m3.tip":"Dubai Airport Data Collection Batch",
+"ms.m45":"M4-5 UI",
+"ms.m45.tip":"Agent Team Parallel UI Development",
+"ms.m67":"M6-7 UX",
+"ms.m67.tip":"Tokyo Night Theme + i18n",
+"ms.qa":"QA",
+"ms.qa.tip":"Data Quality + Bug Fixes",
+"issue.card1.title":"PRD Reference",
+"issue.card1.desc":"docs/prd.md Section Number",
+"issue.card2.title":"Assigned Agent",
+"issue.card2.desc":"feature-dev, code-architect, etc.",
+"issue.card3.title":"Detailed Design",
+"issue.card3.desc":"Affected Files, API, DB Schema",
+"issue.card4.title":"Test Plan",
+"issue.card4.desc":"Red → Green → Refactor",
+"agent.name.architect":"code-architect",
+"agent.name.feature":"feature-dev",
+"agent.name.reviewer":"code-reviewer",
+"agent.name.explorer":"code-explorer",
+"agent.name.simplifier":"code-simplifier",
+"agent.name.design":"frontend-design",
+"prd.card1.title":"1. Project Overview",
+"prd.card1.desc":"Purpose, Background, Target User",
+"prd.card2.title":"2. Technology Stack",
+"prd.card2.desc":"Frameworks, DB, API List to Use",
+"prd.card3.title":"3. Core Features Definition",
+"prd.card3.desc":"Detailed Requirements per Feature (News, Market, Shipping, Airport...)",
+"prd.card4.title":"4. UI/UX Requirements",
+"prd.card4.desc":"Layout, Components, Responsive Design",
+"prd.card5.title":"5. Milestone Plan",
+"prd.card5.desc":"M1~M7 Goals and Priorities by Phase",
+"prd.card6.title":"Appendix: Data Sources",
+"prd.card6.desc":"Each API's URL, Authentication Method, Limitations",
+"tl.s1.i1.time":"Initial Conversation",
+"timeline.step1.item1.subtitle":"Start with One Sentence",
+"chat.label.user":"User",
+"timeline.chat.user.7329":"I want to build a dashboard to monitor international geopolitical situations",
+"chat.label.ai":"Claude",
+"tl.s1.i1.chat.ai1":"I'll draft a PRD. Including category classification, regional filtering, and timeline display...",
+"tag.idea":"Planning",
+"timeline.step1.item1.note":"Perfect planning documents aren't needed from the start. Begin with one sentence.",
+"tl.s1.i2.time":"Requirements Progressive Expansion",
+"timeline.step1.item2.subtitle":"Grow the PRD Through Conversation",
+"chat.label.user.serial":"User (Sequential requests)",
+"timeline.chat.user.443":"Please add monitoring for Middle Eastern tankers and LPG carriers too",
+"timeline.chat.user.5969":"Also add domestic/US stocks, oil prices, gold spot prices",
+"timeline.step1.item2.note":"The PRD expands naturally through conversation.",
+"tl.s1.i3.time":"UI Prototype",
+"tl.s1.i3.title":"Screen Design with frontend-design Agent",
+"tl.s1.i3.chat.user1":"@frontend-design please sketch the UX",
+"tl.s1.i3.chat.user2":"Please render the map with an actual map library",
+"tag.design":"Design",
+"tl.s1.i3.agent":"frontend-design Agent",
+"tl.s1.i3.note":"/frontend-design skill generates HTML prototype (index.html). See results and provide feedback without coding knowledge.",
+"tl.s1.i4.time":"Detailed Requirements",
+"tl.s1.i4.title":"Top Market Ticker Bar + Data Source Research",
+"tl.s1.i4.chat.user1":"When hovering over the DOW indicator at the top, expand fully and show a line graph. Collapse on mouseout",
+"tl.s1.i4.chat.user2":"Research data collection sources for the PRD in depth and create a list. Please include Economist, Yahoo Finance, CNN, NBC",
+"tl.s1.i4.note":"User specifies desired sites directly, and AI researches additional sources.",
+"tl.s2.i1.time":"CLAUDE.md Generation",
+"tl.s2.i1.title":"AI Work Rules + Architecture Decisions",
+"tl.s2.i1.chat.user1":"Create a CLAUDE.md file. Include DDD, TDD(red→green→refactor), Hexagonal, Clean Architecture, Tidy First...",
+"tl.s2.i1.note":"CLAUDE.md = Employee handbook for AI. Define tech stack, development principles, workflow.",
+"tl.s2.i2.time":"Workflow Definition",
+"tl.s2.i2.title":"Git-Flow + Issue-Based Work Management",
+"tl.s2.i2.chat.user1":"I'll define the workflow. We'll manage branches with git-flow policy. All work uses GitHub issues.",
+"tag.manage":"PM",
+"tl.s2.i2.note":"Key decision: All work = GitHub issue. Specify assigned agent in each issue.",
+"tl.s2.i3.time":"First Milestone Issue Creation",
+"tl.s2.i3.title":"M1 Data Collection — Issues #3~#10 Auto-Generated",
+"tl.s2.i3.chat.user1":"Let's work on the first milestone. Analyze data collection and AI analysis issues in depth, then create milestones and GitHub issues",
+"chat.label.ai.agent":"Claude (code-architect)",
+"tl.s2.i3.chat.ai1":"Creating 8 issues for M1 milestone: #3 Prisma Schema, #4 News Collector, #5 Playwright Scraping...",
+"tl.s2.i3.agent":"code-architect Agent",
+"tl.s2.i3.note":"code-architect agent analyzes PRD and auto-generates issues. Each issue includes detailed design info.",
+"tl.s2.i4.time":"API Key Guide",
+"tl.s2.i4.title":"Required External Service Signup Guide",
+"tl.s2.i4.chat.user1":"Please provide a list of required app keys and guidance",
+"tl.s2.i4.chat.ai1":"GDELT(no auth required), AISStream(free, GitHub signup), ACLED(academic/research), Gemini API(Google Cloud)...",
+"tag.ops":"Operations",
+"tl.s2.i4.note":"User signs up directly and obtains keys. AI provides guidance and generates .env.example.",
+"tl.s3.i1.time":"Agent Team Parallel Development",
+"tl.s3.i1.title":"3 Collectors Simultaneous Development with Worktree",
+"tl.s3.i1.chat.user1":"Plan the work schedule. You can form teams. Specify specialist agents for each task",
+"tl.s3.i1.chat.user2":"Start working. You can use git worktree, then do PR → code-review → merge when finished",
+"tl.s3.i1.chat.ai1":"Deploying 3 agents in parallel via worktree...",
+"tag.build":"Development",
+"tl.s3.i1.agent":"3 feature-dev Parallel",
+"tl.s3.i1.note":"When given permission to work in parallel, AI runs multiple agents simultaneously to maximize speed.",
+"tl.s3.i2.time":"Automatic Review Loop",
+"tl.s3.i2.title":"PR → code-reviewer → Improvements → Merge Loop",
+"tl.s3.i2.chat.ai1":"PR #17 Review: rate limit not implemented, import path error found...",
+"tl.s3.i2.chat.ai2":"Review feedback applied. Rate limiter added, imports fixed...",
+"tl.s3.i2.agent":"code-reviewer Agent",
+"tl.s3.i2.note":"AI-generated code is reviewed by another AI → finds issues → self-fixes.",
+"tl.s4.i1.time":"M2 Frontend Integration",
+"tl.s4.i1.title":"Instruction with Structured Plan",
+"chat.label.user.plan":"User (Writing Detailed Markdown Plan)",
+"tl.s4.i1.chat.user1":"Implement the following plan:",
+"tl.s4.i1.note":"Mature communication style: not just 'do next thing', but specify technical decisions and issue scope.",
+"tl.s4.i2.time":"Dubai Airport Requirements Added",
+"tl.s4.i2.title":"New Requirements → Update PRD → Create Issues",
+"tl.s4.i2.chat.user1":"Please show Dubai airport operational status, Emirates destinations, nearby conflict bombing status, etc.",
+"tl.s4.i2.note":"Conversation → Document → Conversation loop: New idea → Add PRD Section 4.8 → Create issues #27~#34.",
+"tl.s4.i3.time":"M3 Airport Batch Phase Plan",
+"tl.s4.i3.title":"3 Collectors Worktree Parallel Development",
+"chat.label.user.phase":"User (Detailed Phase Instruction)",
+"chat.label.ai.report":"Claude — 3 Agents Parallel Completion Report",
+"tl.s4.i3.chat.ai1":"Agent OpenSky collector (#29) completed ✓ / AviationStack (#30) ✓ / Airport events (#31) ✓",
+"tl.s4.i3.agent":"3 Agents Parallel",
+"tl.s4.i3.note":"3 agents simultaneously implement collectors on independent branches. All completed in ~5 minutes.",
+"tl.s4.i4.time":"Troubleshooting",
+"tl.s4.i4.title":"Translation Missing + OpenSky Auth + AIS Key Change",
+"tl.s4.i4.chat.user1":"Why don't kr/jp translations exist in the DB?",
+"tl.s4.i4.chat.user2":"The .env file ID/PW is correct.",
+"tl.s4.i4.chat.user3":"I changed the AIS key",
+"tag.debug":"Debug",
+"tl.s4.i4.note":"External service troubleshooting requires manual human verification.",
+"tl.s5.i1.time":"Agent Team Large-Scale UI Development",
+"tl.s5.i1.title":"5 Agents Simultaneous Deployment — M4-5 UI Complete",
+"tl.s5.i1.chat.user1":"Let's develop the UI. Have code-architect read the codebase and documentation to start frontend development",
+"tl.s5.i1.chat.user2":"If needed, form specialist agent teams and work in parallel",
+"tl.s5.i1.chat.ai1":"Agent M5 #45~#49 completed ✓ (5 completed simultaneously)",
+"tl.s5.i1.agent":"5 Agents Parallel",
+"tl.s5.i1.note":"5 agents independently develop on worktree. Just say: form specialist teams and work in parallel.",
+"tl.s5.i2.time":"Multilingual (i18n) Implementation",
+"tl.s5.i2.title":"Full UI Korean/English/Japanese Support",
+"tl.s5.i2.chat.user1":"Let's develop this: feat: Apply full UI i18n multilingual support (KO/EN/JA) #60",
+"chat.label.ai.completed":"Agent completed",
+"tl.s5.i2.chat.ai1":"Created ko.json, en.json, ja.json + LanguageContext integration completed",
+"tl.s5.i2.agent":"feature-dev Agent",
+"tl.s5.i3.time":"Tokyo Night Theme",
+"tl.s5.i3.title":"Full Design + Tablet Touch UI Redesign",
+"tl.s5.i3.chat.user1":"The entire screen is too small. Redesign for tablet touch UI. Colors should be Tokyo Night style",
+"tl.s5.i3.chat.ai1":"Replaced CSS variables in 20 files + increased font sizes completed",
+"tl.s5.i3.agent":"frontend-design Agent",
+"tl.s5.i3.note":"One phrase 'Tokyo Night' updates CSS across 20 files at once.",
+"tl.s5.i4.time":"Fine-Tuning Iteration",
+"tl.s5.i4.title":"Pixel-Level Feedback — Design Director Role",
+"chat.label.user.feedback":"User (Sequential feedback)",
+"tl.s5.i4.chat.user1":"Reduce issue tracker height and move news to the side",
+"tl.s5.i4.chat.user2":"Header font is too small",
+"tl.s5.i4.chat.user3":"News: Fixed 690px",
+"tl.s5.i4.chat.user4":"It's too colorful on its own",
+"tl.s5.i4.chat.user5":"Match GLOBAL TENSION MAP and issue tracker heights",
+"tl.s5.i4.note":"This phase consumes the most human time. Short, intuitive feedback is most effective.",
+"tl.s6.i1.time":"Data Logic Bug Found",
+"tl.s6.i1.title":"INSERT vs UPDATE — Core Logic Error",
+"tl.s6.i1.chat.user1":"We can't keep adding new rows (INSERT) each time. We need updates instead",
+"tl.s6.i1.note":"User discovers critical bug AI missed by checking actual DB data.",
+"tl.s6.i2.time":"Sequential Data Gap Discovery",
+"tl.s6.i2.title":"Completion Report vs Actual Screen Validation",
+"chat.label.user.verify":"User (Sequential verification)",
+"tl.s6.i2.chat.user1":"Shipping data and flight data are missing, and GLOBAL TENSION MAP is empty",
+"tl.s6.i2.chat.user2":"There are no EK flights?",
+"tl.s6.i2.chat.user3":"There are still only two ships",
+"tl.s6.i2.chat.user4":"Major airlines show empty 1 flight 100%",
+"tl.s6.i2.note":"Even when AI says complete, manually verify actual data.",
+"tl.s6.i3.time":"Document Modernization + Complete",
+"tl.s6.i3.title":"Update All PRD, CLAUDE.md, README",
+"tl.s6.i3.chat.user1":"Analyze all document changes and update to current state",
+"tl.s6.i3.note":"Finally: Keep docs current alongside code.",
+"flow.idea":"Idea",
+"flow.architect":"Architect",
+"flow.dev":"Dev",
+"flow.reviewer":"Reviewer",
+"flow.merge":"Merge",
+"tl.s4.i3.chat.user1":"Implement the following plan:<br>Phase 1 (Sequential): #27 → #28 (Structural foundation)<br>Phase 2 (Parallel): #29, #30, #31 (3 collectors — worktree parallel)<br>Phase 3 (Sequential): #32 → #33 → #34 (Integration)"
+},
+de:{
+"hero.badge":"Fallstudie",
+"hero.title":"Wie ein Nicht-Entwickler in<br><span>6 Stunden</span> ein Full-Stack-Dashboard baute",
+"hero.subtitle":"Ein praxisorientierter Vibe-Coding-Leitfaden basierend auf echten Gesprächsprotokollen mit dem spezialisierten Agententeam von Claude Code",
+"hero.stat1.num":"~6h",
+"hero.stat1.label":"Tatsächliche Arbeitszeit",
+"hero.stat2.num":"7",
+"hero.stat2.label":"Meilensteine",
+"hero.stat3.num":"60+",
+"hero.stat3.label":"GitHub Issues",
+"hero.stat4.num":"8+",
+"hero.stat4.label":"Spezial-Agenten",
+"hero.scroll":"Nach unten scrollen ↓",
+"section.overview.label":"Projektübersicht",
+"section.overview.title":"Weltlage-Monitoring-Dashboard „SIGINT“",
+"section.overview.desc":"Nachrichtensammlung, Finanzmärkte, Schiffsverfolgung im Nahen Osten, Echtzeit-Überwachung des Flughafens Dubai und KI-Stimmungsanalyse — eine Full-Stack-App mit Next.js + Prisma + SQLite, erstellt von einem Nicht-Entwickler mit Claude Codes Agententeam.",
+"overview.stat1":"React-Komponenten",
+"overview.stat2":"Datensammler",
+"overview.stat3":"Sprachen (KO/EN/JA)",
+"overview.stat4":"Externe APIs",
+"overview.stat5":"Mensch aktiv",
+"section.overview.milestone":"Meilenstein-Verlauf",
+"section.workflow.label":"Workflow",
+"section.workflow.title":"Issue-basierte Entwicklung — Planen und mit Issues verwalten",
+"section.workflow.desc":"Der Kern-Workflow dreht sich um GitHub Issues. Jede Aufgabe beginnt mit einem Issue, wird pro Issue entwickelt und pro Issue reviewed/gemergt.",
+"workflow.step1.title":"Meilensteinplanung",
+"workflow.step1.desc":"Ziele in Meilensteine aufteilen und Reihenfolge festlegen",
+"workflow.step2.title":"Issue-Erstellung",
+"workflow.step2.desc":"Struktur-/Feature-Issues nach Tidy First trennen",
+"workflow.step3.title":"Agentenentwicklung",
+"workflow.step3.desc":"Spezialagenten erstellen Branches und entwickeln pro Issue",
+"workflow.step4.title":"PR + Code-Review",
+"workflow.step4.desc":"code-reviewer Agent prüft automatisch und mergt",
+"workflow.pattern1.title":"Was ein Issue enthält",
+"workflow.pattern1.desc":"Issues sind nicht nur eine „To-do-Liste“. Jedes Issue enthält folgende Informationen:",
+"workflow.pattern2.title":"Spezialisiertes Agententeam",
+"workflow.pattern2.desc":"Statt einer einzelnen KI werden rollenbasierte Spezialagenten als Team organisiert, die parallel arbeiten. Jeder Agent nutzt Git Worktree für gleichzeitige Arbeit.",
+"workflow.callout":"Praxisbeispiel: In M4-5 arbeiteten 5 Agenten gleichzeitig via Worktree → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChart parallel entwickelt",
+"agent.header.name":"Agent",
+"agent.header.role":"Rolle",
+"agent.header.usage":"Einsatzzeitpunkt",
+"agent.role.architect":"Architektur-Design",
+"agent.usage.architect":"Moduldesign, Schnittstellendefinition, Issue-Planung",
+"agent.role.feature":"Feature-Entwicklung",
+"agent.usage.feature":"Neue Features implementieren, Use Cases schreiben",
+"agent.role.reviewer":"Code-Review",
+"agent.usage.reviewer":"PR-Review, Qualitätssicherung, Verbesserungsvorschläge",
+"agent.role.explorer":"Code-Analyse",
+"agent.usage.explorer":"Bestehenden Code verstehen, Ausführungspfade verfolgen",
+"agent.role.simplifier":"Code-Bereinigung",
+"agent.usage.simplifier":"Tidy First strukturelle Änderungen",
+"agent.role.design":"UI/UX-Design",
+"agent.usage.design":"Prototypen, Layouts, Theme-Anwendung",
+"section.prd.label":"Schlüsselwerkzeug",
+"section.prd.title":"Was ist ein PRD — Der Bauplan für die KI",
+"section.prd.desc":"Ein PRD (Product Requirements Document) definiert „was gebaut werden soll“. Es ist das wichtigste Dokument beim Vibe Coding — die KI nutzt es als Grundlage für alle Arbeiten.",
+"prd.structure.title":"PRD-Struktur — Tatsächlicher Projektaufbau",
+"prd.structure.desc":"Das PRD besteht aus diesen Abschnitten. Sie müssen es nicht sofort perfekt schreiben — füllen Sie es schrittweise im Gespräch aus.",
+"prd.loop.title":"PRD → Issue → KI-Entwicklungsschleife",
+"prd.loop.desc":"Das PRD wird nicht einmal geschrieben und vergessen. Der Kern ist ein Zyklus: Issues aus dem PRD erstellen, Arbeit pro Issue an die KI vergeben.",
+"prd.step1.title":"Schritt 1: PRD → Issue-Liste automatisch generieren",
+"prd.step1.desc":"Wenn Sie sagen „Erstelle M1-Datensammlungs-Issues“, analysiert der code-architect Agent das PRD und generiert Issues #3-#10 automatisch.",
+"prd.step2.title":"Schritt 2: Issue → An Agent zuweisen",
+"prd.step2.desc":"Nach Erstellung der Issues weisen Sie an: „Implementiere Issue #4“. Der feature-dev Agent erstellt eigenständig Branch → TDD → PR.",
+"prd.step3.title":"Schritt 3: Review + Neue Issues entdecken",
+"prd.step3.desc":"code-reviewer prüft den PR und entdeckt Verbesserungen oder fehlende Anforderungen, die zu neuen Issues werden.",
+"prd.step4.title":"Schritt 4: PRD aktualisieren → Schleife wiederholen",
+"prd.step4.desc":"Wenn neue Anforderungen entstehen, aktualisieren Sie das PRD. Die KI erkennt die Änderungen automatisch.",
+"prd.callout":"Praxisbeispiel: Dubai-Flughafen-Anforderung → PRD Abschnitt 4.8 → code-architect generierte Issues #27-#34 → 3 Agenten parallel via Worktree → in ~2 Stunden fertig",
+"section.roles.label":"Kerninsight",
+"section.roles.title":"7 Rollen eines Nicht-Entwicklers",
+"section.roles.desc":"Beim Vibe Coding schreibt der Mensch keinen Code, aber übernimmt 7 verschiedene Rollen.",
+"role.1.title":"Rolle 1: Planer",
+"role.1.desc":"„Sagen, was gebaut wird“ — Mit einem Satz starten und im Gespräch ausbauen",
+"role.1.example":"„Ich will ein Weltlage-Dashboard“ → „Tanker hinzufügen“ → „Aktien hinzufügen“ → „Dubai-Flughafen“",
+"role.2.title":"Rolle 2: Architekt",
+"role.2.desc":"„KI-Arbeitsregeln festlegen“ — Konsistente Qualität durch CLAUDE.md",
+"role.2.example":"TDD, Git-Flow, Tidy First, Agentenliste definiert → KI arbeitet jedes Mal auf gleichem Niveau",
+"role.3.title":"Rolle 3: PM",
+"role.3.desc":"„Issues erstellen und priorisieren“ — Phasen/Issues mit Markdown-Plänen verwalten",
+"role.3.example":'"Phase 1 (sequenziell) → Phase 2 (parallel, 3 Worktrees) → Phase 3 (Integration)"',
+"role.4.title":"Rolle 4: Design-Direktor",
+"role.4.desc":"„Visuelles Feedback“ — Pixel-genaue Anpassungen möglich",
+"role.4.example":'"Newshöhe 640px" → "650px" → "670px" → "690px" / "Tokyo Night Stil"',
+"role.5.title":"Rolle 5: Datenmanager",
+"role.5.desc":"„Externe Dienste verbinden“ — API-Keys und Registrierungen sind Menschenarbeit",
+"role.5.example":"OpenSky, AISStream, Gemini, ACLED — 10+ Keys manuell erstellt und .env konfiguriert",
+"role.6.title":"Rolle 6: QA-Tester",
+"role.6.desc":"„Fehler finden“ — KI-Fertigmeldungen überprüfen",
+"role.6.example":'"Emirates-Flüge fehlen" / "Sollte UPDATE sein, nicht INSERT" / "Nur 2 Schiffe"',
+"role.7.title":"Rolle 7: Operator",
+"role.7.desc":"„Systeme starten und verwalten“ — Servermanagement mit wenigen Befehlen",
+"role.7.example":'"pm2 start ecosystem.config.js" / "pm2 neustarten" / "Cache leeren"',
+"section.timeline.label":"Gesprächsprotokoll-Analyse",
+"section.timeline.title":"6-Stunden-Entwicklungszeitachse — Schritt für Schritt",
+"section.timeline.desc1":"Echte Gespräche aus 4 Sitzungen, chronologisch rekonstruiert. Klicken Sie auf Tabs für Details.",
+"section.timeline.desc2":"Von ~21 Wanduhr-Stunden betrug die tatsächliche Eingabe-/Bewertungszeit des Nutzers etwa 6 Stunden. Der Rest war autonome KI-Arbeit.",
+"tab.step1":"Schritt 1. Idee→PRD",
+"tab.step2":"Schritt 2. Design + Issues",
+"tab.step3":"Schritt 3. M1 Datensammlung",
+"tab.step4":"Schritt 4. M2-3 Integration",
+"tab.step5":"Schritt 5. M4-7 UI-Entwicklung",
+"tab.step6":"Schritt 6. QA + Abschluss",
+"section.patterns.label":"Entdeckte Muster",
+"section.patterns.title":"3 Kernmuster des Vibe Codings",
+"pattern.a.title":"Muster A: Gespräch → Dokument → Gespräch Schleife",
+"pattern.a.desc":"Das PRD wird nicht einmal geschrieben und vergessen. Bei neuen Anforderungen wird das PRD aktualisiert und der KI erneut referenziert.",
+"pattern.b.title":'Muster B: Strukturierte Anweisungen — "Implement the following plan"',
+"pattern.b.desc":"Mit wachsender Erfahrung schreiben Sie statt „mach mal“ Markdown mit Phase-Reihenfolge, Issue-Nummern und Branch-Namen.",
+"pattern.c.title":"Muster C: Agententeam-Betrieb + Worktree parallel",
+"pattern.c.desc":"Spezialagenten als Team organisieren → gleichzeitig auf unabhängigen Branches via Git Worktree → code-reviewer prüft → Merge.",
+"flow.step1":"PRD schreiben",
+"flow.step2":"Issues erstellen",
+"flow.step3":"Agent-Entw.",
+"flow.step4":"Agent-Entw.",
+"flow.step5":"Review+Merge",
+"flow.step6":"PRD updaten",
+"footer.desc":"Dieser Leitfaden wurde durch Analyse echter Claude Code Gesprächsprotokolle aus 4 Sitzungen (~10.000 Zeilen JSONL) erstellt.",
+"ms.prd":"PRD",
+"ms.prd.tip":"PRD + UI-Prototyp + CLAUDE.md",
+"ms.m1":"M1 Sammlung",
+"ms.m1.tip":"Nachrichten-, Markt-, Schiffs- und Geopolitik-Sammlung Pipeline",
+"ms.m2":"M2 Integration",
+"ms.m2.tip":"Frontend-API-Integration + React Query",
+"ms.m3":"M3 Flughafen",
+"ms.m3.tip":"Dubai-Flughafendaten-Sammlung Batch",
+"ms.m45":"M4-5 UI",
+"ms.m45.tip":"Agent-Team parallele UI-Entwicklung",
+"ms.m67":"M6-7 UX",
+"ms.m67.tip":"Tokyo Night Theme + i18n",
+"ms.qa":"QA",
+"ms.qa.tip":"Datenqualität + Fehlerbehebung",
+"issue.card1.title":"PRD-Referenz",
+"issue.card1.desc":"docs/prd.md Abschnittsnummer",
+"issue.card2.title":"Verantwortlicher Agent",
+"issue.card2.desc":"feature-dev, code-architect usw.",
+"issue.card3.title":"Detailliertes Design",
+"issue.card3.desc":"Betroffene Dateien, API, DB-Schema",
+"issue.card4.title":"Testplan",
+"issue.card4.desc":"Rot → Grün → Refaktor",
+"agent.name.architect":"code-architect",
+"agent.name.feature":"feature-dev",
+"agent.name.reviewer":"code-reviewer",
+"agent.name.explorer":"code-explorer",
+"agent.name.simplifier":"code-simplifier",
+"agent.name.design":"frontend-design",
+"prd.card1.title":"1. Projektübersicht",
+"prd.card1.desc":"Zweck, Hintergrund, Zielbenutzer",
+"prd.card2.title":"2. Technologie-Stack",
+"prd.card2.desc":"Framework, Datenbank, API-Liste",
+"prd.card3.title":"3. Kernfunktionen definieren",
+"prd.card3.desc":"Detaillierte Anforderungen pro Funktion (Nachrichten, Markt, Schiffe, Flughafen...)",
+"prd.card4.title":"4. UI/UX-Anforderungen",
+"prd.card4.desc":"Layout, Komponenten, responsives Design",
+"prd.card5.title":"5. Meilenstein-Planung",
+"prd.card5.desc":"M1~M7 phasenweise Ziele und Prioritäten",
+"prd.card6.title":"Anhang: Datenquellen",
+"prd.card6.desc":"Jede API-URL, Authentifizierungsmethode, Einschränkungen",
+"tl.s1.i1.time":"Erstes Gespräch",
+"timeline.step1.item1.subtitle":"Mit einem Satz beginnen",
+"chat.label.user":"Benutzer",
+"timeline.chat.user.7329":"Ich möchte ein Dashboard zur Überwachung der internationalen Lage erstellen",
+"chat.label.ai":"Claude",
+"tl.s1.i1.chat.ai1":"Ich schreibe einen PRD-Entwurf. Einschließlich Kategorisierung, regionale Filter, Timeline-Anzeige...",
+"tag.idea":"Planung",
+"timeline.step1.item1.note":"Am Anfang braucht man keine perfekte Planung. Mit einem Satz beginnen.",
+"tl.s1.i2.time":"Anforderungen schrittweise erweitern",
+"timeline.step1.item2.subtitle":"PRD durch Gespräche wachsen lassen",
+"chat.label.user.serial":"Benutzer (fortgesetzte Anfragen)",
+"timeline.chat.user.443":"Bitte überwachen Sie auch Öltanker und LPG-Schiffe im Nahen Osten",
+"timeline.chat.user.5969":"Bitte fügen Sie auch Informationen zu Inlands-/US-Aktien, Rohölpreisen und Goldpreisen hinzu",
+"timeline.step1.item2.note":"Durch Gespräche wird die PRD natürlich erweitert.",
+"tl.s1.i3.time":"UI-Prototyp",
+"tl.s1.i3.title":"Bildschirmdesign mit frontend-design Agent",
+"tl.s1.i3.chat.user1":"@frontend-design bitte zeichnet das UX-Design",
+"tl.s1.i3.chat.user2":"Bitte zeichnet die Karte mit einer echten Karte",
+"tag.design":"Design",
+"tl.s1.i3.agent":"frontend-design Agent",
+"tl.s1.i3.note":"/frontend-design Skill generiert HTML-Prototyp (index.html). Feedback basierend auf Ergebnisse, ohne Code zu verstehen.",
+"tl.s1.i4.time":"Detaillierte Anforderungen",
+"tl.s1.i4.title":"Obere Markt-Ticker-Leiste + Datenquellen-Recherche",
+"tl.s1.i4.chat.user1":"Wenn Sie mit der Maus über die DOW-Indikator oben fahren, kann es sich ausdehnen und ein Liniendiagramm anzeigen, bei Verlassen wieder einziehen",
+"tl.s1.i4.chat.user2":"Bitte recherchiert tief nach Datenquellen in der PRD und erstellt eine Liste. Economist, Yahoo Finance, CNN, NBC müssen enthalten sein",
+"tl.s1.i4.note":"Benutzer geben bestimmte Seiten an, AI recherchiert weitere Quellen gründlich.",
+"tl.s2.i1.time":"CLAUDE.md Generation",
+"tl.s2.i1.title":"AI-Arbeitsregeln + Architektur-Entscheidungen",
+"tl.s2.i1.chat.user1":"Bitte erstellt CLAUDE.md Datei. DDD, TDD(rot→grün→refactor), hexagonale Architektur, Clean Architecture, Tidy First...",
+"tl.s2.i1.note":"CLAUDE.md = Mitarbeiter-Handbuch für AI. Alle Technologie-Stack, Entwicklungsprinzipien, Arbeitsabläufe definieren.",
+"tl.s2.i2.time":"Arbeitsablauf definieren",
+"tl.s2.i2.title":"Git-Flow + Issue-basiertes Aufgabenmanagement",
+"tl.s2.i2.chat.user1":"Ich werde den Arbeitsablauf definieren. Wir verwalten Branches mit git-flow Policy. Alle Aufgaben erstellen GitHub Issues.",
+"tag.manage":"PM",
+"tl.s2.i2.note":"Kernentscheidung: Alle Aufgaben = GitHub Issues. Agent in Issues angeben.",
+"tl.s2.i3.time":"Erste Meilenstein-Issues erstellen",
+"tl.s2.i3.title":"M1 Datensammlung — Issues #3~#10 automatisch generiert",
+"tl.s2.i3.chat.user1":"Lassen Sie uns den ersten Meilenstein bearbeiten. Tiefenanalyse von Datensammlung und AI-Analyse Issues, Meilenstein und GitHub Issues erstellen",
+"chat.label.ai.agent":"Claude (code-architect)",
+"tl.s2.i3.chat.ai1":"Ich erstelle 8 Issues für M1 Meilenstein: #3 Prisma Schema, #4 Nachrichten-Scraper, #5 Playwright Scraping...",
+"tl.s2.i3.agent":"code-architect Agent",
+"tl.s2.i3.note":"code-architect Agent analysiert PRD und generiert Issues automatisch. Jedes Issue enthält detaillierte Design-Info.",
+"tl.s2.i4.time":"API-Schlüssel Anleitung",
+"tl.s2.i4.title":"Erforderliche externe Services Anmeldung",
+"tl.s2.i4.chat.user1":"Bitte geben Sie eine Liste erforderlicher App-Schlüssel mit Anleitung",
+"tl.s2.i4.chat.ai1":"GDELT(keine Authentifizierung erforderlich), AISStream(kostenlos, GitHub-Registrierung), ACLED(akademisch/Forschung), Gemini API(Google Cloud)...",
+"tag.ops":"Betrieb",
+"tl.s2.i4.note":"Benutzer registrieren sich direkt und geben Schlüssel aus. AI bietet Anleitung und generiert .env.example.",
+"tl.s3.i1.time":"Agent-Team parallele Entwicklung",
+"tl.s3.i1.title":"3 Scraper gleichzeitig mit Worktree entwickeln",
+"tl.s3.i1.chat.user1":"Bitte planen Sie die Aufgaben. Sie können ein Team bilden. Geben Sie spezialisierte Agents pro Aufgabe an",
+"tl.s3.i1.chat.user2":"Starten Sie die Arbeit. Sie können git worktree verwenden oder PR → code-review → merge nach jeder Fertigstellung",
+"tl.s3.i1.chat.ai1":"Ich setze 3 Agents mit worktree parallel ein...",
+"tag.build":"Entwicklung",
+"tl.s3.i1.agent":"3 feature-dev parallel",
+"tl.s3.i1.note":"Wenn Parallelarbeit genehmigt, setzt AI mehrere Agents gleichzeitig ein um Arbeitsgeschwindigkeit zu maximieren.",
+"tl.s3.i2.time":"Automatische Review Loop",
+"tl.s3.i2.title":"PR → code-reviewer → Verbesserung → Merge wiederholen",
+"tl.s3.i2.chat.ai1":"PR #17 Review: Rate Limit nicht implementiert, Import-Pfad Fehler entdeckt...",
+"tl.s3.i2.chat.ai2":"Review Feedback angewendet. Rate Limiter hinzugefügt, Import korrigiert...",
+"tl.s3.i2.agent":"code-reviewer Agent",
+"tl.s3.i2.note":"AI-generierter Code wird von anderem AI überprüft → Probleme gefunden → selbst korrigiert.",
+"tl.s4.i1.time":"M2 Frontend Integration",
+"tl.s4.i1.title":"Mit strukturiertem Planungsdokument anleiten",
+"chat.label.user.plan":"Benutzer (direkt Markdown-Planungsdokument geschrieben)",
+"tl.s4.i1.chat.user1":"Implementieren Sie den folgenden Plan:",
+"tl.s4.i1.note":"Geübtes Vibe-Coding: Nicht nur nächste Aufgabe sondern auch technische Entscheidungen, Issue-Umfang angeben.",
+"tl.s4.i2.time":"Dubai-Flughafen-Anforderungen hinzufügen",
+"tl.s4.i2.title":"Neue Anforderung → PRD aktualisieren → Issues erstellen",
+"tl.s4.i2.chat.user1":"Bitte zeigen Sie Dubai-Flughafen-Betriebsstatus, Emirates-Flugziele, Kriegsführung in der Umgebung etc.",
+"tl.s4.i2.note":"Gespräch → Dokument → Gespräch Loop: Neue Idee → PRD Abschnitt 4.8 hinzufügen → Issues #27~#34 generieren.",
+"tl.s4.i3.time":"M3 Flughafen Batch Phase Planung",
+"tl.s4.i3.title":"3 Scraper mit Worktree parallel entwickeln",
+"chat.label.user.phase":"Benutzer (detaillierte Phase Anleitung)",
+"chat.label.ai.report":"Claude — 3 Agents gleichzeitig abgeschlossen Bericht",
+"tl.s4.i3.chat.ai1":"Agent OpenSky collector (#29) abgeschlossen ✓ / AviationStack (#30) ✓ / Airport events (#31) ✓",
+"tl.s4.i3.agent":"3 Agents parallel",
+"tl.s4.i3.note":"3 Agents implementieren Scraper gleichzeitig in unabhängigen Branches. Alle in etwa 5 Minuten abgeschlossen.",
+"tl.s4.i4.time":"Fehlerbehebung",
+"tl.s4.i4.title":"Übersetzung fehlt + OpenSky Authentifizierung + AIS-Schlüssel geändert",
+"tl.s4.i4.chat.user1":"Warum sind kr/jp Übersetzungen nicht in der DB?",
+"tl.s4.i4.chat.user2":".env Datei ID/PW sind korrekt.",
+"tl.s4.i4.chat.user3":"Ich habe AIS-Schlüssel geändert",
+"tag.debug":"Debug",
+"tl.s4.i4.note":"Externe Services Fehlerbehebung muss von Mensch direkt überprüft werden.",
+"tl.s5.i1.time":"Agent-Team großflächige UI-Entwicklung",
+"tl.s5.i1.title":"5 Agents gleichzeitig eingesetzt — M4-5 UI vollendet",
+"tl.s5.i1.chat.user1":"Lassen Sie uns UI entwickeln. code-architect liest Codebase und Dokumente, startet Frontend-Entwicklung",
+"tl.s5.i1.chat.user2":"Falls nötig, bilden Sie Spezialisten-Team zur gleichzeitigen Arbeit",
+"tl.s5.i1.chat.ai1":"Agent M5 #45~#49 abgeschlossen ✓ (5 gleichzeitig abgeschlossen)",
+"tl.s5.i1.agent":"5 Agents parallel",
+"tl.s5.i1.note":"5 Agents unabhängig entwickeln in worktree. Mensch sagt einfach: bildet ein Team zur gleichzeitigen Arbeit.",
+"tl.s5.i2.time":"Mehrsprachig (i18n) angewendet",
+"tl.s5.i2.title":"Gesamte UI Koreanisch/Englisch/Japanisch Unterstützung",
+"tl.s5.i2.chat.user1":"feat: Gesamte UI i18n Mehrsprachigkeit (KO/EN/JA) #60 lassen Sie uns das entwickeln",
+"chat.label.ai.completed":"Agent abgeschlossen",
+"tl.s5.i2.chat.ai1":"ko.json, en.json, ja.json erstellt + LanguageContext Integration abgeschlossen",
+"tl.s5.i2.agent":"feature-dev Agent",
+"tl.s5.i3.time":"Tokyo Night Theme",
+"tl.s5.i3.title":"Gesamtes Design + Tablet Touch UI Neugestaltung",
+"tl.s5.i3.chat.user1":"Der Bildschirm ist insgesamt zu klein. Bitte entwerfen Sie Tablet Touch UI neu. Farbe im Tokyo Night Stil",
+"tl.s5.i3.chat.ai1":"CSS-Variablen in 20 Dateien ersetzt + Schriftgröße vergrößert abgeschlossen",
+"tl.s5.i3.agent":"frontend-design Agent",
+"tl.s5.i3.note":"Mit nur „Tokyo Night“ ersetze CSS in 20 Dateien in einem Rutsch.",
+"tl.s5.i4.time":"Feinabstimmung fortgeführt",
+"tl.s5.i4.title":"Pixel-by-Pixel Feedback — Designdirektor Rolle",
+"chat.label.user.feedback":"Benutzer (fortgesetzte Rückmeldung)",
+"tl.s5.i4.chat.user1":"Bitte reduzieren Sie die Höhe des Issue-Trackers und verschieben Sie die Nachrichten nach rechts",
+"tl.s5.i4.chat.user2":"Der Header-Schriftsatz ist zu klein",
+"tl.s5.i4.chat.user3":"Nachrichten: 690px fest",
+"tl.s5.i4.chat.user4":"Es ist zu bunt nur für mich",
+"tl.s5.i4.chat.user5":"Bitte gleichen Sie die Höhe von GLOBAL TENSION MAP und Issue Tracker ab",
+"tl.s5.i4.note":"In dieser Phase ist die meiste Personenzeit erforderlich. Kurzes, intuitives Feedback ist effektiv.",
+"tl.s6.i1.time":"Datenbanklogik Bug entdeckt",
+"tl.s6.i1.title":"INSERT vs UPDATE — kritischer Logik-Fehler",
+"tl.s6.i1.chat.user1":"Es kann nicht sein, dass jedes Mal neue Zeilen (INSERT) hinzugefügt werden statt zu aktualisieren",
+"tl.s6.i1.note":"Benutzer entdeckt kritischen Bug den AI übersah, durch Überprüfung von DB-Daten.",
+"tl.s6.i2.time":"Daten-Lücken fortgeführt entdeckt",
+"tl.s6.i2.title":"Fertigstellungsbericht vs. aktuelle Bildschirm-Validierung",
+"chat.label.user.verify":"Benutzer (fortgesetzte Validierung)",
+"tl.s6.i2.chat.user1":"Warum sind Schiffsdaten und Flugzeugdaten nicht vorhanden und GLOBAL TENSION MAP auch leer?",
+"tl.s6.i2.chat.user2":"Es gibt keine EK-Flugzeuge?",
+"tl.s6.i2.chat.user3":"Es sind nur noch zwei Schiffe",
+"tl.s6.i2.chat.user4":"Bei Fluggesellschaften werden empty 1 Flüge zu 100% angezeigt",
+"tl.s6.i2.note":"Auch wenn AI sagt Abgeschlossen, müssen Sie tatsächliche Daten mit Augen überprüfen.",
+"tl.s6.i3.time":"Dokumentation aktualisieren + Abgeschlossen",
+"tl.s6.i3.title":"PRD, CLAUDE.md, README alle aktualisiert",
+"tl.s6.i3.chat.user1":"Bitte analysiert alle Dokumentationsänderungen und aktualisiert alles",
+"tl.s6.i3.note":"Zuletzt: Nicht nur Code sondern auch Dokumentation auf dem neuesten Stand.",
+"flow.idea":"Idee",
+"flow.architect":"Architect",
+"flow.dev":"Dev",
+"flow.reviewer":"Reviewer",
+"flow.merge":"Merge",
+"tl.s4.i3.chat.user1":"Implement the following plan:<br>Phase 1 (Sequenziell): #27 → #28 (Strukturelle Basis)<br>Phase 2 (Parallel): #29, #30, #31 (3 Sammler — Worktree parallel)<br>Phase 3 (Sequenziell): #32 → #33 → #34 (Integration)"
+},
+fr:{
+"hero.badge":"Étude de cas",
+"hero.title":"Comment un non-développeur a créé un<br><span>dashboard full-stack</span> en 6 heures",
+"hero.subtitle":"Guide pratique de vibe coding basé sur les vrais logs de conversation avec l'équipe d'agents spécialisés de Claude Code",
+"hero.stat1.num":"~6h",
+"hero.stat1.label":"Temps humain réel",
+"hero.stat2.num":"7",
+"hero.stat2.label":"Jalons",
+"hero.stat3.num":"60+",
+"hero.stat3.label":"Issues GitHub",
+"hero.stat4.num":"8+",
+"hero.stat4.label":"Agents spécialisés",
+"hero.scroll":"Défiler vers le bas ↓",
+"section.overview.label":"Présentation du projet",
+"section.overview.title":"Dashboard de surveillance mondiale « SIGINT »",
+"section.overview.desc":"Collecte d'actualités, marchés financiers, suivi de navires au Moyen-Orient, surveillance en temps réel de l'aéroport de Dubaï et analyse de sentiment IA — une application full-stack Next.js + Prisma + SQLite créée par un non-développeur avec l'équipe d'agents de Claude Code.",
+"overview.stat1":"Composants React",
+"overview.stat2":"Collecteurs de données",
+"overview.stat3":"Langues (KO/EN/JA)",
+"overview.stat4":"APIs externes",
+"overview.stat5":"Temps humain actif",
+"section.overview.milestone":"Progression des jalons",
+"section.workflow.label":"Workflow",
+"section.workflow.title":"Développement basé sur les issues — Planifier et gérer par issues",
+"section.workflow.desc":"Le workflow principal tourne autour des GitHub Issues. Chaque tâche commence par créer une issue, le développement se fait par issue, et la revue/merge se fait par issue.",
+"workflow.step1.title":"Planification des jalons",
+"workflow.step1.desc":"Diviser les objectifs en jalons et définir l'ordre",
+"workflow.step2.title":"Création d'issues",
+"workflow.step2.desc":"Séparer les issues structure/fonctionnalité selon Tidy First",
+"workflow.step3.title":"Développement par agents",
+"workflow.step3.desc":"Les agents spécialisés créent des branches et développent par issue",
+"workflow.step4.title":"PR + Revue de code",
+"workflow.step4.desc":"L'agent code-reviewer révise automatiquement puis merge",
+"workflow.pattern1.title":"Contenu de chaque issue",
+"workflow.pattern1.desc":"Les issues ne sont pas une simple « liste de tâches ». Chaque issue contient les informations suivantes :",
+"workflow.pattern2.title":"Équipe d'agents spécialisés",
+"workflow.pattern2.desc":"Au lieu d'une seule IA, des agents spécialisés par rôle sont organisés en équipe pour le travail parallèle. Chaque agent utilise Git Worktree pour travailler simultanément.",
+"workflow.callout":"Exemple réel : En M4-5, 5 agents ont travaillé simultanément via Worktree → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChart développés en parallèle",
+"agent.header.name":"Agent",
+"agent.header.role":"Rôle",
+"agent.header.usage":"Utilisation",
+"agent.role.architect":"Architecture",
+"agent.usage.architect":"Conception modulaire, définition d'interfaces, planification d'issues",
+"agent.role.feature":"Développement",
+"agent.usage.feature":"Implémentation de fonctionnalités, rédaction de cas d'usage",
+"agent.role.reviewer":"Revue de code",
+"agent.usage.reviewer":"Revue de PR, assurance qualité, directives d'amélioration",
+"agent.role.explorer":"Analyse de code",
+"agent.usage.explorer":"Exploration du codebase, traçage des chemins d'exécution",
+"agent.role.simplifier":"Nettoyage de code",
+"agent.usage.simplifier":"Changements structurels Tidy First",
+"agent.role.design":"Design UI/UX",
+"agent.usage.design":"Prototypage, mise en page, application de thèmes",
+"section.prd.label":"Outil clé",
+"section.prd.title":"Qu'est-ce qu'un PRD — Le plan pour l'IA",
+"section.prd.desc":"Un PRD (Product Requirements Document) définit « quoi construire ». C'est le livrable le plus important du vibe coding — l'IA utilise ce document comme base pour tout le travail.",
+"prd.structure.title":"Structure du PRD — Architecture réelle du projet",
+"prd.structure.desc":"Le PRD se compose de ces sections. Pas besoin de l'écrire parfaitement dès le départ — complétez-le progressivement par la conversation.",
+"prd.loop.title":"PRD → Issue → Boucle de développement IA",
+"prd.loop.desc":"On n'écrit pas le PRD une seule fois. Le cœur est un cycle : créer des issues depuis le PRD, assigner le travail à l'IA par issue.",
+"prd.step1.title":"Étape 1 : PRD → Génération auto des issues",
+"prd.step1.desc":"Quand vous dites « Créez les issues de collecte M1 », l'agent code-architect analyse le PRD et génère automatiquement les issues #3-#10.",
+"prd.step2.title":"Étape 2 : Issue → Assignation à l'agent",
+"prd.step2.desc":"Une fois les issues créées, vous dites « Implémentez l'issue #4 ». L'agent feature-dev crée la branche → développement TDD → PR, de manière autonome.",
+"prd.step3.title":"Étape 3 : Revue + Découverte de nouvelles issues",
+"prd.step3.desc":"code-reviewer révise la PR et découvre des améliorations ou des exigences manquantes, qui deviennent de nouvelles issues.",
+"prd.step4.title":"Étape 4 : Mise à jour du PRD → Répéter",
+"prd.step4.desc":"Quand de nouvelles exigences apparaissent, mettez à jour le PRD. L'IA reconnaît les changements automatiquement.",
+"prd.callout":"Exemple réel : Exigence aéroport de Dubaï → PRD section 4.8 → code-architect a généré les issues #27-#34 → 3 agents en parallèle via Worktree → terminé en ~2h",
+"section.roles.label":"Insight clé",
+"section.roles.title":"Les 7 rôles du non-développeur",
+"section.roles.desc":"En vibe coding, l'humain n'écrit pas de code, mais remplit 7 rôles distincts.",
+"role.1.title":"Rôle 1 : Planificateur",
+"role.1.desc":"« Dire quoi construire » — Commencer par une phrase et développer par la conversation",
+"role.1.example":"« Je veux un dashboard mondial » → « Ajouter les tankers » → « Les actions aussi » → « L'aéroport de Dubaï »",
+"role.2.title":"Rôle 2 : Architecte",
+"role.2.desc":"« Définir les règles de l'IA » — Qualité constante via CLAUDE.md",
+"role.2.example":"TDD, Git-Flow, Tidy First, liste d'agents définie → L'IA travaille au même niveau à chaque fois",
+"role.3.title":"Rôle 3 : PM",
+"role.3.desc":"« Créer des issues et prioriser » — Gérer les phases/issues avec des plans markdown",
+"role.3.example":'"Phase 1 (séquentiel) → Phase 2 (parallèle, 3 worktrees) → Phase 3 (intégration)"',
+"role.4.title":"Rôle 4 : Directeur design",
+"role.4.desc":"« Feedback visuel » — Ajustements au pixel près",
+"role.4.example":'"Hauteur news 640px" → "650px" → "670px" → "690px" / "Style Tokyo Night"',
+"role.5.title":"Rôle 5 : Gestionnaire de données",
+"role.5.desc":"« Connecter les services externes » — Clés API et inscriptions, c'est le travail de l'humain",
+"role.5.example":"OpenSky, AISStream, Gemini, ACLED — 10+ clés émises manuellement et .env configuré",
+"role.6.title":"Rôle 6 : Testeur QA",
+"role.6.desc":"« Trouver les bugs » — Vérifier les rapports de « terminé » de l'IA",
+"role.6.example":"\"Les vols Emirates n'apparaissent pas\" / \"Devrait être UPDATE pas INSERT\" / \"Seulement 2 navires\"",
+"role.7.title":"Rôle 7 : Opérateur",
+"role.7.desc":"« Lancer et gérer les systèmes » — Gestion serveur en quelques commandes",
+"role.7.example":'"pm2 start ecosystem.config.js" / "Redémarrer pm2" / "Vider le cache"',
+"section.timeline.label":"Analyse des logs de conversation",
+"section.timeline.title":"Timeline de développement de 6 heures — Étape par étape",
+"section.timeline.desc1":"Vraies conversations de 4 sessions, reconstituées chronologiquement. Cliquez sur les onglets pour explorer.",
+"section.timeline.desc2":"Sur ~21h d'horloge murale, le temps réel d'input/jugement/revue de l'utilisateur était d'environ 6 heures. Le reste était du travail autonome des agents IA.",
+"tab.step1":"Étape 1. Idée→PRD",
+"tab.step2":"Étape 2. Design + Issues",
+"tab.step3":"Étape 3. M1 Collecte",
+"tab.step4":"Étape 4. M2-3 Intégration",
+"tab.step5":"Étape 5. M4-7 Développement UI",
+"tab.step6":"Étape 6. QA + Finalisation",
+"section.patterns.label":"Patterns découverts",
+"section.patterns.title":"3 patterns clés du vibe coding",
+"pattern.a.title":"Pattern A : Conversation → Document → Conversation (boucle)",
+"pattern.a.desc":"Le PRD n'est pas écrit une fois pour toutes. Quand de nouvelles exigences apparaissent, mettez à jour le PRD et référencez-le à l'IA.",
+"pattern.b.title":'Pattern B : Instructions structurées — "Implement the following plan"',
+"pattern.b.desc":"Avec l'expérience, au lieu de « fais-le », vous écrivez du markdown avec l'ordre des phases, numéros d'issues et noms de branches.",
+"pattern.c.title":"Pattern C : Équipe d'agents + Worktree parallèle",
+"pattern.c.desc":"Organiser les agents spécialisés en équipe → travail simultané sur des branches indépendantes via Git Worktree → code-reviewer vérifie → merge.",
+"flow.step1":"Écrire PRD",
+"flow.step2":"Créer issues",
+"flow.step3":"Dév. agent",
+"flow.step4":"Dév. agent",
+"flow.step5":"Review+Merge",
+"flow.step6":"MAJ PRD",
+"footer.desc":"Ce guide a été créé en analysant les vrais historiques de conversation Claude Code de 4 sessions (~10 000 lignes JSONL).",
+"ms.prd":"PRD",
+"ms.prd.tip":"PRD + Prototype UI + CLAUDE.md",
+"ms.m1":"M1 Collecte",
+"ms.m1.tip":"Pipeline de collecte de nouvelles, marchés, navires et géopolitique",
+"ms.m2":"M2 Intégration",
+"ms.m2.tip":"Intégration API frontend + React Query",
+"ms.m3":"M3 Aéroport",
+"ms.m3.tip":"Lot de collecte de données de l'aéroport de Dubaï",
+"ms.m45":"M4-5 UI",
+"ms.m45.tip":"Développement UI parallèle de l'équipe d'agents",
+"ms.m67":"M6-7 UX",
+"ms.m67.tip":"Thème Tokyo Night + i18n",
+"ms.qa":"QA",
+"ms.qa.tip":"Qualité des données + Correction de bugs",
+"issue.card1.title":"Référence PRD",
+"issue.card1.desc":"Numéro de section docs/prd.md",
+"issue.card2.title":"Agent responsable",
+"issue.card2.desc":"feature-dev, code-architect, etc.",
+"issue.card3.title":"Design détaillé",
+"issue.card3.desc":"Fichiers affectés, API, schéma de base de données",
+"issue.card4.title":"Plan de test",
+"issue.card4.desc":"Red → Green → Refactor",
+"agent.name.architect":"code-architect",
+"agent.name.feature":"feature-dev",
+"agent.name.reviewer":"code-reviewer",
+"agent.name.explorer":"code-explorer",
+"agent.name.simplifier":"code-simplifier",
+"agent.name.design":"frontend-design",
+"prd.card1.title":"1. Aperçu du projet",
+"prd.card1.desc":"Objectif, contexte, utilisateurs cibles",
+"prd.card2.title":"2. Pile technologique",
+"prd.card2.desc":"Frameworks, bases de données, liste des API à utiliser",
+"prd.card3.title":"3. Définition des fonctionnalités clés",
+"prd.card3.desc":"Exigences détaillées par fonctionnalité (actualités, marchés, navires, aéroport...)",
+"prd.card4.title":"4. Exigences UI/UX",
+"prd.card4.desc":"Mise en page, composants, design réactif",
+"prd.card5.title":"5. Planification des jalons",
+"prd.card5.desc":"Objectifs M1~M7 par étape et priorités",
+"prd.card6.title":"Appendice: Sources de données",
+"prd.card6.desc":"URL, méthodes d'authentification et limites de chaque API",
+"tl.s1.i1.time":"Première conversation",
+"timeline.step1.item1.subtitle":"Commencez par une phrase",
+"chat.label.user":"Utilisateur",
+"timeline.chat.user.7329":"Je souhaiterais créer un tableau de bord qui surveille la situation géopolitique internationale",
+"chat.label.ai":"Claude",
+"tl.s1.i1.chat.ai1":"Je vais rédiger un brouillon PRD. Je vais inclure la classification par catégories, le filtrage par région et l'affichage des chronologies...",
+"tag.idea":"Planification",
+"timeline.step1.item1.note":"Vous n'avez pas besoin d'une spécification parfaite dès le départ. Commencez par une phrase.",
+"tl.s1.i2.time":"Expansion progressive des exigences",
+"timeline.step1.item2.subtitle":"Développer le PRD au fil de la conversation",
+"chat.label.user.serial":"Utilisateur (demandes continues)",
+"timeline.chat.user.443":"Veuillez ajouter la surveillance des pétroliers et des méthaniers du Moyen-Orient",
+"timeline.chat.user.5969":"Veuillez ajouter également les indices boursiers nationaux/américains, les prix du pétrole et les cours de l'or",
+"timeline.step1.item2.note":"Le PRD s'agrandit naturellement à travers la conversation.",
+"tl.s1.i3.time":"Prototype UI",
+"tl.s1.i3.title":"Design d'écran avec l'agent frontend-design",
+"tl.s1.i3.chat.user1":"@frontend-design, pouvez-vous dessiner l'expérience utilisateur ?",
+"tl.s1.i3.chat.user2":"Veuillez utiliser une vraie carte pour la carte",
+"tag.design":"Design",
+"tl.s1.i3.agent":"Agent frontend-design",
+"tl.s1.i3.note":"La compétence /frontend-design génère un prototype HTML (index.html). Vous pouvez voir les résultats et donner des retours sans connaître le code.",
+"tl.s1.i4.time":"Exigences détaillées",
+"tl.s1.i4.title":"Barre de cotations supérieure + recherche de sources de données",
+"tl.s1.i4.chat.user1":"Quand la souris survole l'indicateur DOW en haut, l'ensemble se déploie et affiche un graphique linéaire, et se rétracte au déplacement",
+"tl.s1.i4.chat.user2":"Veuillez effectuer une recherche approfondie sur les sources de collecte de données dans le PRD et créer une liste. Veuillez inclure Economist, Yahoo Finance, CNN et NBC",
+"tl.s1.i4.note":"L'utilisateur spécifie les sites spécifiques souhaités, et l'IA recherche en profondeur d'autres sources.",
+"tl.s2.i1.time":"Génération CLAUDE.md",
+"tl.s2.i1.title":"Règles de travail IA + Décisions architecturales",
+"tl.s2.i1.chat.user1":"Créez un fichier CLAUDE.md. DDD, TDD(red→green→refactor), hexagonal, clean architecture, Tidy First...",
+"tl.s2.i1.note":"CLAUDE.md = Manuel de l'employé pour l'IA. Définit la pile technologique, les principes de développement et le flux de travail.",
+"tl.s2.i2.time":"Définition du flux de travail",
+"tl.s2.i2.title":"Git-Flow + Gestion des tâches basée sur les problèmes",
+"tl.s2.i2.chat.user1":"Je vais définir le flux de travail. Nous gérerons les branches avec la politique git-flow. Tous les travaux créent un problème GitHub pour la gestion.",
+"tag.manage":"PM",
+"tl.s2.i2.note":"Décision clé: tous les travaux = problème GitHub. Spécifiez l'agent responsable dans le problème.",
+"tl.s2.i3.time":"Création du problème du premier jalon",
+"tl.s2.i3.title":"M1 Collecte de données — Génération automatique des problèmes #3~#10",
+"tl.s2.i3.chat.user1":"Commençons le premier jalon. Veuillez effectuer une analyse approfondie des problèmes de collecte de données et d'analyse d'IA et créer les jalons et problèmes GitHub",
+"chat.label.ai.agent":"Claude (code-architect)",
+"tl.s2.i3.chat.ai1":"Je vais créer 8 problèmes pour le jalon M1: #3 Schéma Prisma, #4 Collecteur de nouvelles, #5 Web scraping Playwright...",
+"tl.s2.i3.agent":"Agent code-architect",
+"tl.s2.i3.note":"L'agent code-architect analyse le PRD et génère automatiquement les problèmes. Chaque problème contient des informations de design détaillées.",
+"tl.s2.i4.time":"Guide des clés API",
+"tl.s2.i4.title":"Instructions pour l'inscription aux services externes requis",
+"tl.s2.i4.chat.user1":"Veuillez me fournir une liste des clés d'application nécessaires et des instructions",
+"tl.s2.i4.chat.ai1":"GDELT(authentification non requise), AISStream(gratuit, inscription GitHub), ACLED(académique/recherche), API Gemini(Google Cloud)...",
+"tag.ops":"Opérations",
+"tl.s2.i4.note":"L'utilisateur s'inscrit directement et génère les clés. L'IA fournit des instructions et crée .env.example.",
+"tl.s3.i1.time":"Développement parallèle de l'équipe d'agents",
+"tl.s3.i1.title":"Développement simultané de 3 collecteurs avec Worktree",
+"tl.s3.i1.chat.user1":"Veuillez planifier les tâches. Vous pouvez former une équipe. Spécifiez l'agent spécialisé pour chaque tâche",
+"tl.s3.i1.chat.user2":"Commencez le travail. Vous pouvez utiliser git worktree, et à la fin de chaque élément, PR → code-review → merge",
+"tl.s3.i1.chat.ai1":"Je déploie 3 agents en parallèle avec worktree...",
+"tag.build":"Développement",
+"tl.s3.i1.agent":"3 agents feature-dev en parallèle",
+"tl.s3.i1.note":"Si vous autorisez le travail en parallèle, l'IA lancera plusieurs agents simultanément pour maximiser la vitesse de travail.",
+"tl.s3.i2.time":"Boucle d'examen automatique",
+"tl.s3.i2.title":"PR → code-reviewer → amélioration → itération de fusion",
+"tl.s3.i2.chat.ai1":"Examen PR #17: rate limit non implémenté, chemin d'importation erroné trouvé...",
+"tl.s3.i2.chat.ai2":"Retours d'examen appliqués. Limiteur de taux ajouté, importation corrigée...",
+"tl.s3.i2.agent":"Agent code-reviewer",
+"tl.s3.i2.note":"L'IA examine le code créé par une autre IA → détecte les problèmes → les corrige elle-même.",
+"tl.s4.i1.time":"M2 Intégration frontend",
+"tl.s4.i1.title":"Instructions avec plan structuré",
+"chat.label.user.plan":"Utilisateur (rédaction directe du plan en Markdown)",
+"tl.s4.i1.chat.user1":"Veuillez mettre en œuvre le plan suivant:",
+"tl.s4.i1.note":"Codage avisé expérimenté: au lieu de « que faire ensuite », spécifiez les décisions techniques et la portée des problèmes.",
+"tl.s4.i2.time":"Ajout d'exigences pour l'aéroport de Dubaï",
+"tl.s4.i2.title":"Nouvelles exigences → Mise à jour du PRD → Création de problèmes",
+"tl.s4.i2.chat.user1":"Veuillez afficher l'état d'exploitation de l'aéroport de Dubaï, les destinations desservies par Emirates, l'état des bombardements environnants, etc.",
+"tl.s4.i2.note":"Boucle conversation → document → conversation: nouvelle idée → ajout section 4.8 du PRD → création problèmes #27~#34.",
+"tl.s4.i3.time":"Planification de la phase M3 Aéroport",
+"tl.s4.i3.title":"Développement parallèle de 3 collecteurs avec Worktree",
+"chat.label.user.phase":"Utilisateur (instructions de phase détaillées)",
+"chat.label.ai.report":"Claude — Rapport d'accomplissement simultané de 3 agents",
+"tl.s4.i3.chat.ai1":"Collecteur OpenSky Agent (#29) terminé ✓ / AviationStack (#30) ✓ / Événements aéroport (#31) ✓",
+"tl.s4.i3.agent":"3 agents en parallèle",
+"tl.s4.i3.note":"3 agents implémentent simultanément les collecteurs sur des branches indépendantes. Tous terminés en environ 5 minutes.",
+"tl.s4.i4.time":"Dépannage",
+"tl.s4.i4.title":"Traductions manquantes + Authentification OpenSky + Changement de clé AIS",
+"tl.s4.i4.chat.user1":"Pourquoi les traductions kr/jp ne sont-elles pas dans la base de données?",
+"tl.s4.i4.chat.user2":"L'identifiant/mot de passe du fichier .env est correct.",
+"tl.s4.i4.chat.user3":"J'ai changé la clé AIS",
+"tag.debug":"Débogage",
+"tl.s4.i4.note":"Le Débogage des services externes doit être vérifié directement par l'utilisateur.",
+"tl.s5.i1.time":"Développement UI à grande échelle de l'équipe d'agents",
+"tl.s5.i1.title":"Déploiement de 5 agents simultanément — Achèvement M4-5 UI",
+"tl.s5.i1.chat.user1":"Développons l'UI. code-architect lira la base de code et la documentation pour commencer le développement frontend",
+"tl.s5.i1.chat.user2":"Si nécessaire, constituent une équipe d'agents spécialisés pour le travail parallèle",
+"tl.s5.i1.chat.ai1":"Agent M5 #45~#49 terminé ✓ (5 achevés simultanément)",
+"tl.s5.i1.agent":"5 agents en parallèle",
+"tl.s5.i1.note":"5 agents développent indépendamment dans worktree. L'utilisateur lance simplement le travail parallèle.",
+"tl.s5.i2.time":"Application multilingue (i18n)",
+"tl.s5.i2.title":"Support complet UI en coréen/anglais/japonais",
+"tl.s5.i2.chat.user1":"feat: Application multilingue i18n complète de l'UI (KO/EN/JA) #60 développons cela",
+"chat.label.ai.completed":"Agent terminé",
+"tl.s5.i2.chat.ai1":"ko.json, en.json, ja.json créés + intégration LanguageContext terminée",
+"tl.s5.i2.agent":"Agent feature-dev",
+"tl.s5.i3.time":"Thème Tokyo Night",
+"tl.s5.i3.title":"Refonte complète du design + UI tactile tablette",
+"tl.s5.i3.chat.user1":"L'écran entier est trop petit. Refonte avec interface tactile tablette. Couleurs style Tokyo Night",
+"tl.s5.i3.chat.ai1":"Remplacement des variables CSS et agrandissement des polices dans 20 fichiers terminés",
+"tl.s5.i3.agent":"Agent frontend-design",
+"tl.s5.i3.note":"En disant simplement « Tokyo Night », le CSS de 20 fichiers est remplacé en masse.",
+"tl.s5.i4.time":"Ajustements continus des détails",
+"tl.s5.i4.title":"Retours pixel par pixel — Rôle de directeur de design",
+"chat.label.user.feedback":"Utilisateur (retours continus)",
+"tl.s5.i4.chat.user1":"Réduisez la hauteur du suivi des problèmes et déplacez les actualités sur le côté",
+"tl.s5.i4.chat.user2":"La police d'en-tête est trop petite",
+"tl.s5.i4.chat.user3":"Actualités: 690px fixe",
+"tl.s5.i4.chat.user4":"C'est trop coloré",
+"tl.s5.i4.chat.user5":"Veuillez aligner la hauteur de la CARTE DE TENSION MONDIALE et du suivi des problèmes",
+"tl.s5.i4.note":"Cette étape consomme le plus de temps humain. Les retours courts et intuitifs sont les plus efficaces.",
+"tl.s6.i1.time":"Découverte de bogue dans la logique des données",
+"tl.s6.i1.title":"INSERT vs UPDATE — Erreur logique clé",
+"tl.s6.i1.chat.user1":"Je ne peux pas ajouter une nouvelle ligne (INSERT) chaque fois au lieu de mettre à jour",
+"tl.s6.i1.note":"L'utilisateur découvre le bogue clé que l'IA a manqué en vérifiant les données de la base de données.",
+"tl.s6.i2.time":"Découvertes continues de données manquantes",
+"tl.s6.i2.title":"Rapport de fin vs validation d'écran réel",
+"chat.label.user.verify":"Utilisateur (validation continue)",
+"tl.s6.i2.chat.user1":"Les données de navire et de vol ne sont pas non plus présentes et la CARTE DE TENSION MONDIALE est vide",
+"tl.s6.i2.chat.user2":"Il n'y a pas de vol EK?",
+"tl.s6.i2.chat.user3":"Il n'y a encore que deux navires",
+"tl.s6.i2.chat.user4":"Les principaux transporteurs aériens affichent « vide 1 vol 100%»",
+"tl.s6.i2.note":"Même si l'IA déclare achèvement, vous devez vérifier les données réelles visuellement.",
+"tl.s6.i3.time":"Mise à jour de la documentation + Achèvement",
+"tl.s6.i3.title":"Mise à jour complète de PRD, CLAUDE.md, README",
+"tl.s6.i3.chat.user1":"Veuillez analyser tous les changements de documents et les mettre à jour",
+"tl.s6.i3.note":"Finale: mettez à jour la documentation ainsi que le code avec les derniers changements.",
+"flow.idea":"Idée",
+"flow.architect":"Architect",
+"flow.dev":"Dev",
+"flow.reviewer":"Reviewer",
+"flow.merge":"Merge",
+"tl.s4.i3.chat.user1":"Implement the following plan:<br>Phase 1 (Séquentiel): #27 → #28 (Base structurelle)<br>Phase 2 (Parallèle): #29, #30, #31 (3 collecteurs — worktree parallèle)<br>Phase 3 (Séquentiel): #32 → #33 → #34 (Intégration)"
+},
+ja:{
+"hero.badge":"ケーススタディ",
+"hero.title":"非開発者が<span>6時間</span>で<br>フルスタックダッシュボードを構築した方法",
+"hero.subtitle":"Claude Codeの専門エージェントチームとの実際の会話ログを分析したバイブコーディング実践ガイド",
+"hero.stat1.num":"~6h",
+"hero.stat1.label":"実際の人間の作業時間",
+"hero.stat2.num":"7",
+"hero.stat2.label":"マイルストーン",
+"hero.stat3.num":"60+",
+"hero.stat3.label":"GitHub Issue",
+"hero.stat4.num":"8+",
+"hero.stat4.label":"専門エージェント",
+"hero.scroll":"下にスクロール ↓",
+"section.overview.label":"プロジェクト概要",
+"section.overview.title":"国際情勢モニタリングダッシュボード「SIGINT」",
+"section.overview.desc":"ニュース収集、金融市場、中東海域の船舶追跡、ドバイ空港リアルタイム監視、AI感情分析まで — Next.js + Prisma + SQLiteベースのフルスタックアプリを非開発者がClaude Codeのエージェントチームで構築した過程です。",
+"overview.stat1":"Reactコンポーネント",
+"overview.stat2":"データコレクター",
+"overview.stat3":"対応言語 (KO/EN/JA)",
+"overview.stat4":"外部API連携",
+"overview.stat5":"人間の実作業時間",
+"section.overview.milestone":"マイルストーン進行フロー",
+"section.workflow.label":"ワークフロー",
+"section.workflow.title":"Issue駆動開発 — 計画を立て、Issueで管理する",
+"section.workflow.desc":"このプロジェクトの核心ワークフローはGitHub Issueを中心に回ります。全タスクはIssueを先に作成し、Issue単位で開発し、Issue単位でレビュー/マージします。",
+"workflow.step1.title":"マイルストーン計画",
+"workflow.step1.desc":"大目標をマイルストーンに分割し順序を決定",
+"workflow.step2.title":"Issue作成",
+"workflow.step2.desc":"Tidy First基準で構造/機能Issueを分離作成",
+"workflow.step3.title":"エージェント開発",
+"workflow.step3.desc":"専門エージェントがIssue毎にブランチ作成後開発",
+"workflow.step4.title":"PR + コードレビュー",
+"workflow.step4.desc":"code-reviewerエージェントが自動レビュー後マージ",
+"workflow.pattern1.title":"Issueに含まれる情報",
+"workflow.pattern1.desc":"Issueは単なる「ToDoリスト」ではありません。各Issueには以下の情報が含まれます：",
+"workflow.pattern2.title":"専門エージェントチーム構成",
+"workflow.pattern2.desc":"単一AIではなく、役割別の専門エージェントをチームとして構成し並列作業を実行します。各エージェントはGit Worktreeを使用して独立ブランチで同時に作業します。",
+"workflow.callout":"実例：M4-5段階で5つのエージェントがWorktreeで同時作業 → NewsFeed, AirportMonitor, IssueTracker, TopBar, TrendChartを並列開発",
+"agent.header.name":"エージェント",
+"agent.header.role":"役割",
+"agent.header.usage":"使用タイミング",
+"agent.role.architect":"アーキテクチャ設計",
+"agent.usage.architect":"モジュール設計、インターフェース定義、Issue計画",
+"agent.role.feature":"機能開発",
+"agent.usage.feature":"新機能実装、ユースケース作成",
+"agent.role.reviewer":"コードレビュー",
+"agent.usage.reviewer":"PRレビュー、品質検証、改善指示",
+"agent.role.explorer":"コード分析",
+"agent.usage.explorer":"既存コード把握、実行パス追跡",
+"agent.role.simplifier":"コード整理",
+"agent.usage.simplifier":"Tidy First構造的変更",
+"agent.role.design":"UI/UX設計",
+"agent.usage.design":"プロトタイプ、レイアウト、テーマ適用",
+"section.prd.label":"キーツール",
+"section.prd.title":"PRDとは何か — AIに渡すプロジェクト設計図",
+"section.prd.desc":"PRD（Product Requirements Document）は「何を作るか」を定義する文書です。バイブコーディングで最も重要な成果物であり、AIはこの文書を基準に全作業を実行します。",
+"prd.structure.title":"PRDの構成 — 実際のプロジェクト構造",
+"prd.structure.desc":"PRDは以下のセクションで構成されます。最初から完璧に書く必要はなく、会話しながら段階的に埋めていきます。",
+"prd.loop.title":"PRD → Issue → AI開発ループ",
+"prd.loop.desc":"PRDを一度書いて終わりではありません。PRDからIssueを作成し、Issue単位でAIに仕事を任せる循環構造が核心です。",
+"prd.step1.title":"Step 1: PRD → Issueリスト自動生成",
+"prd.step1.desc":"「M1データ収集Issueを作成してください」と言うと、code-architectエージェントがPRDを分析しIssue #3~#10を自動生成します。",
+"prd.step2.title":"Step 2: Issue → エージェントに作業指示",
+"prd.step2.desc":"Issueが作成されたら「Issue #4を実装してください」と指示します。feature-devエージェントがブランチ作成→TDD開発→PR作成まで自律的に実行します。",
+"prd.step3.title":"Step 3: レビュー + 新Issue発見",
+"prd.step3.desc":"code-reviewerがPRをレビューし、改善点や漏れた要件を発見します。これが新しいIssueとして登録されます。",
+"prd.step4.title":"Step 4: PRD更新 → ループ繰り返し",
+"prd.step4.desc":"開発中に新要件が追加されたらPRDを更新します。更新されたPRDをAIに参照させると、AIが変更を認識します。",
+"prd.callout":"実例：ドバイ空港要件追加 → PRDセクション4.8新規作成 → code-architectがIssue #27~#34自動生成 → 3エージェントWorktree並列開発 → 約2時間で完成",
+"section.roles.label":"コアインサイト",
+"section.roles.title":"非開発者の7つの役割",
+"section.roles.desc":"バイブコーディングでは、人間はコードを書きませんが、7つの役割を果たします。",
+"role.1.title":"役割1：企画者",
+"role.1.desc":"「何を作るか言う」— 一文から始めて会話で企画を育てる",
+"role.1.example":"「国際情勢ダッシュボードが欲しい」→「中東タンカーも」→「株式も」→「ドバイ空港も」",
+"role.2.title":"役割2：設計者",
+"role.2.desc":"「AIの作業ルールを決める」— CLAUDE.mdで一貫した品質を維持",
+"role.2.example":"TDD, Git-Flow, Tidy First, エージェントリスト定義 → AIが毎回同じレベルで作業",
+"role.3.title":"役割3：PM",
+"role.3.desc":"「Issueを作り優先順位を決める」— マークダウン計画書でPhase/Issue管理",
+"role.3.example":'"Phase 1（順次）→ Phase 2（並列、3 worktree）→ Phase 3（順次統合）"',
+"role.4.title":"役割4：デザインディレクター",
+"role.4.desc":"「目で見てフィードバック」— ピクセル単位の調整が可能",
+"role.4.example":'"ニュース高さ640px" → "650px" → "670px" → "690px" / "Tokyo Night風に"',
+"role.5.title":"役割5：データマネージャー",
+"role.5.desc":"「外部サービス接続」— APIキー発行と登録は人間の仕事",
+"role.5.example":"OpenSky, AISStream, Gemini, ACLED — 10以上のキーを手動発行し.env設定",
+"role.6.title":"役割6：QAテスター",
+"role.6.desc":"「動かないものを見つける」— AIの「完了」報告を検証",
+"role.6.example":'"EKのフライトがない" / "INSERTじゃなくUPDATEのはず" / "船が2隻だけ"',
+"role.7.title":"役割7：オペレーター",
+"role.7.desc":"「システムを起動・管理」— 数コマンドでサーバー管理",
+"role.7.example":'"pm2 start ecosystem.config.js" / "pm2再起動" / "キャッシュ全削除"',
+"section.timeline.label":"会話ログ分析",
+"section.timeline.title":"6時間開発タイムライン — ステップ別詳細",
+"section.timeline.desc1":"4セッションから抽出した実際の会話を時系列で再構成しました。タブをクリックして各段階を確認してください。",
+"section.timeline.desc2":"壁時計基準~21時間中、ユーザーの実際の入力/判断/レビュー時間は約6時間です。残りはAIエージェントの自律作業時間。",
+"tab.step1":"Step 1. アイデア→PRD",
+"tab.step2":"Step 2. 設計 + Issue",
+"tab.step3":"Step 3. M1 データ収集",
+"tab.step4":"Step 4. M2-3 統合",
+"tab.step5":"Step 5. M4-7 UI開発",
+"tab.step6":"Step 6. QA + 仕上げ",
+"section.patterns.label":"発見されたパターン",
+"section.patterns.title":"バイブコーディング3大コアパターン",
+"pattern.a.title":"パターンA：会話 → ドキュメント → 会話ループ",
+"pattern.a.desc":"PRDを一度書いて終わりではありません。開発中に新要件が出たらPRDを更新し、更新されたPRDをAIに再参照させます。",
+"pattern.b.title":'パターンB：構造化された指示書 — "Implement the following plan"',
+"pattern.b.desc":"熟練度が上がると「やって」の代わりに、Phase順序、Issue番号、順次/並列区分、ブランチ名までマークダウンで書いて渡します。",
+"pattern.c.title":"パターンC：エージェントチーム運営 + Worktree並列",
+"pattern.c.desc":"役割別専門エージェントをチームとして構成 → Git Worktreeで独立ブランチ同時作業 → code-reviewerがレビュー → マージ。",
+"flow.step1":"PRD作成",
+"flow.step2":"Issue作成",
+"flow.step3":"エージェント開発",
+"flow.step4":"エージェント開発",
+"flow.step5":"レビュー+マージ",
+"flow.step6":"PRD更新",
+"footer.desc":"このガイドは実際のClaude Code会話履歴4セッション（~10,000行JSONL）を分析して作成されました。",
+"ms.prd":"PRD",
+"ms.prd.tip":"PRD + UI プロトタイプ + CLAUDE.md",
+"ms.m1":"M1 収集",
+"ms.m1.tip":"ニュース、市場、船舶、地政学 収集パイプライン",
+"ms.m2":"M2 統合",
+"ms.m2.tip":"フロントエンド API 連携 + React Query",
+"ms.m3":"M3 空港",
+"ms.m3.tip":"ドバイ空港 データ収集バッチ",
+"ms.m45":"M4-5 UI",
+"ms.m45.tip":"エージェント チーム並列 UI 開発",
+"ms.m67":"M6-7 UX",
+"ms.m67.tip":"Tokyo Night テーマ + i18n",
+"ms.qa":"QA",
+"ms.qa.tip":"データ品質 + バグ修正",
+"issue.card1.title":"PRD 参照",
+"issue.card1.desc":"docs/prd.md セクション番号",
+"issue.card2.title":"担当 エージェント",
+"issue.card2.desc":"feature-dev、code-architect など",
+"issue.card3.title":"詳細設計",
+"issue.card3.desc":"影響ファイル、API、DB スキーマ",
+"issue.card4.title":"テスト計画",
+"issue.card4.desc":"Red → Green → Refactor",
+"agent.name.architect":"code-architect",
+"agent.name.feature":"feature-dev",
+"agent.name.reviewer":"code-reviewer",
+"agent.name.explorer":"code-explorer",
+"agent.name.simplifier":"code-simplifier",
+"agent.name.design":"frontend-design",
+"prd.card1.title":"1. プロジェクト概要",
+"prd.card1.desc":"目的、背景、ターゲット ユーザー",
+"prd.card2.title":"2. 技術スタック",
+"prd.card2.desc":"使用するフレームワーク、DB、API リスト",
+"prd.card3.title":"3. 核心機能定義",
+"prd.card3.desc":"各機能別詳細要件（ニュース、市場、船舶、空港...）",
+"prd.card4.title":"4. UI/UX 要件",
+"prd.card4.desc":"レイアウト、コンポーネント、レスポンシブ設計",
+"prd.card5.title":"5. マイルストーン計画",
+"prd.card5.desc":"M1～M7 段階別目標と優先順位",
+"prd.card6.title":"付録：データソース",
+"prd.card6.desc":"各 API の URL、認証方式、制限事項",
+"tl.s1.i1.time":"最初の対話",
+"timeline.step1.item1.subtitle":"1 文で開始",
+"chat.label.user":"ユーザー",
+"timeline.chat.user.7329":"国際情勢の動きを監視するダッシュボードを作りたいです",
+"chat.label.ai":"Claude",
+"tl.s1.i1.chat.ai1":"PRD 草案を作成します。カテゴリ分類、地域別フィルタリング、タイムライン表示を含めます...",
+"tag.idea":"企画",
+"timeline.step1.item1.note":"最初から完璧な企画書は不要です。1 文から開始します。",
+"tl.s1.i2.time":"要件段階的拡張",
+"timeline.step1.item2.subtitle":"対話しながら PRD を成長させる",
+"chat.label.user.serial":"ユーザー（連続リクエスト）",
+"timeline.chat.user.443":"中東のタンカーや LPG 船も監視に追加してください",
+"timeline.chat.user.5969":"国内・米国株、原油、金 現物情報も追加してください",
+"timeline.step1.item2.note":"対話を通じて自然に PRD が拡張されます。",
+"tl.s1.i3.time":"UI プロトタイプ",
+"tl.s1.i3.title":"frontend-design エージェント で画面設計",
+"tl.s1.i3.chat.user1":"@frontend-design が UX を描いてください",
+"tl.s1.i3.chat.user2":"地図を実際の地図として描いてください",
+"tag.design":"デザイン",
+"tl.s1.i3.agent":"frontend-design エージェント",
+"tl.s1.i3.note":"/frontend-design スキルが HTML プロトタイプ（index.html）を生成します。コードを知らなくても成果物を見ながらフィードバックできます。",
+"tl.s1.i4.time":"詳細要件",
+"tl.s1.i4.title":"上部市場ティッカーバー + データソース調査",
+"tl.s1.i4.chat.user1":"上部の DOW インジケーターにマウスを乗せると全体が拡張してラインチャートが表示され、外すと縮むようにしてください",
+"tl.s1.i4.chat.user2":"PRD にデータ収集元をディープ調査してリストを作成してください。Economist、Yahoo Finance、CNN、NBC は必ず入れてください",
+"tl.s1.i4.note":"ユーザーが特定のサイトを直接指定し、AI がそれ以外のソースを深掘り調査します。",
+"tl.s2.i1.time":"CLAUDE.md 生成",
+"tl.s2.i1.title":"AI 作業ルール + アーキテクチャ決定",
+"tl.s2.i1.chat.user1":"CLAUDE.md ファイルを作成してください。DDD、TDD（red→green→refactor）、ヘキサゴナル、クリーン アーキテクチャ、Tidy First...",
+"tl.s2.i1.note":"CLAUDE.md = AI への従業員ハンドブック。技術スタック、開発原則、ワークフローをすべて定義します。",
+"tl.s2.i2.time":"ワークフロー定義",
+"tl.s2.i2.title":"Git-Flow + イシュー基盤作業管理",
+"tl.s2.i2.chat.user1":"ワークフローを定義します。git-flow ポリシーでブランチを管理します。すべての作業は GitHub イシューで管理します。",
+"tag.manage":"PM",
+"tl.s2.i2.note":"核心決定：すべての作業 = GitHub イシュー。イシューに担当エージェントを明記します。",
+"tl.s2.i3.time":"最初のマイルストーン イシュー生成",
+"tl.s2.i3.title":"M1 データ収集 — イシュー #3～#10 自動生成",
+"tl.s2.i3.chat.user1":"最初のマイルストーンを開始します。データ収集と AI 分析イシューをディープ分析して、マイルストーンと GitHub イシューを作成してください",
+"chat.label.ai.agent":"Claude（code-architect）",
+"tl.s2.i3.chat.ai1":"M1 マイルストーンに 8 つのイシューを生成します：#3 Prisma スキーマ、#4 ニュース収集機、#5 Playwright スクレイピング...",
+"tl.s2.i3.agent":"code-architect エージェント",
+"tl.s2.i3.note":"code-architect エージェント が PRD を分析して自動的にイシューを生成します。各イシューに詳細設計情報を含めます。",
+"tl.s2.i4.time":"API キー ガイド",
+"tl.s2.i4.title":"必要な外部サービス登録ガイド",
+"tl.s2.i4.chat.user1":"必要なアプリキー リストとガイドをしてください",
+"tl.s2.i4.chat.ai1":"GDELT（認証不要）、AISStream（無料、GitHub 登録）、ACLED（学術・研究用）、Gemini API（Google Cloud）...",
+"tag.ops":"運用",
+"tl.s2.i4.note":"ユーザーが直接登録してキーを発行します。AI がガイドを提供して .env.example を生成します。",
+"tl.s3.i1.time":"エージェント チーム並列開発",
+"tl.s3.i1.title":"Worktree で 3 つの収集機を同時開発",
+"tl.s3.i1.chat.user1":"業務計画を立ててください。チーム構成もしてもいいです。業務ごとに専門エージェントを指定してください",
+"tl.s3.i1.chat.user2":"作業を開始してください。git worktree を使ってもいいし、終わるたびに PR → code-review → マージ",
+"tl.s3.i1.chat.ai1":"3 つのエージェント を worktree 並列で同時投入します...",
+"tag.build":"開発",
+"tl.s3.i1.agent":"3 つの feature-dev 並列",
+"tl.s3.i1.note":"並列でもいいと許可すれば AI が複数のエージェント を同時に実行して作業速度を最大化します。",
+"tl.s3.i2.time":"自動レビュー ループ",
+"tl.s3.i2.title":"PR → code-reviewer → 改善 → マージ 反復",
+"tl.s3.i2.chat.ai1":"PR #17 Review：レート制限未実装、import パス エラー発見...",
+"tl.s3.i2.chat.ai2":"レビュー フィードバック反映完了。レート リミッター追加、import 修正...",
+"tl.s3.i2.agent":"code-reviewer エージェント",
+"tl.s3.i2.note":"AI が作成したコードを別の AI がレビュー → 問題発見 → 自身で修正します。",
+"tl.s4.i1.time":"M2 フロントエンド統合",
+"tl.s4.i1.title":"構造化計画書で指示",
+"chat.label.user.plan":"ユーザー（マークダウン計画書を直接作成）",
+"tl.s4.i1.chat.user1":"次の計画を実装してください：",
+"tl.s4.i1.note":"熟練者の雰囲気でのコーディング：「次やってよ」ではなく技術決定、イシュー範囲まで指定します。",
+"tl.s4.i2.time":"ドバイ空港要件追加",
+"tl.s4.i2.title":"新要件 → PRD 更新 → イシュー生成",
+"tl.s4.i2.chat.user1":"ドバイ空港の運航状況、エミレーツ航空の就航先、周辺の戦争爆撃状況などを表示してください",
+"tl.s4.i2.note":"対話 → 文書 → 対話 ループ：新しいアイデア → PRD セクション 4.8 追加 → イシュー #27～#34 生成。",
+"tl.s4.i3.time":"M3 空港バッチ フェーズ計画",
+"tl.s4.i3.title":"3 つの収集機 Worktree 並列開発",
+"chat.label.user.phase":"ユーザー（詳細フェーズ指示）",
+"chat.label.ai.report":"Claude — 3 つのエージェント 同時完了報告",
+"tl.s4.i3.chat.ai1":"Agent OpenSky collector（#29）完了 ✓ / AviationStack（#30）✓ / Airport events（#31）✓",
+"tl.s4.i3.agent":"3 つのエージェント 並列",
+"tl.s4.i3.note":"3 つのエージェント がそれぞれ独立ブランチで同時に収集機を実装します。約 5 分ですべて完了。",
+"tl.s4.i4.time":"トラブルシューティング",
+"tl.s4.i4.title":"翻訳漏れ + OpenSky 認証 + AIS キー変更",
+"tl.s4.i4.chat.user1":"なぜ DB に kr/jp 翻訳が入っていないのですか？",
+"tl.s4.i4.chat.user2":".env ファイルの ID/PW は正確です。",
+"tl.s4.i4.chat.user3":"AIS キーを変更しました",
+"tag.debug":"デバッグ",
+"tl.s4.i4.note":"外部サービスのトラブルシューティングは人が直接確認します。",
+"tl.s5.i1.time":"エージェント チーム大規模 UI 開発",
+"tl.s5.i1.title":"5 つのエージェント 同時投入 — M4-5 UI 完成",
+"tl.s5.i1.chat.user1":"UI を開発しましょう。code-architect がコードベースとドキュメントを読んで フロントエンド開発を開始します",
+"tl.s5.i1.chat.user2":"必要に応じて専門エージェント でチームを構成して並行作業してください",
+"tl.s5.i1.chat.ai1":"Agent M5 #45～#49 完了 ✓（5 つ同時完了）",
+"tl.s5.i1.agent":"5 つのエージェント 並列",
+"tl.s5.i1.note":"5 つのエージェント が worktree で独立開発します。人はチーム構成して並行作業するように一言指示します。",
+"tl.s5.i2.time":"多言語（i18n）適用",
+"tl.s5.i2.title":"全体 UI 韓国語・英語・日本語対応",
+"tl.s5.i2.chat.user1":"feat：全体 UI i18n 多言語対応（KO/EN/JA）#60 これを開発しましょう",
+"chat.label.ai.completed":"Agent 完了",
+"tl.s5.i2.chat.ai1":"ko.json、en.json、ja.json 生成 + LanguageContext 連携完了",
+"tl.s5.i2.agent":"feature-dev エージェント",
+"tl.s5.i3.time":"Tokyo Night テーマ",
+"tl.s5.i3.title":"全体デザイン + タブレットタッチ UI 再設計",
+"tl.s5.i3.chat.user1":"画面全体が小さすぎます。タブレット タッチ UI で再設計してください。色は Tokyo Night 風で",
+"tl.s5.i3.chat.ai1":"20 個のファイルの CSS 変数置換 + フォントサイズ拡大完了",
+"tl.s5.i3.agent":"frontend-design エージェント",
+"tl.s5.i3.note":"「Tokyo Night」の一言で 20 個のファイルの CSS を一括置換します。",
+"tl.s5.i4.time":"微調整連続",
+"tl.s5.i4.title":"ピクセル単位フィードバック — デザインディレクター役",
+"chat.label.user.feedback":"ユーザー（連続フィードバック）",
+"tl.s5.i4.chat.user1":"イシュー トラッカーの高さを下げてニュースを横に移してください",
+"tl.s5.i4.chat.user2":"ヘッダーのフォントが小さすぎます",
+"tl.s5.i4.chat.user3":"ニュース：690px 固定",
+"tl.s5.i4.chat.user4":"自分だけカラフルすぎます",
+"tl.s5.i4.chat.user5":"GLOBAL TENSION MAP とイシュー トラッカーの高さを合わせてください",
+"tl.s5.i4.note":"この段階で最も人間の時間がかかります。短く直感的なフィードバックが効果的です。",
+"tl.s6.i1.time":"データロジック バグ発見",
+"tl.s6.i1.title":"INSERT vs UPDATE — 核心ロジック エラー",
+"tl.s6.i1.chat.user1":"更新ではなく毎回新しい行（INSERT）を追加する方式はダメです",
+"tl.s6.i1.note":"AI が見落とした核心バグをユーザーが DB データを確認して発見します。",
+"tl.s6.i2.time":"データ漏れ連続発見",
+"tl.s6.i2.title":"完了報告 vs 実際の画面検証",
+"chat.label.user.verify":"ユーザー（連続検証）",
+"tl.s6.i2.chat.user1":"船舶データと飛行機データもないし、GLOBAL TENSION MAP も空っぽです",
+"tl.s6.i2.chat.user2":"EK 飛行機がありませんが？",
+"tl.s6.i2.chat.user3":"船舶はまだ 2 隻だけです",
+"tl.s6.i2.chat.user4":"主要航空会社に empty 1 便 100% と出ていますが",
+"tl.s6.i2.note":"AI が完了と言っても、実際のデータを目で確認する必要があります。",
+"tl.s6.i3.time":"文書現行化 + 完了",
+"tl.s6.i3.title":"PRD、CLAUDE.md、README すべて更新",
+"tl.s6.i3.chat.user1":"文書のすべての変更内容を分析して現行化してください",
+"tl.s6.i3.note":"最後：コードだけでなく文書も最新状態にします。",
+"flow.idea":"アイデア",
+"flow.architect":"Architect",
+"flow.dev":"Dev",
+"flow.reviewer":"Reviewer",
+"flow.merge":"Merge",
+"tl.s4.i3.chat.user1":"Implement the following plan:<br>Phase 1 (順次): #27 → #28 (構造的基盤)<br>Phase 2 (並列): #29, #30, #31 (3つの収集器 — worktree 並列)<br>Phase 3 (順次): #32 → #33 → #34 (統合)"
+}
+};
+
+let currentLang='ko';
+function setLang(lang){
+  currentLang=lang;
+  document.documentElement.lang=lang;
+  // Update font
+  if(lang==='ja') document.body.style.fontFamily="'Noto Sans JP','Noto Sans KR',sans-serif";
+  else document.body.style.fontFamily="'Noto Sans KR',sans-serif";
+  // Update buttons
+  document.querySelectorAll('.lang-btn').forEach(b=>{b.classList.toggle('active',b.textContent.trim()===lang.toUpperCase());});
+  // Translate text
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(T[lang]&&T[lang][key]) el.textContent=T[lang][key];
+  });
+  // Translate HTML
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-html');
+    if(T[lang]&&T[lang][key]) el.innerHTML=T[lang][key];
+  });
+  // Update title
+  const titles={ko:'바이브 코딩 가이드',en:'Vibe Coding Guide',de:'Vibe-Coding-Leitfaden',fr:'Guide Vibe Coding',ja:'バイブコーディングガイド'};
+  document.title=titles[lang]||titles.en;
+}
+</script>
+</body>
+</html>

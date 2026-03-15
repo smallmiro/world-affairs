@@ -12,6 +12,33 @@ function goldsteinToSeverity(scale: number | null): Severity {
   return "low";
 }
 
+// Keywords that indicate geopolitically relevant "other" events
+const GEO_RELEVANT_KEYWORDS = [
+  "oil", "energy", "crude", "brent", "opec", "lng", "gas",
+  "shipping", "tanker", "vessel", "maritime", "port", "strait", "hormuz", "suez",
+  "sanctions", "embargo", "tariff", "trade war",
+  "nuclear", "uranium", "enrichment", "iaea",
+  "nato", "alliance", "treaty", "summit",
+  "refugee", "displacement", "humanitarian", "aid",
+  "election", "coup", "regime", "government",
+  "defense", "military", "weapon", "missile", "drone",
+  "terrorism", "extremism", "insurgent",
+  "cyber", "hack", "espionage",
+  "iran", "israel", "gaza", "ukraine", "russia", "china", "taiwan", "korea",
+  "houthi", "hezbollah", "hamas", "irgc",
+  "stock", "market", "economy", "inflation", "currency",
+  "airport", "airspace", "flight", "aviation",
+];
+
+function isGeoRelevant(title: string): boolean {
+  const lower = title.toLowerCase();
+  return GEO_RELEVANT_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function titleFingerprint(title: string): string {
+  return title.toLowerCase().replace(/[^a-z ]/g, "").trim().split(/\s+/).slice(0, 6).join(" ");
+}
+
 function rawToGeoEvent(raw: RawGeoEvent): GeoEvent {
   return {
     id: randomUUID(),
@@ -58,11 +85,30 @@ export async function collectGeoEvents(
     const existingTitles = await repository.filterExistingTitles(titles);
 
     const newEvents: GeoEvent[] = [];
+    const seenFingerprints = new Set<string>();
+
     for (const raw of result.data) {
+      // Skip existing titles
       if (existingTitles.has(raw.title)) {
         skipped++;
         continue;
       }
+
+      // Filter: skip 'other' type unless geopolitically relevant
+      const eventType = raw.eventType ?? "other";
+      if (eventType === "other" && !isGeoRelevant(raw.title)) {
+        skipped++;
+        continue;
+      }
+
+      // Dedup: skip if similar title already in this batch
+      const fp = titleFingerprint(raw.title);
+      if (seenFingerprints.has(fp)) {
+        skipped++;
+        continue;
+      }
+      seenFingerprints.add(fp);
+
       newEvents.push(rawToGeoEvent(raw));
     }
 
