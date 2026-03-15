@@ -175,12 +175,12 @@ export default function VesselTracking() {
       />
 
       {/* Type filter */}
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1 sm:gap-1">
         {FILTER_BUTTONS.map((btn) => (
           <button
             key={btn.key}
             onClick={() => setActiveFilter(btn.key)}
-            className="font-mono text-[0.65rem] tracking-[1px] px-3 py-2.5 border cursor-pointer transition-all duration-200"
+            className="font-mono text-[0.65rem] tracking-[1px] px-2 py-2 sm:px-3 sm:py-2.5 border cursor-pointer transition-all duration-200"
             style={{
               color: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--text-muted)",
               borderColor: activeFilter === btn.key ? "var(--accent-cyan)" : "var(--border)",
